@@ -17,7 +17,11 @@ from app.catalog.load import load_catalog
 from app.db import connect
 from app.engine import options as engine_options
 from app.engine.build import FOUND, MINIMUM_COST, OVER_BUDGET, WITHIN_BUDGET, build_package
-from app.engine.options import cheapest_per_signature, find_package_options, signature
+from app.engine.options import (BEST_RATED, CHEAPEST, FASTEST, avg_stars_per_night,
+                                cheapest_per_signature, find_package_options, signature,
+                                travel_minutes)
+from app.engine.build import _Search
+from app.engine.constraints import PlanningConstraints
 from app.export.to_trip import to_trip_json
 from app.main import app
 from app.models import TripRequest
@@ -76,12 +80,12 @@ def menon():
     return find_package_options(_trip(), CAT, WITHIN_BUDGET, count=3)
 
 
-# ------------------------------------------------------------------ 1-2: complete and distinct
+# ------------------------------------------------------------------ 1-2: complete, labelled, distinct
 
-def test_menon_returns_up_to_three_complete_clean_options(menon):
-    assert menon.primary.status == FOUND
-    assert 1 <= len(menon.packages) <= 3
-    assert len(menon.packages) == 3                       # Menon has three distinct options
+def test_menon_returns_three_complete_clean_labelled_options(menon):
+    assert menon.primary.status == FOUND and menon.complete
+    assert len(menon.packages) == 3                       # Menon: three different winners
+    assert menon.labels == ((CHEAPEST,), (FASTEST,), (BEST_RATED,))
     for pkg in menon.packages:
         assert validate_trip(to_trip_json(pkg, CAT), CAT, INITIAL) == []
         assert pkg.arrival_flight and pkg.return_flight
@@ -91,18 +95,53 @@ def test_menon_returns_up_to_three_complete_clean_options(menon):
         assert pkg.total <= pkg.budget
 
 
-def test_menon_options_are_pairwise_distinct_by_signature(menon):
-    sigs = [signature(p) for p in menon.packages]
-    assert len(set(sigs)) == len(sigs)
+def test_cheapest_is_the_proven_minimum(menon):
+    proven = build_package(_trip(), CAT, MINIMUM_COST)
+    assert proven.status == FOUND
+    assert menon.packages[0].total == proven.package.total
+    assert all(p.total >= proven.package.total for p in menon.packages)
 
 
-def test_primary_is_the_package_the_planner_builds(menon):
-    primary = build_package(_trip(), CAT, WITHIN_BUDGET)
-    assert menon.packages[0].total == primary.package.total
-    assert signature(menon.packages[0]) == signature(primary.package)
+def _travel_floor():
+    """A lower bound on travel time over every (city plan, arrival, return) the planner considers:
+    both flight durations plus the quickest transfer the catalog offers for each city change."""
+    search = _Search(_trip(), CAT, PlanningConstraints())
+    floors = []
+    for _, _, plan, arr, ret, slots, _ in search.triples():
+        n = len(plan.stays)
+        legs = sum(min(CAT.indexes.transfers_by_id[t.transfer_id]["duration_minutes"] for _, t in slot)
+                   for slot in slots[n:])
+        floors.append(CAT.indexes.flights_by_id[arr.flight_id]["duration_minutes"]
+                      + CAT.indexes.flights_by_id[ret.flight_id]["duration_minutes"] + legs)
+    return min(floors)
 
 
-# ------------------------------------------------------------------ 3: near-duplicates filtered
+def test_fastest_travels_no_longer_than_any_other_option_and_meets_the_floor(menon):
+    times = [travel_minutes(p, CAT) for p in menon.packages]
+    fastest = times[menon.labels.index((FASTEST,))]
+    assert fastest == min(times) and fastest < times[0]
+    # nothing can travel less than the floor; Menon's budget is wide enough to reach it exactly
+    assert fastest == _travel_floor()
+
+
+def test_travel_time_is_flights_plus_transfers_between_cities(menon):
+    for pkg in menon.packages:
+        flights = sum(CAT.indexes.flights_by_id[f.flight_id]["duration_minutes"]
+                      for f in (pkg.arrival_flight, pkg.return_flight))
+        legs = sum(CAT.indexes.transfers_by_id[t.transfer_id]["duration_minutes"] for t in pkg.intercity)
+        assert travel_minutes(pkg, CAT) == flights + legs
+
+
+def test_best_rated_has_the_highest_average_stars_per_night(menon):
+    stars = [avg_stars_per_night(p, CAT) for p in menon.packages]
+    best = stars[menon.labels.index((BEST_RATED,))]
+    assert best == max(stars) == 5.0                      # 350 000 affords five-star stays
+    pkg = menon.packages[menon.labels.index((BEST_RATED,))]
+    nights = sum(s.nights for s in pkg.plan.stays)
+    by_hand = sum(CAT.indexes.hotels_by_id[h.hotel_id]["stars"] * s.nights
+                  for h, s in zip(pkg.hotels, pkg.plan.stays, strict=True)) / nights
+    assert best == by_hand
+
 
 def test_same_signature_keeps_only_the_cheapest(menon):
     base = menon.packages[0]
@@ -111,7 +150,7 @@ def test_same_signature_keeps_only_the_cheapest(menon):
     assert signature(pricier_twin) == signature(base)
     kept = cheapest_per_signature([pricier_twin, base])
     assert list(kept.values()) == [base]
-    other = menon.packages[1]
+    other = menon.packages[2]                             # a different hotel (five stars)
     kept = cheapest_per_signature([pricier_twin, base, other])
     assert len(kept) == 2 and kept[signature(base)].total == base.total
 
@@ -121,54 +160,56 @@ def test_same_signature_keeps_only_the_cheapest(menon):
 def test_each_option_total_is_its_price_breakdown_and_the_package_total(client, menon):
     _, body = _search(client)
     assert len(body["options"]) == len(menon.packages)
-    for opt, pkg in zip(body["options"], menon.packages):
+    for opt, pkg in zip(body["options"], menon.packages, strict=True):
         parts = opt["preview"]["pricing"]
         assert sum(v for k, v in parts.items() if k != "total_inr") == parts["total_inr"]
         assert opt["total_inr"] == parts["total_inr"] == pkg.total == price_breakdown(pkg)["total_inr"]
         assert opt["budget_remaining_inr"] == opt["budget_inr"] - opt["total_inr"]
 
 
-# ------------------------------------------------------------------ 5: count, headline, note
+# ------------------------------------------------------------------ 5: count, labels, headline, note
 
-def _headline_for(count):
-    return {3: "We found 3 holiday options for your trip",
-            2: "We found 2 distinct holiday options for your search.",
-            1: "We found 1 complete holiday option for your search."}[count]
-
-
-def test_menon_count_headline_and_note_are_truthful(client):
+def test_menon_shows_cheapest_fastest_and_best_rated(client):
     r, body = _search(client)
     assert r.status_code == 200 and body["status"] == "OPTIONS"
     assert body["count"] == len(body["options"]) == 3
-    assert body["headline"] == _headline_for(3) and body["note"] is None
-    assert body["subline"] == "Choose the one you like best"
+    assert [o["labels"] for o in body["options"]] == [["Cheapest"], ["Fastest"], ["Best rated"]]
+    assert [o["badges"] for o in body["options"]] == [o["labels"] for o in body["options"]]
+    assert body["headline"] == "Cheapest, fastest and best rated: three holidays for your trip"
+    assert body["note"] is None and body["subline"] == "Choose the one you like best"
+    stats = [o["stats"] for o in body["options"]]
+    assert stats[1]["travel_minutes"] == min(s["travel_minutes"] for s in stats)
+    assert stats[2]["avg_stars"] == max(s["avg_stars"] for s in stats)
 
 
-def test_two_options_say_two_with_no_note(client):
-    # budget 220 000: the planner's best is 219 884 and the next distinct stay is 219 520 (verified)
+def test_a_tie_puts_two_labels_on_one_card(client):
+    # budget 220 000: no hotel above three stars fits, so the cheapest package is also (tied) best rated
     r, body = _search(client, budget=220_000)
-    assert r.status_code == 200 and body["status"] == "OPTIONS"
-    assert body["count"] == len(body["options"]) == 2
-    assert body["headline"] == _headline_for(2) and body["note"] is None
+    assert r.status_code == 200 and body["count"] == len(body["options"]) == 2
+    assert [o["labels"] for o in body["options"]] == [["Cheapest", "Best rated"], ["Fastest"]]
+    assert body["headline"] == "Two holidays for your trip"
+    assert "carries more than one label" in body["note"]
 
 
-def test_one_option_says_one_and_states_no_more_were_verified(client):
-    # a real request: 4 nights, one adult, Delhi, budget 80 000. The search finished (complete)
-    # and found only one distinct stay pattern within budget.
+def test_one_holiday_can_win_all_three(client):
+    # 4 nights, one adult, Delhi, budget 80 000: the cheapest package is also the fastest and the
+    # best rated one that fits
     r, body = _search(client, nights=4, adults=1, child_ages=[], departure="DEL", budget=80_000)
     assert r.status_code == 200 and body["status"] == "OPTIONS"
     assert body["count"] == len(body["options"]) == 1
-    assert body["headline"] == _headline_for(1)
-    assert body["note"] == "No additional distinct package options were verified."
+    assert body["options"][0]["labels"] == ["Cheapest", "Fastest", "Best rated"]
+    assert body["headline"] == "One holiday for your trip"
 
 
-def test_capped_extra_search_returns_fewer_and_says_so(client, monkeypatch):
-    # the work cap stops the extra search at once: only the primary can be shown, and the note says
-    # that no other option was verified (never that the cheapest was proven)
+def test_capped_search_drops_the_unproven_labels_and_says_so(client, monkeypatch):
+    # the work cap stops the fastest and best-rated searches at once: only the proven cheapest is
+    # shown, and the note says which labels could not be proven (never that they were)
     monkeypatch.setattr(engine_options, "MAX_OPTION_COMBINATIONS", 0)
     r, body = _search(client)
     assert r.status_code == 200 and body["count"] == 1 and len(body["options"]) == 1
-    assert body["note"] == "No additional distinct package options were verified."
+    assert body["options"][0]["labels"] == ["Cheapest"]
+    assert body["note"] == ("We could not prove which holiday is the fastest or best rated within "
+                            "your budget, so that label is not shown.")
     assert body["options"][0]["option_id"] == "opt-1" and body["options"][0]["recommended"] is True
 
 
@@ -233,8 +274,7 @@ def test_minimum_cost_first_option_is_the_proven_minimum(client):
     assert r.status_code == 200 and body["objective"] == MINIMUM_COST
     first = body["options"][0]
     assert first["total_inr"] == proven.package.total
-    assert first["proven_minimum"] is True
-    assert "Proven lowest price for this date" in first["badges"]
+    assert first["proven_minimum"] is True and first["labels"][0] == "Cheapest"
     assert all(o["total_inr"] >= proven.package.total for o in body["options"])
     assert all(o["proven_minimum"] is False for o in body["options"][1:])
 

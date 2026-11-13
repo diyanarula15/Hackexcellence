@@ -124,8 +124,9 @@ const OPTIONS = [
     hotel_summary: '4★ Ginza Pearl Hotel (Tokyo) · 3★ Namba Lodge (Osaka)',
     attractions: ['Senso-ji', 'Ueno Park'],
     experience_summary: '8 visits incl. Senso-ji, Ueno Park, Osaka Castle',
-    stats: { cities: 2, city_changes: 1, transfers: 3, attractions: 8, avg_stars: 3.5 },
-    badges: ['Recommended', 'Lowest price in this set'],
+    stats: { cities: 2, city_changes: 1, transfers: 3, attractions: 8, avg_stars: 3.5, travel_minutes: 1150 },
+    labels: ['Cheapest'],
+    badges: ['Cheapest'],
     differences: [],
     preview: preview(
       233632,
@@ -156,8 +157,9 @@ const OPTIONS = [
     hotel_summary: '4★ Shinjuku Garden Inn (Tokyo) · 4★ Kyoto Riverside (Kyoto)',
     attractions: ['Fushimi Inari'],
     experience_summary: '6 visits incl. Fushimi Inari, Kiyomizu-dera',
-    stats: { cities: 2, city_changes: 1, transfers: 3, attractions: 6, avg_stars: 4 },
-    badges: [],
+    stats: { cities: 2, city_changes: 1, transfers: 3, attractions: 6, avg_stars: 4, travel_minutes: 1030 },
+    labels: ['Fastest'],
+    badges: ['Fastest'],
     differences: ['Different city mix', 'Higher-rated stays'],
     preview: preview(
       247900,
@@ -185,8 +187,9 @@ const OPTIONS = [
     hotel_summary: '3★ Ueno Park Suites (Tokyo)',
     attractions: ['Senso-ji'],
     experience_summary: '5 visits incl. Senso-ji',
-    stats: { cities: 1, city_changes: 0, transfers: 2, attractions: 5, avg_stars: 3 },
-    badges: [],
+    stats: { cities: 1, city_changes: 0, transfers: 2, attractions: 5, avg_stars: 3, travel_minutes: 1290 },
+    labels: ['Best rated'],
+    badges: ['Best rated'],
     differences: ['Different city mix', 'Fewer city changes'],
     preview: preview(
       259450,
@@ -276,14 +279,15 @@ describe('PackageOptions: cards', () => {
     expect(screen.getByText('4★ Ginza Pearl Hotel (Tokyo) · 3★ Namba Lodge (Osaka)')).toBeTruthy();
 
     const stats = [...cards[0].querySelectorAll('.option-card__stat')].map((li) => li.textContent);
-    expect(stats).toEqual(['2 cities', '1 city change', '3 transfers', '8 attractions', '3.5★ avg stars']);
+    expect(stats).toEqual(['2 cities', '1 city change', '3 transfers', '8 attractions', '19h 10m travel', '3.5★ avg per night']);
     expect(container.querySelectorAll('.option-card--skeleton').length).toBe(0);
   });
 
-  it('shows the badges and differences that are in the response, and no differences for option 1', () => {
+  it('shows the Cheapest / Fastest / Best rated labels and differences that are in the response, and no differences for option 1', () => {
     render(<PackageOptions />);
-    expect(screen.getByText('Recommended')).toBeTruthy();
-    expect(screen.getByText('Lowest price in this set')).toBeTruthy();
+    expect(screen.getByText('Cheapest')).toBeTruthy();
+    expect(screen.getByText('Fastest')).toBeTruthy();
+    expect(screen.getByText('Best rated')).toBeTruthy();
     expect(screen.getAllByText('Different city mix').length).toBe(2);
     expect(screen.getByText('Higher-rated stays')).toBeTruthy();
     expect(screen.getByText('Fewer city changes')).toBeTruthy();

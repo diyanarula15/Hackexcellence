@@ -11,6 +11,7 @@ and visits_scope(day).
 from dataclasses import dataclass
 from datetime import date, timedelta
 
+from app.config import AIRPORT_BEFORE_DEPARTURE_MINUTES
 from app.engine.model import ARRIVAL_LEG, DEPARTURE_LEG, Package, intercity_leg_id
 
 ARRIVAL_FLIGHT = "ARRIVAL_FLIGHT"
@@ -86,7 +87,7 @@ def affected_components(change: Change, existing_package: Package) -> Dependency
                 "departure date",
                 "departure airport",
                 "departure pickup",
-                "180-minute buffer",
+                f"{AIRPORT_BEFORE_DEPARTURE_MINUTES}-minute buffer",
             ),
             {DEPARTURE_LEG},
         )
@@ -105,7 +106,7 @@ def affected_components(change: Change, existing_package: Package) -> Dependency
             recheck.append("arrival airport transfer (airport, hotel area, timing)")
         if idx == len(stays) - 1:
             scope.add(DEPARTURE_LEG)
-            recheck.append("departure airport transfer (airport, hotel area, 180-minute buffer)")
+            recheck.append(f"departure airport transfer (airport, hotel area, {AIRPORT_BEFORE_DEPARTURE_MINUTES}-minute buffer)")
         return _impact(change, tuple(recheck), scope)
 
     if kind == AIRPORT_TRANSFER:

@@ -41,6 +41,7 @@ from app.engine.transfers import (find_arrival_transfers, find_intercity_transfe
                                   find_return_transfers)
 from app.export.to_trip import to_trip_json
 from app.rules.common import INITIAL, Party
+from app.rules.transfers import BUFFER_TEXT
 from app.rules.request import check_request, resolve_country
 from app.validate.validate_trip import validate_trip
 from app.lib.money import rupees
@@ -242,7 +243,7 @@ class _Search:
             msg = (f"No airport transfer from {arr.to_airport} reaches a bookable {stays[0].city} hotel "
                    f"after flight {arr.flight_id} lands{locked(ARRIVAL_LEG)}." if no_arr else
                    f"No airport transfer gets from a bookable {stays[-1].city} hotel to {ret.from_airport} "
-                   f"180 minutes before flight {ret.flight_id}{locked(DEPARTURE_LEG)}.")
+                   f"{BUFFER_TEXT} before flight {ret.flight_id}{locked(DEPARTURE_LEG)}.")
             self.fail(LOCKED_CHOICE_INCOMPATIBLE if leg in self.con.locked_transfers else code, plan, msg)
             return None
         out.append(first)
@@ -255,7 +256,7 @@ class _Search:
                 self.fail(LOCKED_CHOICE_INCOMPATIBLE if DEPARTURE_LEG in self.con.locked_transfers
                           else "NO_RETURN_TRANSFER", plan,
                           f"No airport transfer gets from a bookable {stays[-1].city} hotel to "
-                          f"{ret.from_airport} 180 minutes before flight {ret.flight_id}"
+                          f"{ret.from_airport} {BUFFER_TEXT} before flight {ret.flight_id}"
                           f"{locked(DEPARTURE_LEG)}.")
                 return None
             out.append(last)

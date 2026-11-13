@@ -17,7 +17,7 @@ ONE_MINUTE = timedelta(minutes=1)
 
 def find_arrival_transfers(arrival_flight: FlightOption, hotel: HotelOption, party: Party, catalog,
                            locked: TransferLock | None = None) -> list[TransferOption]:
-    """Airport -> hotel transfers. Pickup is the earliest service time >= landing + 60 min and <= landing + 24 h."""
+    """Airport -> hotel transfers. Pickup is the earliest service time >= landing + the pickup buffer (config.py) and <= landing + 24 h."""
     earliest = arrival_flight.arrival + ARRIVAL_MIN_AFTER_LANDING
     latest = arrival_flight.arrival + ARRIVAL_MAX_AFTER_LANDING
     out: list[TransferOption] = []
@@ -40,7 +40,7 @@ def find_arrival_transfers(arrival_flight: FlightOption, hotel: HotelOption, par
 def find_return_transfers(return_flight: FlightOption, hotel: HotelOption, party: Party, catalog,
                           locked: TransferLock | None = None) -> list[TransferOption]:
     """Hotel -> airport transfers. Pickup is the latest service time on the departure date such that
-    pickup + duration <= departure - 180 min."""
+    pickup + duration <= departure - the airport buffer (config.py)."""
     departs = return_flight.departure
     day = departs.date()
     day_start, day_end = _day_bounds(day)

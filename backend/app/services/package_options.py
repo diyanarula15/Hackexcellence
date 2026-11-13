@@ -4,14 +4,21 @@ summaries the frontend shows, and the save of the one option the traveler choose
 Nothing is saved by a search. A search keeps its packages here (30 minutes, at most 100 searches);
 only select() writes one of them to the packages table, as a normal PLANNED package.
 """
+
 import threading
 import time
 import uuid
 from collections import OrderedDict
 from dataclasses import dataclass
 
-from app.engine.build import MINIMUM_COST
-from app.engine.options import OptionSet
+from app.engine.options import (
+    BEST_RATED,
+    CHEAPEST,
+    FASTEST,
+    OptionSet,
+    avg_stars_per_night,
+    travel_minutes,
+)
 from app.export.to_trip import to_trip_json
 from app.lib.time import fmt_dt
 from app.repositories import packages as repo
@@ -21,7 +28,7 @@ from app.validate.validate_trip import validate_trip
 
 TTL_SECONDS = 30 * 60
 MAX_SEARCHES = 100
-PROVEN_BADGE = "Proven lowest price for this date"
+LABEL_ORDER = (CHEAPEST, FASTEST, BEST_RATED)
 
 _lock = threading.Lock()
 _searches: "OrderedDict[str, dict]" = OrderedDict()
@@ -43,6 +50,7 @@ class PlanInvalid(Exception):
 
 # ------------------------------------------------------------------ store
 
+
 def _prune(now: float) -> None:
     """Drop expired searches, then the oldest beyond MAX_SEARCHES. Caller holds _lock."""
     for sid in [k for k, v in _searches.items() if now - v["created"] > TTL_SECONDS]:
@@ -61,6 +69,7 @@ def _get(search_id: str, now: float) -> dict:
 
 # ------------------------------------------------------------------ summaries
 
+
 def _differences(opt: dict, first: dict) -> list[str]:
     """What is different from options[0], each only when true (see the contract)."""
     out = []
@@ -74,42 +83,65 @@ def _differences(opt: dict, first: dict) -> list[str]:
     elif seq != first_seq:
         out.append("Different night split")
     if opt["stats"]["city_changes"] != first["stats"]["city_changes"]:
-        out.append("Fewer city changes" if opt["stats"]["city_changes"] < first["stats"]["city_changes"]
-                   else "More city changes")
+        out.append(
+            "Fewer city changes"
+            if opt["stats"]["city_changes"] < first["stats"]["city_changes"]
+            else "More city changes"
+        )
     if opt["_hotel_ids"] != first["_hotel_ids"]:
         out.append("Different hotel choice")
     if opt["_avg_stars"] != first["_avg_stars"]:
-        out.append("Higher-rated stays" if opt["_avg_stars"] > first["_avg_stars"] else "Simpler stays")
+        out.append(
+            "Higher-rated stays" if opt["_avg_stars"] > first["_avg_stars"] else "Simpler stays"
+        )
+    if opt["stats"]["travel_minutes"] < first["stats"]["travel_minutes"]:
+        out.append("Less time travelling")
     if opt["_flight_ids"] != first["_flight_ids"]:
         out.append("Different flights")
     return out
 
 
-def _summary(pkg, catalog, rank: int, proven: bool) -> dict:
+def _summary(pkg, catalog, rank: int, labels: tuple[str, ...]) -> dict:
     ix = catalog.indexes
     plan = pkg.plan
     n = len(plan.stays)
-    stars = []
     hotels, names = [], []
     for stay, h in zip(plan.stays, pkg.hotels):
         hotel = ix.hotels_by_id.get(h.hotel_id) or {}
         room = ix.rooms_by_id.get(h.room_id) or {}
-        stars.append(hotel.get("stars") or 0)
-        hotels.append({
-            "city": stay.city, "name": hotel.get("name") or h.hotel_id, "stars": hotel.get("stars"),
-            "nights": stay.nights, "room": room.get("name") or h.room_id, "rooms": h.rooms,
-        })
+        hotels.append(
+            {
+                "city": stay.city,
+                "name": hotel.get("name") or h.hotel_id,
+                "stars": hotel.get("stars"),
+                "nights": stay.nights,
+                "room": room.get("name") or h.room_id,
+                "rooms": h.rooms,
+            }
+        )
     visits = sorted(pkg.visits, key=lambda v: (v.start, v.attraction_id))
-    names = [(ix.attractions_by_id.get(v.attraction_id) or {}).get("name") or v.attraction_id for v in visits]
-    avg = sum(stars) / len(stars) if stars else 0.0
-    hotel_parts = [f"{h['stars']:g}★ {h['name']} ({h['city']})" if h["stars"] is not None
-                   else f"{h['name']} ({h['city']})" for h in hotels]
+    names = [
+        (ix.attractions_by_id.get(v.attraction_id) or {}).get("name") or v.attraction_id
+        for v in visits
+    ]
+    avg = avg_stars_per_night(pkg, catalog)  # weighted by nights (G4 best rated)
+    hotel_parts = [
+        f"{h['stars']:g}★ {h['name']} ({h['city']})"
+        if h["stars"] is not None
+        else f"{h['name']} ({h['city']})"
+        for h in hotels
+    ]
 
     def flight(f):
         rec = ix.flights_by_id.get(f.flight_id) or {}
-        return {"flight_number": rec.get("flight_number") or f.flight_id, "airline": rec.get("airline"),
-                "from": f.from_airport, "to": f.to_airport,
-                "depart": fmt_dt(f.departure), "arrive": fmt_dt(f.arrival)}
+        return {
+            "flight_number": rec.get("flight_number") or f.flight_id,
+            "airline": rec.get("airline"),
+            "from": f.from_airport,
+            "to": f.to_airport,
+            "depart": fmt_dt(f.departure),
+            "arrive": fmt_dt(f.arrival),
+        }
 
     arr, ret = pkg.arrival_flight, pkg.return_flight
     city_changes = n - 1
@@ -117,7 +149,8 @@ def _summary(pkg, catalog, rank: int, proven: bool) -> dict:
         "option_id": f"opt-{rank}",
         "rank": rank,
         "recommended": rank == 1,
-        "proven_minimum": proven,
+        "labels": [label for label in LABEL_ORDER if label in labels],
+        "proven_minimum": CHEAPEST in labels,
         "total_inr": pkg.total,
         "budget_inr": pkg.budget,
         "budget_remaining_inr": pkg.budget - pkg.total,
@@ -136,11 +169,17 @@ def _summary(pkg, catalog, rank: int, proven: bool) -> dict:
         "hotels": hotels,
         "hotel_summary": " · ".join(hotel_parts),
         "attractions": names,
-        "experience_summary": (f"{len(names)} visits incl. {', '.join(names[:3])}" if names
-                               else "No planned visits"),
-        "stats": {"cities": len(plan.cities), "city_changes": city_changes,
-                  "transfers": 2 + city_changes, "attractions": len(visits),
-                  "avg_stars": round(avg, 1)},
+        "experience_summary": (
+            f"{len(names)} visits incl. {', '.join(names[:3])}" if names else "No planned visits"
+        ),
+        "stats": {
+            "cities": len(plan.cities),
+            "city_changes": city_changes,
+            "transfers": 2 + city_changes,
+            "attractions": len(visits),
+            "avg_stars": round(avg, 1),
+            "travel_minutes": travel_minutes(pkg, catalog),
+        },
         "badges": [],
         "differences": [],
         "preview": {
@@ -155,28 +194,35 @@ def _summary(pkg, catalog, rank: int, proven: bool) -> dict:
     }
 
 
-def _response(search_id: str, original: dict, objective: str, packages, proven: bool, catalog) -> dict:
-    summaries = [_summary(p, catalog, i + 1, proven and i == 0) for i, p in enumerate(packages)]
+def _response(search_id: str, original: dict, objective: str, found: OptionSet, catalog) -> dict:
+    labels = found.labels or tuple(() for _ in found.packages)
+    summaries = [
+        _summary(p, catalog, i + 1, tuple(lb))
+        for i, (p, lb) in enumerate(zip(found.packages, labels))
+    ]
     first = summaries[0]
-    lowest = min(s["total_inr"] for s in summaries)
     for s in summaries:
         s["differences"] = [] if s is first else _differences(s, first)
-        badges = []
-        if s is first:
-            badges.append("Recommended")
-        if s["proven_minimum"]:
-            badges.append(PROVEN_BADGE)
-        if s["total_inr"] == lowest:
-            badges.append("Lowest price in this set")
-        s["badges"] = badges
+        s["badges"] = list(s["labels"])
     count = len(summaries)
-    if count >= 3:
-        headline, note = "We found 3 holiday options for your trip", None
-    elif count == 2:
-        headline, note = "We found 2 distinct holiday options for your search.", None
-    else:
-        headline = "We found 1 complete holiday option for your search."
-        note = "No additional distinct package options were verified."
+    shown = {label for s in summaries for label in s["labels"]}
+    headline = {
+        3: "Cheapest, fastest and best rated: three holidays for your trip",
+        2: "Two holidays for your trip",
+        1: "One holiday for your trip",
+    }[min(count, 3)]
+    notes = []
+    if count < 3 and len(shown) == len(LABEL_ORDER):
+        notes.append(
+            "One holiday wins more than one of cheapest, fastest and best rated, so it "
+            "carries more than one label."
+        )
+    missing = [label.lower() for label in LABEL_ORDER if label not in shown]
+    if missing:
+        notes.append(
+            f"We could not prove which holiday is the {' or '.join(missing)} within your "
+            "budget, so that label is not shown."
+        )
     for s in summaries:
         for key in ("_hotel_ids", "_avg_stars", "_flight_ids"):
             s.pop(key)
@@ -187,7 +233,7 @@ def _response(search_id: str, original: dict, objective: str, packages, proven: 
         "count": count,
         "headline": headline,
         "subline": "Choose the one you like best",
-        "note": note,
+        "note": " ".join(notes) or None,
         "request": original,
         "options": summaries,
     }
@@ -196,14 +242,17 @@ def _response(search_id: str, original: dict, objective: str, packages, proven: 
 def open_search(trip, original: dict, objective: str, found: OptionSet, catalog) -> dict:
     """Remember the options of one search and return the OPTIONS response. Saves nothing."""
     search_id = uuid.uuid4().hex
-    proven = objective == MINIMUM_COST
-    response = _response(search_id, original, objective, found.packages, proven, catalog)
+    response = _response(search_id, original, objective, found, catalog)
     now = time.monotonic()
     with _lock:
         _prune(now)
         _searches[search_id] = {
-            "created": now, "trip": trip, "original": original, "objective": objective,
-            "primary": found.primary, "complete": found.complete,
+            "created": now,
+            "trip": trip,
+            "original": original,
+            "objective": objective,
+            "primary": found.primary,
+            "complete": found.complete,
             "packages": {f"opt-{i + 1}": p for i, p in enumerate(found.packages)},
             "chosen": {},
         }

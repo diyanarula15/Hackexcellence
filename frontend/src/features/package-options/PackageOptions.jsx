@@ -78,6 +78,13 @@ function BudgetLine({ remaining, budget }) {
   );
 }
 
+/** Flights plus transfers between cities, as "17h 10m" (the G4 "fastest" measure). */
+function formatTravelTime(minutes) {
+  const h = Math.floor(minutes / 60);
+  const m = minutes % 60;
+  return m ? `${h}h ${m}m` : `${h}h`;
+}
+
 function OptionCard({ option, choosing, selecting }) {
   const titleId = useId();
   const { stats } = option;
@@ -86,7 +93,8 @@ function OptionCard({ option, choosing, selecting }) {
     plural(stats.city_changes, 'city change'),
     plural(stats.transfers, 'transfer'),
     plural(stats.attractions, 'attraction'),
-    Number.isFinite(stats.avg_stars) ? `${stats.avg_stars.toFixed(1)}★ avg stars` : null,
+    Number.isFinite(stats.travel_minutes) ? `${formatTravelTime(stats.travel_minutes)} travel` : null,
+    Number.isFinite(stats.avg_stars) ? `${stats.avg_stars.toFixed(1)}★ avg per night` : null,
   ].filter(Boolean);
 
   return (
@@ -104,7 +112,7 @@ function OptionCard({ option, choosing, selecting }) {
       <header className="option-card__head">
         <p className="eyebrow">Option {option.rank}</p>
         {option.badges.length > 0 && (
-          <ul className="option-card__badges" aria-label="Badges">
+          <ul className="option-card__badges" aria-label="Why this option">
             {option.badges.map((badge) => (
               <li key={badge} className="option-card__badge">
                 {badge}

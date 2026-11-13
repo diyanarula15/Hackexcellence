@@ -7,13 +7,13 @@ flight (its scheduled times are never changed); the delay exists only inside thi
 given as the effective landing time.
 
 Outcomes
-  ABSORBED       the saved pickup is still >= simulated landing + 60 min: nothing changes
+  ABSORBED       the saved pickup is still >= simulated landing + the pickup buffer (config.py): nothing changes
   REPAIRED       a valid repair exists inside the arrival dependency scope
                  (arrival transfer -> hotel arrival -> arrival-day / next-day visits)
   UNRECOVERABLE  no repair exists without touching flights, hotels, cities, dates or intercity legs
 
 Repair search (complete over the scope): every airport-transfer service that serves the saved
-arrival airport and first hotel, each at its EARLIEST pickup >= simulated landing + 60 min (an
+arrival airport and first hotel, each at its EARLIEST pickup >= simulated landing + the pickup buffer (an
 earlier pickup is impossible and a later one only blocks more of the day). For each, the visits the
 later hotel arrival collides with are moved later the same day, or - only on the arrival day, where
 visits are optional - removed and disclosed. Candidates are ranked by minimum disruption:
@@ -34,7 +34,7 @@ from app.engine.schedule import find_start, fits, make_visit, transfer_blocks
 from app.engine.transfers import find_arrival_transfers
 from app.export.to_trip import to_trip_json
 from app.rules.common import EDITED, Party, TransferSel, Violation
-from app.rules.transfers import check_airport_transfers
+from app.rules.transfers import PICKUP_TEXT, check_airport_transfers
 from app.validate.validate_trip import validate_trip
 
 ABSORBED, REPAIRED, UNRECOVERABLE = "ABSORBED", "REPAIRED", "UNRECOVERABLE"
@@ -173,7 +173,7 @@ def simulate_arrival_delay(package: Package, delay_minutes: int, catalog) -> Del
                 outcome=ABSORBED, proposed_package=pkg, proposed_pickup=_fmt(pkg.arrival_transfer.pickup),
                 **base, **_money(pkg, pkg),
                 explanation=f"No changes needed: your {pkg.arrival_transfer.pickup:%H:%M} pickup is still at least "
-                            f"60 minutes after a {simulated:%H:%M} landing.")
+                            f"{PICKUP_TEXT} after a {simulated:%H:%M} landing.")
         return DelayScenarioResult(outcome=UNRECOVERABLE, proposed_package=None, violations=problems, **base,
                                    explanation="The saved package does not pass validation, so no scenario "
                                                "repair is offered.")
@@ -194,9 +194,9 @@ def simulate_arrival_delay(package: Package, delay_minutes: int, catalog) -> Del
             ARRIVAL_LEG, AUTOMATIC_REPAIR, "RESCHEDULED" if same_service else "REPLACED",
             _desc_transfer(pkg.arrival_transfer), _desc_transfer(t), t.price - pkg.arrival_transfer.price,
             (f"Same airport transfer, later pickup: {pkg.arrival_transfer.pickup:%H:%M} → {t.pickup:%H:%M} "
-             f"(earliest service time at least 60 minutes after the {simulated:%H:%M} landing).")
+             f"(earliest service time at least {PICKUP_TEXT} after the {simulated:%H:%M} landing).")
             if same_service else
-            (f"The current transfer cannot collect you at least 60 minutes after a {simulated:%H:%M} landing; "
+            (f"The current transfer cannot collect you at least {PICKUP_TEXT} after a {simulated:%H:%M} landing; "
              f"{catalog.indexes.transfers_by_id[t.transfer_id]['name']} can at {t.pickup:%H:%M}."))
         proposed = pkg.with_(arrival_transfer=t, visits=tuple(visits))
         problems = scenario_violations(proposed, simulated, catalog) + normal_violations(proposed, catalog)

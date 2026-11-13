@@ -15,6 +15,7 @@ from app.engine.model import ARRIVAL_LEG, DEPARTURE_LEG
 from app.engine.repair import ChangedItem
 from app.lib.money import rupees
 from app.rules.common import Violation
+from app.rules.transfers import BUFFER_TEXT
 
 _TOKEN = re.compile(r"[A-Za-z0-9][A-Za-z0-9_-]*")
 
@@ -157,10 +158,10 @@ _HEADLINES = (
     ("NO_ARRIVAL_TRANSFER", "No airport transfer can take you from this flight to your hotel."),
     (
         "NO_DEPARTURE_TRANSFER",
-        "No airport transfer can get you to this flight with 180 minutes to spare.",
+        f"No airport transfer can get you to this flight with {BUFFER_TEXT} to spare.",
     ),
     ("NO_INTERCITY_TRANSFER", "No city-to-city transfer works with this change."),
-    ("R-ATR-7", "This transfer would reach the airport less than 180 minutes before your flight."),
+    ("R-ATR-7", f"This transfer would reach the airport less than {BUFFER_TEXT} before your flight."),
     ("R-ATR-6", "This transfer does not run at the time it would be needed."),
     ("R-ATR-5", "This transfer cannot meet your flight at a valid time."),
     ("R-ATR-4", "This transfer does not serve your hotel's area."),

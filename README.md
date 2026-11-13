@@ -27,6 +27,7 @@ Needs Python 3.11+ and Node 18+.
 | Feature | Where |
 |---|---|
 | **Plan a holiday** (M1–M3) - the form's options come from `destinations.json`; invalid values get a message on the field | form → **Plan trip** |
+| **Three packages** (G4) - **Cheapest** (proven lowest total), **Fastest** (least flight time + time on transfers between cities, within budget) and **Best rated** (highest average hotel stars per night, within budget). One package that wins two goes on one card with both labels. Pick one to save it | the options screen after **Plan trip** |
 | **Day-by-day plan** (M4) - flights (departure *and* landing, local times), transfers, check-in/out, visits | the package view |
 | **Total and budget, JSON export** (M5) | price panel → **Export JSON** |
 | **Change the package** (M6, G1, G2) - hotel, flights, transfers, add/remove attractions; every option shows the whole-trip price difference; a preview lists the knock-on repairs (e.g. a new airport bus for a new hotel area) before saving | **Change …** buttons in the timeline |
@@ -42,10 +43,33 @@ Needs Python 3.11+ and Node 18+.
 
 The app chooses the cities itself. It enumerates every valid city plan of the country (cities linked
 by a directed transfer, each ≥ 2 nights, nights adding up), then searches flights, rooms, transfers
-and attractions for all of them with an exact branch-and-bound search. A normal search prefers
-**about one city per three nights** (6 nights → 2 cities), then the cheapest valid package within the
-budget, and prefers an airport pickup on the landing day. If nothing fits the budget, it returns the
-proven cheapest valid package (M8). Flexible dates and "nearest trip" prices use the proven minimum.
+and attractions for all of them with an exact branch-and-bound search. The **Plan trip** screen
+picks each of Cheapest, Fastest and Best rated across every city plan, so the cities are whatever wins
+that measure. `POST /api/packages` (one package) prefers **about one city per three nights**
+(6 nights → 2 cities), then the cheapest valid package within the budget, and an airport pickup on the
+landing day. If nothing fits the budget, both return the proven cheapest valid package (M8). Flexible
+dates and "nearest trip" prices use the proven minimum. The traveler can then pick exact cities,
+order and nights in the Atlas (G3).
+
+## What we finished
+
+| Item | Status |
+|---|---|
+| M1–M8 (form, valid holiday, rules, day plan, total + JSON, change, confirm + reservation, budget too small) | done |
+| G1 change hotel/flights/transfers/attractions with price differences | done |
+| G2 knock-on repairs shown before saving | done |
+| G3 change the city plan (Atlas) | done |
+| G4 Cheapest / Fastest / Best rated | done |
+| S1 quick text request | not built |
+| S2 bookings use up seats and rooms | not built |
+| S3 own ideas | done: flexible dates price calendar, nearest working trip, Delay Rescue, attraction photos and details |
+
+## Rule thresholds
+
+The airport timing rules (section 4) live in one place, `backend/app/config.py`:
+`PICKUP_AFTER_LANDING_MINUTES` (60) and `AIRPORT_BEFORE_DEPARTURE_MINUTES` (180). Change a value and
+restart: the validator, the planner, the change checks, Delay Rescue and every message that names the
+rule use the new value.
 
 ## Architecture (short)
 
@@ -66,6 +90,7 @@ independent validator before it is saved or shown. Details: [`docs/ARCHITECTURE.
 |---|---|
 | `GET /api/health`, `GET /api/meta` | status; form values (airports, countries, dates, nights) |
 | `POST /api/packages` | plan + save (`objective`: `WITHIN_BUDGET` default, or `MINIMUM_COST`) |
+| `POST /api/package-options` · `/{search_id}/select` | Cheapest / Fastest / Best rated (nothing saved) · save the one picked |
 | `GET /api/packages/{id}` · `/export` | saved trip · trip JSON (shared format, section 4 of the data dictionary) |
 | `GET /api/packages/{id}/options?kind=…` | valid replacements for one part, with price differences |
 | `GET /api/packages/{id}/city-plan-options` | Atlas cities, directed connections, night rules and current route/version |
@@ -93,8 +118,14 @@ python3 scripts/demo_smoke.py                            # rehearse the demo aga
   `scripts/expand_catalog.py` with the identical schema; every original record is unchanged. The
   supplied files are kept byte-for-byte in `backups/catalog_original/`;
   `python3 scripts/expand_catalog.py --restore` puts them back (and re-running it re-expands).
-- Not built: G4 (three packages side by side),
-  S1 (quick text request), S2 (bookings using up seats/rooms - confirmation saves a snapshot only).
+  The added countries only show the planner is not tied to Japan/UAE: Japan and UAE packages
+  planned with the expanded catalog pass the validator run against the original files.
+- Not built: S1 (quick text request), S2 (bookings using up seats/rooms - confirmation saves a
+  snapshot only).
+- Fastest and Best rated are exact searches with a work cap. If the cap is hit the label is left
+  off rather than given to a package that was not proven best, and the screen says so.
+- Two attractions have no free-licence photo (ATT-HKT-007, ATT-DAD-010); the rest are credited in
+  [`images/ATTRIBUTIONS.md`](images/ATTRIBUTIONS.md).
 - Delay Rescue's "cannot be repaired" outcome is covered by tests but rare in this catalog.
 - The planner's "proven minimum" is exact within its timing model (earliest airport pickup after
   landing, latest one before the return flight, train/bus departure nearest 10:00).
