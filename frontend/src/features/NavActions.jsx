@@ -48,19 +48,21 @@ export default function NavActions() {
           autoComplete="off"
           spellCheck={false}
         />
-        <button type="submit" className="btn btn--small" disabled={!packageId.trim()}>
-          Open
+        <button type="submit" className="nav-actions__go" disabled={!packageId.trim()} aria-label="Open package">
+          Open →
         </button>
       </form>
-      <button type="button" className="btn btn--small" onClick={exploreDates}>
-        Explore dates
-      </button>
-      <button type="button" className="btn btn--small" onClick={() => openPanel('saved')}>
-        Saved trips
-      </button>
-      <button type="button" className="btn btn--small" onClick={() => openPanel('lookup')}>
-        Find booking
-      </button>
+      <div className="nav-actions__links">
+        <button type="button" className="nav-actions__link" onClick={exploreDates}>
+          Explore dates
+        </button>
+        <button type="button" className="nav-actions__link" onClick={() => openPanel('saved')}>
+          Saved trips
+        </button>
+        <button type="button" className="nav-actions__link" onClick={() => openPanel('lookup')}>
+          Find booking
+        </button>
+      </div>
       <button
         type="button"
         className="btn btn--small btn--primary"

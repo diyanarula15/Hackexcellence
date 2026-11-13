@@ -271,12 +271,16 @@ export function searchAlternative(suggestion) {
   return generatePackage({ objective: 'MINIMUM_COST' });
 }
 
-/** Leave the open package (it stays saved) and go back to an empty result for a new search. */
+/** Leave the open package (it stays saved) and go back to an empty form and result for a new search. */
 export function startNewSearch() {
   alternativesSeq += 1;
   writePackageIdToUrl(null, 'push');
   showResult(EMPTY_RESULT, false);
-  set({ submit: { status: 'idle', fieldErrors: {}, message: null }, alternatives: { status: 'idle', data: null, error: null } });
+  set({
+    form: EMPTY_FORM,
+    submit: { status: 'idle', fieldErrors: {}, message: null },
+    alternatives: { status: 'idle', data: null, error: null },
+  });
 }
 
 /** Load a saved package by id (from the URL, the "open" box, or a retry). */
