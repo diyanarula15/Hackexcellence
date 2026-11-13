@@ -1,16 +1,20 @@
 
 import { Fragment, useEffect, useRef, useState } from 'react';
 import { useStore } from '../state/store.js';
+import { exportReservation } from '../services/reservationsApi.js';
 import PlaneButton from './PlaneButton.jsx';
 import {
   bookingStore,
   dismissChangeNotice,
   exportCurrentPackage,
   generatePackage,
+  openPackage,
   retryResult,
 } from '../state/bookingStore.js';
 import ChangeDrawer from './ChangeDrawer.jsx';
 import DayTimeline from './DayTimeline.jsx';
+import ConfirmHoliday from './reservations/ConfirmHoliday.jsx';
+import BookingConfirmation from './reservations/BookingConfirmation.jsx';
 import { formatDate, formatINR, formatTravelers, humanize, plural, scrollToPlanner } from './format.js';
 const PRICE_ROWS = [
   ['flights', 'Flights'],
@@ -195,12 +199,29 @@ function ChangeNotice() {
   );
 }
 
-function PackageView({ response }) {
+function PackageView({ response, receipt, onConfirmed }) {
   const pkg = response.package;
+  const [reviewOpen, setReviewOpen] = useState(false);
+  const [exportingReservation, setExportingReservation] = useState(false);
+  const [exportError, setExportError] = useState('');
+  const reference = pkg.booking_reference ?? receipt?.reference;
+  const exportBooked = async () => {
+    if (!reference || exportingReservation) return;
+    setExportingReservation(true);
+    setExportError('');
+    try {
+      await exportReservation(reference);
+    } catch (error) {
+      setExportError(error.message);
+    } finally {
+      setExportingReservation(false);
+    }
+  };
   return (
     <div className="pkg">
       <ChangeNotice />
       <ChangeDrawer />
+      {reviewOpen && <ConfirmHoliday pkg={pkg} onClose={() => setReviewOpen(false)} onConfirmed={onConfirmed} />}
       <header className="pkg__header">
         <p className="eyebrow">Your holiday package</p>
         <h2 className="pkg__title" id="results-title">
@@ -220,10 +241,32 @@ function PackageView({ response }) {
 
       {response.status === 'OVER_BUDGET' && <OverBudget response={response} />}
 
+      {reference && (
+        <BookingConfirmation
+          reference={reference}
+          total={receipt?.total_inr ?? pkg.total_inr}
+          confirmedAt={receipt?.confirmed_at ?? (pkg.status === 'BOOKED' ? pkg.updated_at : undefined)}
+          onExport={exportBooked}
+          busy={exportingReservation}
+        />
+      )}
+
       <div className="pkg__grid">
         <aside className="pkg__aside" aria-label="Price and budget">
           <Budget budget={pkg.budget} />
           <Prices pricing={pkg.pricing} />
+          {pkg.status === 'PLANNED' && (
+            <div className="confirm-booking">
+              <button type="button" className="btn btn--primary" onClick={() => setReviewOpen(true)}>Confirm Holiday</button>
+              <p>Confirm this saved itinerary when you are ready to book.</p>
+            </div>
+          )}
+          {reference && (
+            <p className="export__status" aria-live="polite">
+              {exportingReservation && 'Preparing itinerary…'}
+              {exportError && <span className="is-over">{exportError}</span>}
+            </p>
+          )}
           <ExportButton />
           <SavedAs pkg={pkg} />
         </aside>
@@ -238,7 +281,7 @@ function PackageView({ response }) {
   );
 }
 
-function Content({ result }) {
+function Content({ result, receipt, onConfirmed }) {
   const { status, response } = result;
   switch (status) {
     case 'LOADING':
@@ -293,7 +336,7 @@ function Content({ result }) {
         </Notice>
       );
     default:
-      return response?.package ? <PackageView response={response} /> : null;
+      return response?.package ? <PackageView response={response} receipt={receipt} onConfirmed={onConfirmed} /> : null;
   }
 }
 
@@ -301,6 +344,7 @@ function Content({ result }) {
 export default function PackagePanel() {
   const result = useStore(bookingStore, (s) => s.result);
   const ref = useRef(null);
+  const [receipt, setReceipt] = useState(null);
 
   useEffect(() => {
     if (result.focus > 0) ref.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -315,7 +359,14 @@ export default function PackagePanel() {
       aria-labelledby="results-title"
       aria-busy={result.status === 'LOADING'}
     >
-      <Content result={result} />
+      <Content
+        result={result}
+        receipt={receipt?.package_id === result.packageId ? receipt : null}
+        onConfirmed={(confirmation) => {
+          setReceipt(confirmation);
+          openPackage(result.packageId);
+        }}
+      />
     </section>
   );
 }

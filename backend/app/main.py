@@ -6,7 +6,7 @@ from fastapi import FastAPI
 
 from app.catalog.load import load_catalog
 from app.db import create_tables
-from app.routes import health, meta, packages, validate
+from app.routes import health, meta, packages, reservations, validate
 
 
 @asynccontextmanager
@@ -21,3 +21,5 @@ app.include_router(health.router, prefix="/api")
 app.include_router(meta.router, prefix="/api")
 app.include_router(validate.router, prefix="/api")
 app.include_router(packages.router, prefix="/api")
+
+app.include_router(reservations.router, prefix="/api")
