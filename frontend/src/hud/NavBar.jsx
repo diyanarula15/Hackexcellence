@@ -1,19 +1,21 @@
 /**
  * hud/NavBar.jsx - frameless top navigation.
  *
- * Brand placeholder (left) + three placeholder links (right). No background,
- * border or shadow: it floats directly over the 3D scene. A tiny accent dot
- * glides beneath whichever link is hovered or focused.
+ * Wanderline brand mark + wordmark (left); on the right an optional link list
+ * (NAV_LINKS, currently empty) and the actions slot, which holds
+ * features/NavActions.jsx. No background, border or shadow: it floats directly
+ * over the 3D scene. A tiny accent dot glides beneath whichever link is hovered
+ * or focused; keyboard focus also shows the standard 2px accent outline.
  */
 
 import { useState } from 'react';
 import Slot from './Slot.jsx';
 
-/** The app's real navigation lives in the actions slot (features/NavActions.jsx); no placeholder links. */
+/** The app's real navigation lives in the actions slot (features/NavActions.jsx); this list is empty. */
 const NAV_LINKS = [];
 
 /**
- * Placeholder logo mark: ink orbit + accent dot. Swap for the real SVG.
+ * Wanderline logo mark: ink orbit + accent dot (also the favicon in index.html).
  * Colours come from the theme tokens, so it re-skins automatically.
  * @returns {JSX.Element}
  */
@@ -29,7 +31,7 @@ function BrandMark() {
 /**
  * Top navigation bar.
  * @param {{ actions?: React.ReactNode }} props
- *   actions - optional widgets (sign-in button, currency picker…) mounted in
+ *   actions - widgets (saved trips, booking lookup, "Plan holiday" button) mounted in
  *   the [HACKATHON_NAV_ACTIONS_SLOT] to the right of the links.
  * @returns {JSX.Element}
  */
@@ -45,7 +47,7 @@ export default function NavBar({ actions }) {
 
   return (
     <header className="nav">
-      {/* Brand logo placeholder */}
+      {/* Brand */}
       <a className="nav__brand" href="/" aria-label="Wanderline - home">
         <BrandMark />
         <span className="nav__wordmark">Wanderline</span>
@@ -69,7 +71,7 @@ export default function NavBar({ actions }) {
           </ul>
         </nav>}
 
-        {/* [HACKATHON_NAV_ACTIONS_SLOT] - sign-in / profile / currency */}
+        {/* [HACKATHON_NAV_ACTIONS_SLOT] - saved trips / find booking / plan */}
         <Slot name="HACKATHON_NAV_ACTIONS_SLOT" className="slot--nav-actions">
           {actions}
         </Slot>

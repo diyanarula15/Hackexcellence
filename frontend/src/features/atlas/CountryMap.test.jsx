@@ -71,6 +71,25 @@ describe('CountryMap', () => {
     expect(screen.getByRole('button', { name: /Only city map point unavailable/ })).toBeTruthy();
   });
 
+  it('selects the nearest pin when adjacent invisible touch targets overlap', () => {
+    const select = vi.fn();
+    const { container } = render(<CountryMap countryCode="JP"
+      cities={[{ city_id: 'Kyoto', name: 'Kyoto' }, { city_id: 'Osaka', name: 'Osaka' }]}
+      draftRoute={[{ city_id: 'Osaka', nights: 3 }]} onSelectCity={select} />);
+    const kyoto = container.querySelector('.atlas-marker[aria-label="Kyoto"]');
+    const osaka = container.querySelector('.atlas-marker[aria-label="Osaka, draft stop 1"]');
+    const center = (marker) => {
+      const numbers = marker.getAttribute('transform').match(/[-\d.]+/g).map(Number);
+      return { clientX: numbers[0], clientY: numbers[1] - 22 * numbers[2] };
+    };
+    fireEvent.click(osaka.querySelector('.atlas-marker__target'), center(kyoto));
+    expect(select).toHaveBeenLastCalledWith('Kyoto');
+    fireEvent.click(osaka.querySelector('.atlas-marker__target'), center(osaka));
+    expect(select).toHaveBeenLastCalledWith('Osaka');
+    fireEvent.click(kyoto.querySelector('.atlas-marker__label'));
+    expect(select).toHaveBeenLastCalledWith('Kyoto');
+  });
+
   it('zooms the outline and routes around a focused stop without scaling pin hit targets', () => {
     const { container } = render(
       <CountryMap

@@ -23,6 +23,7 @@
   --ink-hair:  color-mix(in srgb, var(--color-ink) 12%, var(--color-canvas));
 
   /* ═══ Modular type scale - 1.25 (Major Third), base 16px ═════════════ */
+  --step--2: 0.6875rem; /* 11px    micro-captions, tiny labels */
   --step--1: 0.8rem;    /* 12.8px  captions, eyebrow          */
   --step-0:  1rem;      /* 16px    body, nav links            */
   --step-1:  1.25rem;   /* 20px    hero tagline               */
@@ -57,6 +58,14 @@
 
   /* Scroll-sequence length - keep equal to SCROLL.trackVh in scene/config.js */
   --scroll-track: 280vh;
+
+  /* Shape — the only radii in the UI (dots / circles use 50%). */
+  --radius-box: 8px;   /* buttons, small boxes   */
+  --radius-card: 12px; /* popovers, cards        */
+
+  /* Hairline used by box buttons (ink at 25%) and their faint fill (ink at 4%). */
+  --box-border: color-mix(in srgb, var(--color-ink) 25%, transparent);
+  --box-fill: color-mix(in srgb, var(--color-ink) 4%, transparent);
 
   /* Motion */
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1);

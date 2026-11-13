@@ -20,6 +20,7 @@ import {
   getTripAlternatives,
   previewPackageChange,
 } from '../services/travelApi.js';
+import { isFieldBlocked } from '../features/quick-request/applyableFields.js';
 
 /** The 7 request fields, as the traveler typed them (strings). */
 export const EMPTY_FORM = Object.freeze({
@@ -72,6 +73,7 @@ const CLOSED_DELAY = Object.freeze({ status: 'idle', batch: null, selected: 60, 
 export const bookingStore = createStore({
   meta: { status: 'idle', data: null, error: null },
   form: EMPTY_FORM,
+  naturalLanguage: { active: false, unresolved: [] },
   /** submit.status: idle | loading | invalid | error */
   submit: { status: 'idle', fieldErrors: {}, message: null },
   result: { ...EMPTY_RESULT, focus: 0 },
@@ -165,6 +167,28 @@ export function setField(name, value) {
     const { [name]: _cleared, ...fieldErrors } = state.submit.fieldErrors;
     return { form: { ...state.form, [name]: value }, submit: { ...state.submit, fieldErrors } };
   });
+}
+
+/** Explicitly apply reviewed NLP values. The live manual form wins over stale interpretations. */
+export function applyParsedTrip(values, baseForm, result, { replaceExisting = false } = {}) {
+  const state = get();
+  const form = { ...state.form };
+  const applied = [], skipped = [];
+  for (const name of Object.keys(EMPTY_FORM)) {
+    const value = values[name];
+    if (value == null || isFieldBlocked(name, result)) continue;
+    if (state.submit.status === 'loading' || form[name] !== baseForm[name] || (!replaceExisting && form[name] !== '')) {
+      skipped.push(name); continue;
+    }
+    form[name] = name === 'child_ages' ? value.join(', ') : String(value);
+    applied.push(name);
+  }
+  const fieldErrors = { ...state.submit.fieldErrors };
+  for (const name of applied) delete fieldErrors[name];
+  set({ form, submit: { ...state.submit, fieldErrors, message: null },
+        naturalLanguage: { active: true, applied, skipped,
+          unresolved: (result.missing_fields ?? []).filter((name) => !applied.includes(name) && form[name] === '') } });
+  return { applied, skipped };
 }
 
 /** A typed number as a number; anything else is sent as typed so the backend can explain it. */
@@ -347,6 +371,7 @@ export function startNewSearch() {
   showResult(EMPTY_RESULT, false);
   set({
     form: EMPTY_FORM,
+    naturalLanguage: { active: false, unresolved: [] },
     submit: { status: 'idle', fieldErrors: {}, message: null },
     alternatives: { status: 'idle', data: null, error: null },
     optionPick: CLOSED_PICK,

@@ -7,6 +7,7 @@ from fastapi import FastAPI
 from app.catalog.load import load_catalog
 from app.db import create_tables
 from app.routes import (
+    natural_language,
     city_plans,
     alternatives,
     attractions,
@@ -48,3 +49,4 @@ app.include_router(
 )  # several package options; save only the chosen one
 
 app.include_router(city_plans.router, prefix="/api")
+app.include_router(natural_language.router, prefix="/api")

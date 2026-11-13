@@ -1,0 +1,50 @@
+/* Describe-your-trip section. Reuses .btn, .eyebrow and the underline field look from features.css. */
+.quick-request { margin: 0 0 var(--space-2); }
+.quick-request__body { padding-bottom: var(--space-1); }
+
+.quick-request__label { display: block; margin-bottom: 2px; }
+.quick-request textarea {
+  display: block;
+  width: 100%;
+  min-height: 56px;
+  resize: vertical;
+  box-sizing: border-box;
+  padding: 6px 2px;
+  border: 0;
+  border-bottom: 1.5px solid var(--ink-soft);
+  border-radius: 0;
+  background: transparent;
+  color: var(--color-ink);
+  font: inherit;
+  transition: border-color 200ms var(--ease-out);
+}
+.quick-request textarea::placeholder { color: var(--ink-soft); }
+.quick-request textarea:focus { outline: none; border-bottom-color: var(--color-accent); }
+
+.quick-request__actions { display: flex; align-items: center; justify-content: space-between; gap: var(--space-1); margin-top: var(--space-1); }
+.quick-request__count { color: var(--ink-muted); font-size: var(--step--1); }
+.quick-request__actions .btn { margin-left: auto; }
+
+.quick-request__status, .quick-request__error, .quick-request__applied { margin: var(--space-1) 0 0; font-size: var(--step--1); }
+.quick-request__status { color: var(--ink-muted); }
+.quick-request__error, .quick-request__notes .is-error, .quick-request__applied { color: var(--color-accent); }
+
+.quick-request__review { margin-top: var(--space-2); padding-top: var(--space-1); border-top: 1px solid var(--ink-hair); }
+.quick-request__review h3 { margin: 0; font-size: var(--step-0); font-weight: var(--weight-medium); }
+.quick-request__summary { margin: 4px 0 var(--space-1); color: var(--ink-muted); font-size: var(--step--1); }
+
+.quick-request__list { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 14rem), 1fr)); column-gap: var(--space-3); margin: 0; }
+.quick-request__item { display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-1); min-width: 0; padding: 6px 0; border-bottom: 1px solid var(--ink-hair); }
+.quick-request__item dt { flex: none; }
+.quick-request__item dd { margin: 0; min-width: 0; overflow-wrap: anywhere; text-align: right; font-size: var(--step--1); font-weight: var(--weight-medium); color: var(--color-ink); }
+.quick-request__item dd small { font-size: var(--step--1); font-weight: var(--weight-body); }
+.quick-request__item.is-ambiguous dt, .quick-request__item.is-ambiguous dd { color: var(--color-accent); }
+
+.quick-request__notes, .quick-request__assumptions { margin-top: var(--space-1); color: var(--ink-muted); font-size: var(--step--1); }
+.quick-request__notes p, .quick-request__assumptions p { margin: 4px 0; }
+.quick-request__notes strong { color: var(--color-ink); font-weight: var(--weight-medium); }
+.quick-request__assumptions summary { cursor: pointer; font-weight: var(--weight-medium); }
+
+.quick-request__replace { display: flex; align-items: center; gap: var(--space-1); margin: var(--space-2) 0 var(--space-1); color: var(--ink-muted); font-size: var(--step--1); }
+.quick-request__replace input { accent-color: var(--color-accent); }
+.quick-request__apply { width: 100%; }

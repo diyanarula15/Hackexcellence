@@ -34,6 +34,36 @@ export default function PhotoCredits() {
     dialogRef.current?.focus();
     const onKey = (event) => {
       if (event.key === 'Escape') setOpen(false);
+      if (event.key !== 'Tab') return;
+
+      const dialog = dialogRef.current;
+      if (!dialog) return;
+      const candidates = [...dialog.querySelectorAll(
+        'button:not(:disabled), a[href], input:not(:disabled), select:not(:disabled), textarea:not(:disabled), [tabindex]:not([tabindex="-1"])',
+      )];
+      const isVisible = (element) => {
+        for (let current = element; current && current !== dialog.parentElement; current = current.parentElement) {
+          const style = window.getComputedStyle(current);
+          if (current.hidden || style.display === 'none' || style.visibility === 'hidden') return false;
+        }
+        return true;
+      };
+      const controls = candidates.filter(isVisible);
+      if (!controls.length) {
+        event.preventDefault();
+        dialog.focus();
+        return;
+      }
+
+      const first = controls[0];
+      const last = controls[controls.length - 1];
+      if (event.shiftKey && (document.activeElement === dialog || document.activeElement === first || !dialog.contains(document.activeElement))) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && (document.activeElement === last || !dialog.contains(document.activeElement))) {
+        event.preventDefault();
+        first.focus();
+      }
     };
     document.addEventListener('keydown', onKey);
     return () => {

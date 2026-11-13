@@ -1,11 +1,14 @@
-// Validation is handled by the backend; this form displays its field-specific errors.
+// Metadata gates incomplete searches; the backend validates every submitted request.
 
+import { useState } from 'react';
 import { useStore } from '../state/store.js';
-import { bookingStore, generatePackage, loadMeta, setField } from '../state/bookingStore.js';
+import { applyParsedTrip, bookingStore, generatePackage, loadMeta, setField } from '../state/bookingStore.js';
 import { budgetHint } from './format.js';
 import PlaneButton from './PlaneButton.jsx';
 import DateField from './DateField.jsx';
 import ExploreDatesButton from './price-landscape/ExploreDatesButton.jsx';
+import QuickRequest, { QuickRequestToggle } from './quick-request/QuickRequest.jsx';
+import { formReadiness } from './quick-request/formReadiness.js';
 
 const FIELD_ORDER = ['departure', 'country', 'start_date', 'nights', 'adults', 'child_ages', 'budget'];
 
@@ -72,10 +75,13 @@ export default function RequestForm() {
   const meta = useStore(bookingStore, (s) => s.meta);
   const form = useStore(bookingStore, (s) => s.form);
   const submit = useStore(bookingStore, (s) => s.submit);
+  const naturalLanguage = useStore(bookingStore, (s) => s.naturalLanguage);
 
+  const [quickOpen, setQuickOpen] = useState(false);
   const options = meta.data;
   const countries = options?.countries ?? [];
   const loading = submit.status === 'loading';
+  const readiness = formReadiness(form, options, naturalLanguage?.unresolved ?? []);
   const bind = (name) => ({ value: form[name], onChange: (e) => setField(name, e.target.value) });
   const { messages, describedBy } = collectMessages(submit.fieldErrors ?? {});
 
@@ -88,6 +94,7 @@ export default function RequestForm() {
       aria-busy={loading}
       onSubmit={(e) => {
         e.preventDefault();
+        if (readiness.length) return;
         generatePackage();
       }}
     >
@@ -95,7 +102,10 @@ export default function RequestForm() {
         <h2 className="planner__title" id="planner-title">
           Build my holiday
         </h2>
-        <ExploreDatesButton />
+        <div className="planner__head-actions">
+          <QuickRequestToggle open={quickOpen} onToggle={() => setQuickOpen((v) => !v)} />
+          <ExploreDatesButton />
+        </div>
         {meta.status === 'error' && (
           <p className="planner__meta-error" role="alert">
             Could not load cities and countries.{' '}
@@ -106,6 +116,8 @@ export default function RequestForm() {
         )}
       </div>
 
+      <QuickRequest form={form} onApply={applyParsedTrip} disabled={loading}
+        departures={options?.departure_airports ?? []} open={quickOpen} onOpenChange={setQuickOpen} />
       <div className="planner__fields">
         <Field name="departure" label="From" describedBy={describedBy.departure}>
           {(props) => (
@@ -183,7 +195,8 @@ export default function RequestForm() {
         <PlaneButton
           type="submit"
           className="planner__submit"
-          label="Plan trip"
+          label="Find Holidays"
+          disabled={readiness.length > 0}
           busyLabel="Choreographing…"
           busy={loading}
           onClick={() => window.dispatchEvent(new CustomEvent('scene:flyby'))}
@@ -191,6 +204,7 @@ export default function RequestForm() {
       </div>
 
       <div className="planner__status" aria-live="polite">
+        {(naturalLanguage?.active || FIELD_ORDER.filter((name) => name !== 'child_ages').every((name) => form[name] !== '')) && readiness.length > 0 && <div><p>Complete or correct these details before searching:</p><ul>{readiness.map((message) => <li key={message}>{message}</li>)}</ul></div>}
         {loading && <p>Choosing cities, flights, hotels, transfers and attractions…</p>}
         {submit.status === 'invalid' && (
           <>

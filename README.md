@@ -26,8 +26,9 @@ Needs Python 3.11+ and Node 18+.
 
 | Feature | Where |
 |---|---|
-| **Plan a holiday** (M1–M3) - the form's options come from `destinations.json`; invalid values get a message on the field | form → **Plan trip** |
-| **Three packages** (G4) - **Cheapest** (proven lowest total), **Fastest** (least time on both flights + transfers between cities; airport transfers and visits don't count) and **Best rated** (highest hotel stars per night, weighted by nights, within budget; guest rating doesn't count). One package that wins two goes on one card with both labels, and each card says why it won. If the fastest costs more than the budget, its card says so, you must accept the price to pick it, and a **Fastest within budget** card is added. Pick one to save it; nothing else is saved | the options screen after **Plan trip** |
+| **Plan a holiday** (M1–M3) - the form's options come from `destinations.json`; invalid values get a message on the field | form → **Find Holidays** |
+| **Describe a holiday (S1)** - turn a short English request into the seven trip fields, review interpretations and clarifications, then choose what to apply | **Describe your holiday** above the form |
+| **Three packages** (G4) - **Cheapest** (proven lowest total), **Fastest** (least time on both flights + transfers between cities; airport transfers and visits don't count) and **Best rated** (highest hotel stars per night, weighted by nights, within budget; guest rating doesn't count). One package that wins two goes on one card with both labels, and each card says why it won. If the fastest costs more than the budget, its card says so, you must accept the price to pick it, and a **Fastest within budget** card is added. Pick one to save it; nothing else is saved | the options screen after **Find Holidays** |
 | **Day-by-day plan** (M4) - flights (departure *and* landing, local times), transfers, check-in/out, visits | the package view |
 | **Total and budget, JSON export** (M5) | price panel → **Export JSON** |
 | **Change the package** (M6, G1, G2) - hotel, flights, transfers, add/remove attractions; every option shows the whole-trip price difference; a preview lists the knock-on repairs (e.g. a new airport bus for a new hotel area) before saving | **Change …** buttons in the timeline |
@@ -60,7 +61,7 @@ order and nights in the Atlas (G3).
 | G2 knock-on repairs shown before saving | done |
 | G3 change the city plan (Atlas) | done |
 | G4 Cheapest / Fastest / Best rated | done |
-| S1 quick text request | not built |
+| S1 quick text request | done |
 | S2 bookings use up seats and rooms | not built |
 | S3 own ideas | done: flexible dates price calendar, nearest working trip, Delay Rescue, attraction photos and details |
 
@@ -89,6 +90,7 @@ independent validator before it is saved or shown. Details: [`docs/ARCHITECTURE.
 | | |
 |---|---|
 | `GET /api/health`, `GET /api/meta` | status; form values (airports, countries, dates, nights) |
+| `POST /api/parse-trip-request` | parse trip text into the seven form fields; optional `reference_date` (ISO date) and `timezone` (default `Asia/Kolkata`); parse only, no planning or saving |
 | `POST /api/packages` | plan + save (`objective`: `WITHIN_BUDGET` default, or `MINIMUM_COST`) |
 | `POST /api/package-options` · `/{search_id}/select` | Cheapest / Fastest / Best rated (nothing saved) · save the one picked |
 | `GET /api/packages/{id}` · `/export` | saved trip · trip JSON (shared format, section 4 of the data dictionary) |
@@ -120,8 +122,7 @@ python3 scripts/demo_smoke.py                            # rehearse the demo aga
   `python3 scripts/expand_catalog.py --restore` puts them back (and re-running it re-expands).
   The added countries only show the planner is not tied to Japan/UAE: Japan and UAE packages
   planned with the expanded catalog pass the validator run against the original files.
-- Not built: S1 (quick text request), S2 (bookings using up seats/rooms - confirmation saves a
-  snapshot only).
+- Not built: S2 (bookings using up seats/rooms - confirmation saves a snapshot only).
 - G4 ties: Fastest and Best rated prefer the lower total, then catalog order. A hotel without a
   star value is never used for Best rated (its stars are not guessed); every hotel in the catalog has one.
   Checked against a brute-force oracle that enumerates all 9,472 combinations of a small request

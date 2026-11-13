@@ -3,7 +3,10 @@
  *
  * Renders a fixed, full-viewport <canvas> BEHIND the HUD and hands it to
  * `createScene`. All 3D logic lives in `createScene.js` + `actors/`; this
- * component only manages lifecycle (mount → start, unmount → dispose).
+ * component only manages lifecycle (mount → start, unmount → dispose), and
+ * renders the hover label ("Flights", "Stays"…) that createScene positions over
+ * the hovered actor. The scene also reacts to the `scene:flyby` window event
+ * (sent by the "Plan trip" button).
  */
 
 import { useEffect, useRef, useState } from 'react';

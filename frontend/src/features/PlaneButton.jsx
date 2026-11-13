@@ -30,6 +30,7 @@ function PlaneIcon({ className }) {
  *   label: string,
  *   busyLabel: string,
  *   busy?: boolean,
+ *   disabled?: boolean,
  *   type?: 'button' | 'submit',
  *   className?: string,
  *   onClick?: (event: React.MouseEvent) => void,
@@ -37,7 +38,7 @@ function PlaneIcon({ className }) {
  *   busy - the action is in flight (the button is disabled and shows `busyLabel`).
  * @returns {JSX.Element}
  */
-export default function PlaneButton({ label, busyLabel, busy = false, type = 'button', className = '', onClick }) {
+export default function PlaneButton({ label, busyLabel, busy = false, disabled = false, type = 'button', className = '', onClick }) {
   const iconRef = useRef(null);
   const timer = useRef(0);
   const [swish, setSwish] = useState(null); // { key, x, y } - where the flying plane starts
@@ -47,7 +48,7 @@ export default function PlaneButton({ label, busyLabel, busy = false, type = 'bu
   useEffect(() => () => clearTimeout(timer.current), []);
 
   function handleClick(event) {
-    if (showBusy) return;
+    if (showBusy || disabled) return;
     onClick?.(event);
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
     const rect = iconRef.current.getBoundingClientRect();
@@ -61,7 +62,7 @@ export default function PlaneButton({ label, busyLabel, busy = false, type = 'bu
       <button
         type={type}
         className={`box-btn${flying ? ' box-btn--flying' : ''} ${className}`}
-        disabled={busy}
+        disabled={busy || disabled}
         onClick={handleClick}
       >
         <span className="box-btn__labels">

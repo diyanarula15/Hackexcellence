@@ -13,6 +13,7 @@ from pydantic import (
     StrictInt,
     StringConstraints,
     TypeAdapter,
+    ValidationInfo,
     field_validator,
     model_validator,
 )
@@ -36,8 +37,8 @@ class TripRequest(BaseModel):
     budget: int = Field(gt=0)
 
     @model_validator(mode="after")
-    def check_against_catalog(self):
-        data = load_catalog()
+    def check_against_catalog(self, info: ValidationInfo):
+        data = (info.context or {}).get("catalog") or load_catalog()
         self.departure_airport = self.departure_airport.strip().upper()
         country = resolve_country(self.destination_country, data)
         if country is not None:
@@ -58,7 +59,7 @@ class TripRequest(BaseModel):
         if violations:
             raise ValueError("; ".join(v.message for v in violations))
 
-        cap = max_travelers()
+        cap = max(f["seats_left"] for f in data.catalog.flights)
         if self.adults + len(self.children_ages) > cap:
             raise ValueError(f"at most {cap} travelers (every traveler needs a flight seat)")
         return self

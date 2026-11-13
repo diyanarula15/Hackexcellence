@@ -102,6 +102,23 @@ export default function CountryMap({
     return [(event.clientX - rect.left - ((rect.width || 1000) - 1000 * scale) / 2) / scale,
       (event.clientY - rect.top - ((rect.height || 620) - 620 * scale) / 2) / scale];
   };
+  const selectMarker = (event, cityId) => {
+    // Nearby cities can share a touch target. Choose the nearest pin when an invisible target
+    // receives the click; painted pins and labels still select the city the traveler can see.
+    if (event.target.classList?.contains('atlas-marker__target')) {
+      const [px, py] = screenPoint(event);
+      const markerScale = 30 / (43 * Math.max(viewScale, 0.1));
+      let nearest = Infinity;
+      for (const city of cities) {
+        const source = cityPoints.get(city.city_id);
+        if (!source) continue;
+        const [x, y] = mapPoint(source);
+        const distance = Math.hypot(px - x, py - (y - 22 * markerScale));
+        if (distance < nearest) { nearest = distance; cityId = city.city_id; }
+      }
+    }
+    onSelectCity?.(cityId);
+  };
   wheelRef.current = (event) => {
     event.preventDefault();
     const delta = event.deltaY * (event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? 300 : 1);
@@ -233,7 +250,7 @@ export default function CountryMap({
                   tabIndex={0}
                   aria-label={`${city.name}${selected ? `, draft stop ${draftNumber}` : ''}${anchor?.approximate ? ', approximate destination anchor' : ''}`}
                   aria-pressed={selected}
-                  onClick={() => onSelectCity?.(city.city_id)}
+                  onClick={(event) => selectMarker(event, city.city_id)}
                   onKeyDown={(event) => {
                     if (event.key === 'Enter' || event.key === ' ') {
                       event.preventDefault();

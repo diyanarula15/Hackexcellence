@@ -98,6 +98,13 @@
   letter-spacing: -0.03em;
 }
 
+.nav__brand:focus-visible,
+.nav__link:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+  border-radius: var(--radius-box);
+}
+
 .nav__mark {
   width: var(--space-3);
   height: var(--space-3);
@@ -124,14 +131,13 @@
   padding: var(--space-1) 0;
   font-size: var(--step-0);
   font-weight: var(--weight-medium);
-  color: color-mix(in srgb, var(--color-ink) 75%, transparent);
+  color: var(--ink-muted);
   transition: color 240ms var(--ease-out);
 }
 
 .nav__link:hover,
 .nav__link:focus-visible {
   color: var(--color-ink);
-  outline: none;
 }
 
 /* Accent micro-state: one tiny dot glides beneath the hovered / focused link. */
@@ -156,7 +162,7 @@
 }
 
 .nav__dot--on.nav__dot--glide {
-  transition: opacity 240ms var(--ease-out), transform 520ms var(--ease-out);
+  transition: opacity 240ms var(--ease-out), transform 240ms var(--ease-out);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -265,7 +271,7 @@
   font-weight: var(--weight-medium);
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: color-mix(in srgb, var(--color-ink) 75%, transparent);
+  color: var(--ink-muted);
   opacity: 0;
   transform: translateY(var(--space-1));
   transition: opacity 400ms var(--ease-out), transform 400ms var(--ease-out);
@@ -402,10 +408,43 @@
   }
 }
 
-/* Very narrow phones: keep the mark, drop the wordmark so three links fit. */
+/* Very narrow phones: keep the mark, drop the wordmark, and tighten the nav so the mark, the
+   links and the action button fit 375px without overlapping. The `.nav` prefix outranks
+   features.css (loaded later) for the action cluster. */
 @media (max-width: 479px) {
+  .nav {
+    gap: var(--space-1);
+    padding: 0 var(--space-2);
+  }
+
+  .nav__brand {
+    flex: none;
+  }
+
   .nav__wordmark {
     display: none;
+  }
+
+  .nav__right {
+    flex: 1 1 auto;
+    justify-content: flex-end;
+    min-width: 0;
+    gap: var(--space-1);
+  }
+
+  .nav .nav-actions,
+  .nav .nav-actions__links {
+    gap: var(--space-1) var(--space-2);
+    min-width: 0;
+  }
+
+  .nav .nav-actions__link {
+    font-size: var(--step--2);
+  }
+
+  .nav .btn--small {
+    padding: 0 var(--space-1);
+    font-size: var(--step--2);
   }
 }
 
