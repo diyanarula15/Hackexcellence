@@ -11,6 +11,7 @@ import {
   repreviewChange,
   selectChangeOption,
   selectChangeSlot,
+  previewSelectedAttractions,
 } from '../state/bookingStore.js';
 import { formatDay, formatDuration, formatINR, formatSignedINR, formatTime, humanize, plural } from './format.js';
 import AttractionPicker from './AttractionPicker.jsx';
@@ -304,6 +305,7 @@ function ErrorBox({ error }) {
 /** @returns {JSX.Element | null} */
 export default function ChangeDrawer() {
   const change = useStore(bookingStore, (s) => s.change);
+  const ticked = useStore(bookingStore, (s) => s.attractionSelection?.length ?? 0);
   const ref = useRef(null);
   const open = change.status !== 'closed';
   const { status } = change;
@@ -318,6 +320,9 @@ export default function ChangeDrawer() {
   const kind = change.options?.kind;
   const selected = change.selectedKey ? { key: change.selectedKey, slot: change.slot } : null;
   const canApply = status === 'preview' && change.preview?.valid && Boolean(change.preview.preview_token);
+  // Ticked attractions with nothing to apply yet: the main button runs the preview, so it is never a dead end.
+  const picking = change.target?.kind === 'attraction';
+  const needsPreview = picking && ticked > 0 && !canApply && !busy;
 
   const onKeyDown = (event) => {
     if (event.key === 'Escape' && status !== 'applying') {
@@ -385,12 +390,21 @@ export default function ChangeDrawer() {
         </div>
 
         <footer className="change-drawer__footer">
+          {picking && !canApply && !needsPreview && status === 'options' && (
+            <p className="change-drawer__hint">Tick attractions (or press Choose on one) to see the price before applying.</p>
+          )}
           <button type="button" className="btn change-cancel" disabled={status === 'applying'} onClick={closeChange}>
             Cancel
           </button>
-          <button type="button" className="btn btn--primary change-apply" disabled={!canApply} onClick={applyChange}>
-            {status === 'applying' ? 'Saving…' : batchCount(change.command) ? `Apply all ${batchCount(change.command)}` : 'Apply change'}
-          </button>
+          {needsPreview ? (
+            <button type="button" className="btn btn--primary change-apply" onClick={(e) => previewSelectedAttractions(e.currentTarget)}>
+              {`Preview ${ticked} attraction${ticked === 1 ? '' : 's'}`}
+            </button>
+          ) : (
+            <button type="button" className="btn btn--primary change-apply" disabled={!canApply} onClick={applyChange}>
+              {status === 'applying' ? 'Saving…' : batchCount(change.command) ? `Apply all ${batchCount(change.command)}` : 'Apply change'}
+            </button>
+          )}
         </footer>
       </div>
     </div>
