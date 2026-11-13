@@ -12,6 +12,10 @@ function utcDay(iso) {
   return new Date(Date.UTC(y, m - 1, d));
 }
 
+/** Rupees with an explicit sign, for a price difference the backend already computed. */
+export const formatSignedINR = (amount) =>
+  Number.isFinite(amount) ? `${amount > 0 ? '+' : amount < 0 ? '-' : ''}${INR.format(Math.abs(amount))}` : '-';
+
 /** "2027-04-10…" → "Sat 10 Apr" */
 export const formatDay = (iso) => (iso ? DAY.format(utcDay(iso)) : '');
 
