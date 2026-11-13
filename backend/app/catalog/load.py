@@ -188,10 +188,21 @@ def build_indexes(c: Catalog) -> Indexes:
     )
 
 
-@lru_cache(maxsize=1)
-def load_catalog() -> Loaded:
-    """Read, validate and index the dataset once. Raises CatalogError on any problem."""
-    c = Catalog(**{f.name: _read(f.name) for f in fields(Catalog)})
+def load_raw() -> dict:
+    """A fresh, independent copy of the 8 catalog files as {name: parsed JSON}."""
+    return {f.name: _read(f.name) for f in fields(Catalog)}
+
+
+def build_loaded(raw: dict) -> Loaded:
+    """Validate and index any same-schema dataset ({name: parsed JSON}). Used for the real
+    catalog and for extended / synthetic catalogs in tests."""
+    c = Catalog(**{f.name: raw[f.name] for f in fields(Catalog)})
     _check_shapes(c)
     _check_references(c)
     return Loaded(catalog=c, indexes=build_indexes(c))
+
+
+@lru_cache(maxsize=1)
+def load_catalog() -> Loaded:
+    """Read, validate and index the dataset once. Raises CatalogError on any problem."""
+    return build_loaded(load_raw())

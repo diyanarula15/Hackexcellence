@@ -283,6 +283,9 @@ def validate_trip(trip: dict, catalog, mode: str = INITIAL) -> list[Violation]:
     if len(arrival_tr) == 1:
         rec = ix.transfers_by_id[arrival_tr[0].transfer_id]
         ready_at[start_date] = arrival_tr[0].pickup + timedelta(minutes=rec["duration_minutes"])
+        # nothing can be visited before the traveler reaches the first hotel, even if that is
+        # after midnight on the following day
+        busy.append(Busy(datetime.min, ready_at[start_date], arrival_tr[0].item_id, "the arrival transfer"))
     for a, b in zip(stays, stays[1:]):
         for m in moves:
             rec = ix.transfers_by_id[m.transfer_id]

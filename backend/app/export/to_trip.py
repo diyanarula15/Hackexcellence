@@ -83,6 +83,8 @@ def to_trip_json(package: dict, data=None) -> dict:
 
     Raises ValueError for an unknown status or a BOOKED package without a valid reference.
     """
+    if hasattr(package, "to_export"):      # an engine Package
+        package = package.to_export()
     status = package.get("status") or "PLANNED"
     if status not in _TRIP_STATUSES:
         raise ValueError(f"status must be PLANNED or BOOKED, got {status!r}")
