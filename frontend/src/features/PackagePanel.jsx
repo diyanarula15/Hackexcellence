@@ -1,10 +1,3 @@
-/**
- * features/PackagePanel.jsx — the result of a request, or a saved package opened by id; mounted in
- * [HACKATHON_PACKAGE_MODIFIER_SLOT] right below the opening sequence.
- *
- * States: LOADING · FOUND · OVER_BUDGET · INFEASIBLE · SEARCH_INCOMPLETE · NOT_FOUND · ERROR.
- * Every amount shown (item prices, breakdown, total, budget left/over) is the backend's number.
- */
 
 import { Fragment, useEffect, useRef, useState } from 'react';
 import { useStore } from '../state/store.js';

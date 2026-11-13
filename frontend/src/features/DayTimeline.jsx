@@ -1,9 +1,4 @@
-/**
- * features/DayTimeline.jsx — the day-by-day plan (M4), rendered from the backend's `days`.
- *
- * Events arrive already in itinerary order (the backend places the two flights by structure and
- * sorts in-country events by local time); this component only formats them.
- */
+// The backend returns events in itinerary order; this component only formats them.
 
 import { formatDay, formatDuration, formatINR, formatTime, humanize, plural } from './format.js';
 
@@ -26,7 +21,7 @@ function LocalTime({ iso, day }) {
   );
 }
 
-/** Text for one event: [time column, title, detail line]. */
+// Returns the time, title, and details shown for an event.
 function describe(event, day) {
   const d = event.display_details ?? {};
   switch (event.kind) {

@@ -1,17 +1,11 @@
-/**
- * features/format.js — display formatting only (no prices or rules are computed here).
- *
- * Every date and time from the backend is LOCAL to its place ("2027-04-10T10:30", no offset).
- * They are never converted: times are read straight from the string, and dates are formatted
- * in UTC so the browser's own time zone cannot shift the day.
- */
+// API times are local to their destination. Format dates in UTC to avoid shifting days by timezone.
 
 const INR = new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 });
 const DAY = new Intl.DateTimeFormat('en-GB', { timeZone: 'UTC', weekday: 'short', day: 'numeric', month: 'short' });
 const DATE = new Intl.DateTimeFormat('en-GB', { timeZone: 'UTC', day: 'numeric', month: 'short', year: 'numeric' });
 
 /** 233632 → "₹2,33,632" */
-export const formatINR = (amount) => (Number.isFinite(amount) ? INR.format(amount) : '—');
+export const formatINR = (amount) => (Number.isFinite(amount) ? INR.format(amount) : '-');
 
 function utcDay(iso) {
   const [y, m, d] = iso.slice(0, 10).split('-').map(Number);
