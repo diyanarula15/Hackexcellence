@@ -116,6 +116,21 @@ export default function ExplorerAtlas({ pkg, onClose, onApplied, onReload }) {
     } finally { inFlight.current = false; applying.current = false; }
   }
   const stale = ['PACKAGE_VERSION_CONFLICT', 'PREVIEW_OUTDATED'].includes(error?.code);
+  // A preview that cannot be booked: say why next to the buttons, where the traveler is looking.
+  const rejected = preview && !preview.valid;
+  const firstReason = [...(preview?.violations ?? []), ...(preview?.warnings ?? [])]
+    .map((item) => (typeof item === 'string' ? item : item?.message)).find(Boolean) ?? '';
+  const rejectedReason = firstReason.replace(/^Every one of the \d+ possible city plan\(s\) fails for this reason:\s*/i, '');
+
+  // The comparison renders below the route editor: bring it into view inside the side column.
+  useEffect(() => {
+    if (!preview) return;
+    const editor = dialogRef.current?.querySelector('.atlas-editor');
+    const comparison = editor?.querySelector('.atlas-comparison');
+    if (!editor || !comparison) return;
+    const top = editor.scrollTop + comparison.getBoundingClientRect().top - editor.getBoundingClientRect().top - 12;
+    editor.scrollTo?.({ top, behavior: 'smooth' });
+  }, [preview]);
 
   return createPortal(
     <div className="atlas-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget && !applying.current) onClose(); }}>
@@ -148,10 +163,13 @@ export default function ExplorerAtlas({ pkg, onClose, onApplied, onReload }) {
             : !options ? <button type="button" className="btn" onClick={load}>Try again</button> : null}
         </div>}
         <footer className="atlas-footer">
-          <div><p role="status" aria-live="polite">{state === 'PREVIEW_LOADING' ? 'Checking flights, hotels, transfers and activities…' : state === 'APPLYING' ? 'Saving your new route…' : unchanged ? 'Choose a city or change its nights to begin.' : errors.length ? 'Resolve the route issues before previewing.' : 'Your saved holiday stays unchanged until you apply.'}</p></div>
+          <div><p role="status" aria-live="polite" className={rejected ? 'atlas-footer__rejected' : undefined}>{state === 'PREVIEW_LOADING' ? 'Checking flights, hotels, transfers and activities…' : state === 'APPLYING' ? 'Saving your new route…'
+            : rejected ? `This route can't be booked${rejectedReason ? `: ${rejectedReason}` : '.'} Change the route, then preview again.`
+            : preview?.valid ? (preview.status === 'OVER_BUDGET' && !acknowledged ? 'This route is above your budget. Tick the box under the comparison to accept the new total, then apply.' : 'Preview ready. Check the new total, then apply.')
+            : unchanged ? 'Choose a city or change its nights to begin.' : errors.length ? 'Resolve the route issues before previewing.' : 'Your saved holiday stays unchanged until you apply.'}</p></div>
           <div className="atlas-footer-actions"><button type="button" className="btn" disabled={state === 'APPLYING'} onClick={onClose}>Keep Current Trip</button>
             {preview?.valid ? <button type="button" className="btn btn--primary" disabled={busy || stale || (preview.status === 'OVER_BUDGET' && !acknowledged)} onClick={apply}>{state === 'APPLYING' ? 'Applying…' : 'Apply New Route'}</button>
-              : <button type="button" className="btn btn--primary" disabled={!options || busy || Boolean(errors.length) || unchanged || stale} onClick={requestPreview}>{state === 'PREVIEW_LOADING' ? 'Building preview…' : 'Preview New Route'}</button>}
+              : <button type="button" className="btn btn--primary" disabled={!options || busy || Boolean(errors.length) || unchanged || stale || rejected} onClick={requestPreview}>{state === 'PREVIEW_LOADING' ? 'Building preview…' : 'Preview New Route'}</button>}
           </div>
         </footer>
       </section>
