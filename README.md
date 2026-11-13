@@ -91,6 +91,8 @@ start.sh           Local application startup
 The homepage preview is stored at `assets/homepage.png`, next to the root `README.md`. Keep both paths unchanged so GitHub displays the image.
 
 See `docs/ARCHITECTURE.md` for the implementation overview, `docs/DEMO.md` for the judging flow, and `images/ATTRIBUTIONS.md` for image credits.
+<img width="1672" height="941" alt="image" src="https://github.com/user-attachments/assets/a5906217-c666-47a1-bb16-3a255b9ca21f" />
+
 
 ## Verification
 
