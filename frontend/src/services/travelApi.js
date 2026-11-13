@@ -56,6 +56,20 @@ export function getPackageOptions(packageId, { kind, stay_id, item_id, date }, o
   return request(packagePath(packageId, 'options'), { query: { kind, stay_id, item_id, date }, ...options });
 }
 
+/**
+ * The four simulated arrival delays (+1h..+4h) for one saved package, evaluated read-only.
+ * Resolves with `{ package_id, base_version, package_status, scheduled_landing, arrival_airport,
+ * original_pickup, scenarios: [...4 scenario views], tested_* minutes, exact_absorbed_tolerance_minutes }`.
+ * 409 PACKAGE_VERSION_CONFLICT when `baseVersion` is no longer the saved version.
+ */
+export function getDelayScenarios(packageId, baseVersion, options) {
+  return request(packagePath(packageId, 'delay-scenarios'), {
+    method: 'POST',
+    body: { base_version: baseVersion },
+    ...options,
+  });
+}
+
 /** Evaluate a change command without saving. Always 200 for an evaluated change, valid or not. */
 export function previewPackageChange(packageId, command, options) {
   return request(packagePath(packageId, 'preview-change'), { method: 'POST', body: command, ...options });

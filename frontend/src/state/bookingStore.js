@@ -13,6 +13,7 @@ import {
   applyPackageChange,
   createPackage,
   exportPackage,
+  getDelayScenarios,
   getMeta,
   getPackage,
   getPackageOptions,
@@ -57,6 +58,16 @@ const CLOSED_CHANGE = Object.freeze({
   notice: null,
 });
 
+/**
+ * delay.status: idle | loading | ready | error | version_conflict | applying
+ * delay.batch: the sweep response for `batch.base_version` of the open package (the four scenarios).
+ * It is kept after closing so reopening the panel for the same version needs no request.
+ * delay.selected: the chosen delay in minutes (60 | 120 | 180 | 240). Switching it never requests.
+ * delay.error: { code, message } for a failed load or save. delay.message: the conflict notice.
+ */
+export const DELAY_LEVELS = Object.freeze([60, 120, 180, 240]);
+const CLOSED_DELAY = Object.freeze({ status: 'idle', batch: null, selected: 60, error: null, message: null });
+
 export const bookingStore = createStore({
   meta: { status: 'idle', data: null, error: null },
   form: EMPTY_FORM,
@@ -65,6 +76,7 @@ export const bookingStore = createStore({
   result: { ...EMPTY_RESULT, focus: 0 },
   exporting: { status: 'idle', name: null, error: null },
   change: CLOSED_CHANGE,
+  delay: CLOSED_DELAY,
 });
 
 const get = bookingStore.getState;
@@ -411,4 +423,148 @@ function restoreFocus() {
     if (el && !el.matches('button')) el.setAttribute('tabindex', '-1');
     el?.focus();
   }, 0);
+}
+
+// ── Delay rescue (simulated arrival delays) ────────────────────────────────
+// Every outcome, price and time here is the backend's. A proposal is only ever shown in the
+// panel: the itinerary on the page changes solely after the traveler saves it.
+let delaySeq = 0;
+let delayTrigger = null;
+
+const VERSION_NOTICE =
+  'Your holiday changed while this check was running, so its results were discarded. The latest saved version is shown below.';
+
+const isVersionConflict = (error) =>
+  error instanceof ApiError &&
+  error.status === 409 &&
+  ['PACKAGE_VERSION_CONFLICT', 'PREVIEW_OUTDATED'].includes(error.body?.error);
+
+const delayError = (error) => ({ code: error.body?.error ?? null, message: error.message });
+
+function patchDelay(patch) {
+  set((state) => ({ delay: { ...state.delay, ...patch } }));
+}
+
+/** Re-read the saved package into the page (no reload). Used after a version conflict. */
+async function refreshPackage(packageId) {
+  resultSeq += 1;
+  try {
+    const response = await getPackage(packageId);
+    set((state) => ({ result: { ...state.result, status: response.status, response, error: null } }));
+  } catch {
+    // The conflict notice still applies; the next open of the panel loads again.
+  }
+}
+
+async function enterVersionConflict(packageId) {
+  patchDelay({ status: 'version_conflict', batch: null, error: null, message: VERSION_NOTICE });
+  await refreshPackage(packageId);
+}
+
+/** Request the four scenarios for one package version. */
+async function loadDelayBatch(packageId, baseVersion) {
+  delaySeq += 1;
+  const mine = delaySeq;
+  patchDelay({ status: 'loading', batch: null, error: null, message: null });
+  try {
+    const batch = await getDelayScenarios(packageId, baseVersion);
+    if (mine !== delaySeq) return;
+    patchDelay({ status: 'ready', batch });
+  } catch (error) {
+    if (mine !== delaySeq) return;
+    if (isVersionConflict(error)) await enterVersionConflict(packageId);
+    else patchDelay({ status: 'error', batch: null, error: delayError(error) });
+  }
+}
+
+/**
+ * Open the delay panel for the open package. The batch is requested once per package version;
+ * reopening for the same version reuses it.
+ * @param {HTMLElement | null} [trigger] the button to return focus to
+ */
+export function openDelayRescue(trigger = null) {
+  const { result, delay } = get();
+  const pkg = currentPackage();
+  if (!result.packageId || !pkg || delay.status === 'applying' || delay.status === 'loading') return;
+  if (trigger) delayTrigger = trigger;
+  const { batch } = delay;
+  if (batch && batch.package_id === result.packageId && batch.base_version === pkg.version) {
+    patchDelay({ status: 'ready', error: null, message: null });
+    return;
+  }
+  loadDelayBatch(result.packageId, pkg.version);
+}
+
+/** Retry after a failed load or save. */
+export function retryDelayRescue() {
+  const { result, delay } = get();
+  const pkg = currentPackage();
+  if (result.packageId && pkg && delay.status !== 'applying') loadDelayBatch(result.packageId, pkg.version);
+}
+
+/** Choose a delay length: switching only changes what is displayed, never requests. */
+export function selectDelay(minutes) {
+  if (!DELAY_LEVELS.includes(minutes) || get().delay.status === 'applying') return;
+  patchDelay({ selected: minutes });
+}
+
+function restoreDelayFocus() {
+  const trigger = delayTrigger;
+  delayTrigger = null;
+  setTimeout(() => {
+    const el = trigger?.isConnected ? trigger : document.getElementById('days-title');
+    if (el && !el.matches('button')) el.setAttribute('tabindex', '-1');
+    el?.focus();
+  }, 0);
+}
+
+/** Close the panel. The batch is kept for this version. Ignored while a repair is being saved. */
+export function closeDelayRescue() {
+  if (get().delay.status === 'applying') return;
+  delaySeq += 1;
+  patchDelay({ status: 'idle', error: null, message: null });
+  restoreDelayFocus();
+}
+
+/**
+ * Save the selected delay's repair. A fresh single preview issues the token the save presents;
+ * the backend re-checks everything. On success the saved package replaces the page's package.
+ */
+export async function applyDelayRescue() {
+  const { delay, result } = get();
+  const scenario = delay.batch?.scenarios.find((s) => s.delay_minutes === delay.selected);
+  if (delay.status !== 'ready' || !scenario?.can_apply) return;
+  delaySeq += 1;
+  const mine = delaySeq;
+  const command = { kind: 'ARRIVAL_DELAY', delay_minutes: delay.selected, base_version: delay.batch.base_version };
+  patchDelay({ status: 'applying', error: null });
+  try {
+    const preview = await previewPackageChange(result.packageId, command);
+    if (mine !== delaySeq) return;
+    if (!preview.can_apply || !preview.preview_token) {
+      patchDelay({
+        status: 'error',
+        error: { code: null, message: preview.apply_blocked_reason ?? 'This repair cannot be saved.' },
+      });
+      return;
+    }
+    const response = await applyPackageChange(result.packageId, {
+      ...command,
+      preview_token: preview.preview_token,
+    });
+    if (mine !== delaySeq) return;
+    resultSeq += 1;
+    const version = response.package?.version ?? response.change?.version;
+    const notice = `Saved. Your holiday is now version ${version}, repaired for a +${command.delay_minutes / 60} h arrival delay.`;
+    set((state) => ({
+      result: { ...state.result, status: response.status ?? 'FOUND', response, error: null },
+      delay: { ...CLOSED_DELAY, selected: state.delay.selected },
+      change: { ...CLOSED_CHANGE, notice },
+    }));
+    restoreDelayFocus();
+  } catch (error) {
+    if (mine !== delaySeq) return;
+    if (isVersionConflict(error)) await enterVersionConflict(result.packageId);
+    else patchDelay({ status: 'error', error: delayError(error) });
+  }
 }

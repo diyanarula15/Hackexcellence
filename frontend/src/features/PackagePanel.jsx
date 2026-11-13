@@ -10,6 +10,7 @@ import {
   retryResult,
 } from '../state/bookingStore.js';
 import ChangeDrawer from './ChangeDrawer.jsx';
+import DelayRescue from './DelayRescue.jsx';
 import DayTimeline from './DayTimeline.jsx';
 import { formatDate, formatINR, formatTravelers, humanize, plural, scrollToPlanner } from './format.js';
 const PRICE_ROWS = [
@@ -201,6 +202,7 @@ function PackageView({ response }) {
     <div className="pkg">
       <ChangeNotice />
       <ChangeDrawer />
+      <DelayRescue />
       <header className="pkg__header">
         <p className="eyebrow">Your holiday package</p>
         <h2 className="pkg__title" id="results-title">

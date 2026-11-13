@@ -11,6 +11,10 @@ repositories.packages. No planning, pricing or travel-rule logic lives here.
   GET  /api/packages/{id}/options      200 alternatives | 404 | 409 BOOKED | 422
   POST /api/packages/{id}/preview-change  200 (valid or not, never saved) | 404 | 409 | 422
   POST /api/packages/{id}/apply-change    200 saved | 404 | 409 | 422
+  POST /api/packages/{id}/delay-scenarios 200 four simulated arrival delays (read-only) | 404 | 409 | 422
+       preview-change / apply-change also take {"kind": "ARRIVAL_DELAY", "delay_minutes": 60|120|180|240,
+       "base_version": n}: preview is read-only (also on a BOOKED package); apply saves only the real
+       schedule repairs of a REPAIRED scenario, never the hypothetical delay.
 """
 
 import json
@@ -27,10 +31,11 @@ from app.catalog.load import load_catalog
 from app.engine.build import FOUND, OVER_BUDGET, WITHIN_BUDGET, build_package
 from app.export.to_trip import to_trip_json
 from app.lib.money import rupees
-from app.models import TripRequest
+from app.models import ARRIVAL_DELAY, TripRequest
 from app.repositories import packages as repo
 from app.rules.common import INITIAL
 from app.rules.request import check_request
+from app.services import delay_rescue
 from app.services import modifications as mods
 from app.services.alternatives import OptionsRequestError
 from app.services.itinerary import present_package
@@ -371,8 +376,44 @@ def package_options(package_id: str, request: Request):
         )
 
 
+def _is_delay(body) -> bool:
+    return isinstance(body, dict) and body.get("kind") == ARRIVAL_DELAY
+
+
+def _delay_preview(package_id: str, body):
+    """ARRIVAL_DELAY preview: a hypothetical scenario, so it is also allowed (read-only) on a BOOKED
+    package; the response then has can_apply false."""
+    stored, error = _load(package_id)
+    if error is not None:
+        return error
+    try:
+        command = mods.parse_change(body)
+    except mods.InvalidChange as e:
+        return JSONResponse(status_code=422, content=e.payload())
+    if command.base_version != stored.version:
+        return _conflict(PREVIEW_STALE, stored.version)
+    return delay_rescue.preview(stored, command, load_catalog())
+
+
+@router.post("/packages/{package_id}/delay-scenarios")
+def delay_scenarios(package_id: str, body: Annotated[Any, Body()] = None):
+    """All four simulated arrival delays (60/120/180/240 min) in one read-only response."""
+    stored, error = _load(package_id)
+    if error is not None:
+        return error
+    try:
+        req = delay_rescue.parse_scenarios_request(body)
+    except mods.InvalidChange as e:
+        return JSONResponse(status_code=422, content=e.payload())
+    if req.base_version != stored.version:
+        return _conflict(PREVIEW_STALE, stored.version)
+    return delay_rescue.sweep(stored, req.base_version, load_catalog())
+
+
 @router.post("/packages/{package_id}/preview-change")
 def preview_change(package_id: str, body: Annotated[Any, Body()] = None):
+    if _is_delay(body):
+        return _delay_preview(package_id, body)
     stored, error = _editable(package_id)
     if error is not None:
         return error
@@ -412,7 +453,10 @@ def apply_change(package_id: str, body: Annotated[Any, Body()] = None):
         return _conflict(APPLY_STALE, stored.version)
     catalog = load_catalog()
     try:
-        saved, change = mods.apply(package_id, command, token, catalog)
+        if command.kind == ARRIVAL_DELAY:   # saves only the real schedule repairs, never the delay
+            saved, change = delay_rescue.apply(package_id, command, token, catalog)
+        else:
+            saved, change = mods.apply(package_id, command, token, catalog)
     except repo.PackageNotFound:
         return JSONResponse(status_code=404, content=NOT_FOUND)
     except repo.PackageLocked:

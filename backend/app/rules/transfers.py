@@ -18,7 +18,11 @@ def check_airport_transfers(
     first_hotel: dict | None,
     last_hotel: dict | None,
     data,
+    effective_landing=None,
 ) -> list[Violation]:
+    """effective_landing (scenario evaluation only, e.g. a simulated delay): check the arrival pickup
+    against this landing time instead of the catalog's scheduled arrival. The catalog is never read
+    differently otherwise; normal validation never passes it."""
     out: list[Violation] = []
     if len(arrival) != 1:
         out.append(Violation(
@@ -27,13 +31,14 @@ def check_airport_transfers(
         out.append(Violation(
             "R-ATR-1", f"Package needs exactly one departure airport transfer, found {len(departure)}."))
     for sel in arrival:
-        out.extend(_check_leg(sel, "arrival", outbound, first_hotel, data))
+        out.extend(_check_leg(sel, "arrival", outbound, first_hotel, data, effective_landing))
     for sel in departure:
         out.extend(_check_leg(sel, "departure", inbound, last_hotel, data))
     return out
 
 
-def _check_leg(sel: TransferSel, leg: str, flight: dict | None, hotel: dict | None, data) -> list[Violation]:
+def _check_leg(sel: TransferSel, leg: str, flight: dict | None, hotel: dict | None, data,
+               effective_landing=None) -> list[Violation]:
     label = f"{leg.capitalize()} transfer {sel.transfer_id}"
     rec = data.indexes.transfers_by_id.get(sel.transfer_id)
     if rec is None:
@@ -61,12 +66,13 @@ def _check_leg(sel: TransferSel, leg: str, flight: dict | None, hotel: dict | No
 
     pickup = sel.pickup
     if leg == "arrival" and flight is not None:
-        landed = parse_dt(flight["arrival_local"])
+        landed = effective_landing or parse_dt(flight["arrival_local"])
         if pickup < landed + ARRIVAL_MIN_AFTER_LANDING or pickup > landed + ARRIVAL_MAX_AFTER_LANDING:
             out.append(Violation(
                 "R-ATR-5",
                 f"{label} picks up at {pickup:%Y-%m-%dT%H:%M}; it must be at least 60 minutes and at most "
-                f"24 hours after landing ({flight['arrival_local'][:16]}).",
+                f"24 hours after landing ({landed:%Y-%m-%dT%H:%M})"
+                + (" (simulated)." if effective_landing else "."),
                 sel.item_id))
 
     if not in_window(pickup, rec["service_from"], rec["service_until"]):

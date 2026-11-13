@@ -77,8 +77,10 @@ CHANGE_AIRPORT_TRANSFER = "CHANGE_AIRPORT_TRANSFER"
 CHANGE_INTERCITY_TRANSFER = "CHANGE_INTERCITY_TRANSFER"
 ADD_ATTRACTION = "ADD_ATTRACTION"
 REMOVE_ATTRACTION = "REMOVE_ATTRACTION"
+ARRIVAL_DELAY = "ARRIVAL_DELAY"   # Phase 5B: a HYPOTHETICAL later landing of the arrival flight
 CHANGE_KINDS = (CHANGE_ARRIVAL_FLIGHT, CHANGE_RETURN_FLIGHT, CHANGE_HOTEL, CHANGE_AIRPORT_TRANSFER,
-                CHANGE_INTERCITY_TRANSFER, ADD_ATTRACTION, REMOVE_ATTRACTION)
+                CHANGE_INTERCITY_TRANSFER, ADD_ATTRACTION, REMOVE_ATTRACTION, ARRIVAL_DELAY)
+DELAY_MINUTES = (60, 120, 180, 240)
 
 _HHMM = re.compile(r"(?:[01]\d|2[0-3]):[0-5]\d")
 _YMD = re.compile(r"\d{4}-\d{2}-\d{2}")
@@ -153,9 +155,16 @@ class RemoveAttraction(_Change):
     item_id: Id                             # target: visit:<attraction id>
 
 
+class ArrivalDelay(_Change):
+    """Simulate the saved arrival flight landing `delay_minutes` later. Targets flight:arrival only.
+    The delay itself is never saved: applying it saves only the resulting real schedule repairs."""
+    kind: Literal["ARRIVAL_DELAY"]
+    delay_minutes: Literal[60, 120, 180, 240]
+
+
 ChangeCommand = Annotated[
     ChangeArrivalFlight | ChangeReturnFlight | ChangeHotel | ChangeAirportTransfer
-    | ChangeIntercityTransfer | AddAttraction | RemoveAttraction,
+    | ChangeIntercityTransfer | AddAttraction | RemoveAttraction | ArrivalDelay,
     Field(discriminator="kind"),
 ]
 CHANGE_COMMAND = TypeAdapter(ChangeCommand)

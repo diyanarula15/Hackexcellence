@@ -1,6 +1,6 @@
 // The backend returns events in itinerary order; this component only formats them.
 
-import { openChange, previewRemoveAttraction } from '../state/bookingStore.js';
+import { openChange, openDelayRescue, previewRemoveAttraction } from '../state/bookingStore.js';
 import { formatDay, formatDuration, formatINR, formatTime, humanize, plural } from './format.js';
 
 const DAY_TITLE = {
@@ -126,6 +126,20 @@ function EventActions({ event }) {
   }
 }
 
+/** Opens the delay-resilience panel for the arrival flight. Read-only for booked packages. */
+function DelayButton({ event }) {
+  return (
+    <button
+      type="button"
+      className="btn btn--small change-trigger delay-trigger"
+      aria-label={`Delay resilience: ${event.name}`}
+      onClick={(e) => openDelayRescue(e.currentTarget)}
+    >
+      Delay resilience
+    </button>
+  );
+}
+
 function Event({ event, day, editable }) {
   const [time, title, detail] = describe(event, day);
   const price = event.price_inr == null ? '' : event.price_inr === 0 ? 'Free' : formatINR(event.price_inr);
@@ -139,6 +153,7 @@ function Event({ event, day, editable }) {
         </p>
         {detail && <p className="event__detail">{detail}</p>}
         {editable && <EventActions event={event} />}
+        {event.item_id === 'flight:arrival' && <DelayButton event={event} />}
       </div>
       <div className="event__price">{price}</div>
     </li>
