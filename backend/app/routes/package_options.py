@@ -26,6 +26,7 @@ OPTION_COUNT = 3
 
 class SelectBody(BaseModel):
     option_id: str
+    accept_over_budget: bool = False
 
 
 @router.post("/package-options")
@@ -52,11 +53,16 @@ def search_package_options(body: Annotated[Any, Body()] = None):
 def select_package_option(search_id: str, body: SelectBody):
     catalog = load_catalog()
     try:
-        package_id, created = store.choose(search_id, body.option_id, catalog)
+        package_id, created = store.choose(search_id, body.option_id, catalog,
+                                           accept_over_budget=body.accept_over_budget)
     except store.SearchExpired:
         return JSONResponse(status_code=404, content={
             "error": "SEARCH_EXPIRED",
             "message": "These options have expired. Search again to see fresh ones."})
+    except store.OverBudgetNotAccepted:
+        return JSONResponse(status_code=409, content={
+            "error": "OVER_BUDGET_NOT_ACCEPTED",
+            "message": "This holiday costs more than your budget. Accept the price to choose it."})
     except store.OptionNotFound:
         return JSONResponse(status_code=404, content={
             "error": "OPTION_NOT_FOUND",

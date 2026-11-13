@@ -67,7 +67,7 @@ describe('Atlas workflow', () => {
   it('keeps incomplete proposals unsaved with no apply action', async () => {
     previewCityPlan.mockResolvedValue({ ...proposal, valid: false, status: 'SEARCH_INCOMPLETE', proposed_package: null, preview_token: null, new_total_inr: null, price_difference_inr: null });
     const user = userEvent.setup(); mount(); await edit(user); await user.click(screen.getByRole('button', { name: 'Preview New Route' }));
-    await screen.findByText('SEARCH_INCOMPLETE'); expect(screen.queryByRole('button', { name: 'Apply New Route' })).toBeNull();
+    await screen.findByText('Search incomplete'); expect(screen.queryByRole('button', { name: 'Apply New Route' })).toBeNull();
     expect(applyCityPlan).not.toHaveBeenCalled();
   });
   it('rejects stale initial options and asks for the latest saved holiday', async () => {

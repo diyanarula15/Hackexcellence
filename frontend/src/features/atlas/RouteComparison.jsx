@@ -19,8 +19,16 @@ function routeText(packageData) {
   return plan.map((stop) => `${stop.city} · ${stop.nights} ${stop.nights === 1 ? 'night' : 'nights'}`).join(' → ');
 }
 
+const STATUS_TEXT = {
+  FOUND: 'Fits your budget',
+  VALID: 'Fits your budget',
+  OVER_BUDGET: 'Over budget',
+  INFEASIBLE: 'Not possible',
+  SEARCH_INCOMPLETE: 'Search incomplete',
+};
+
 function valueName(side) {
-  if (!side) return 'None';
+  if (!side) return null;
   const stamp = (value) => {
     if (!value) return null;
     const day = formatDay(value);
@@ -28,7 +36,7 @@ function valueName(side) {
     return [day, time || null].filter(Boolean).join(' ');
   };
   const period = side.start || side.end
-    ? [stamp(side.start), stamp(side.end)].filter(Boolean).join(' → ')
+    ? [stamp(side.start), stamp(side.end)].filter(Boolean).join(' to ')
     : null;
   const roomParts = [side.room_name, side.room_id].filter((value, index, values) => value && values.indexOf(value) === index);
   const roomDetails = roomParts.length
@@ -36,6 +44,14 @@ function valueName(side) {
     : null;
   return [side.name, side.city, roomDetails, period]
     .filter(Boolean).join(' · ');
+}
+
+/** "Added: X", "Removed: X" or "X → Y"; never a bare "None" for the missing side. */
+function ChangeDetail({ before, after }) {
+  if (!before && !after) return null;
+  if (!before) return <>Added: {after}</>;
+  if (!after) return <>Removed: {before}</>;
+  return <>{before} <span aria-hidden="true">→</span><span className="atlas-sr-only"> changed to </span> {after}</>;
 }
 
 function ChangeList({ items }) {
@@ -49,7 +65,7 @@ function ChangeList({ items }) {
             {item.source === 'AUTOMATIC_REPAIR' ? 'Automatic repair · ' : ''}{item.action?.toLowerCase() ?? 'changed'}
           </span>
           <span className="atlas-comparison__item-detail">
-            {valueName(item.before)} <span aria-hidden="true">→</span> {valueName(item.after)}
+            <ChangeDetail before={valueName(item.before)} after={valueName(item.after)} />
           </span>
           {item.reason && <span className="atlas-comparison__item-reason">{item.reason}</span>}
           {item.price_difference_inr != null && <span className="atlas-comparison__item-price">{formatSignedINR(item.price_difference_inr)}</span>}
@@ -110,7 +126,7 @@ export default function RouteComparison({ preview, currentPackage }) {
           <p className="eyebrow">Route proposal</p>
           <h2>{preview.valid ? 'Review your changes' : 'Route needs changes'}</h2>
         </div>
-        <span className="atlas-comparison__status">{preview.status ?? (preview.valid ? 'Valid proposal' : 'Incomplete proposal')}</span>
+        <span className="atlas-comparison__status">{STATUS_TEXT[preview.status] ?? preview.status ?? (preview.valid ? 'Valid proposal' : 'Incomplete proposal')}</span>
       </header>
 
       <dl className="atlas-comparison__figures">

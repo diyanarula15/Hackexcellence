@@ -27,7 +27,7 @@ Needs Python 3.11+ and Node 18+.
 | Feature | Where |
 |---|---|
 | **Plan a holiday** (M1–M3) - the form's options come from `destinations.json`; invalid values get a message on the field | form → **Plan trip** |
-| **Three packages** (G4) - **Cheapest** (proven lowest total), **Fastest** (least flight time + time on transfers between cities, within budget) and **Best rated** (highest average hotel stars per night, within budget). One package that wins two goes on one card with both labels. Pick one to save it | the options screen after **Plan trip** |
+| **Three packages** (G4) - **Cheapest** (proven lowest total), **Fastest** (least time on both flights + transfers between cities; airport transfers and visits don't count) and **Best rated** (highest hotel stars per night, weighted by nights, within budget; guest rating doesn't count). One package that wins two goes on one card with both labels, and each card says why it won. If the fastest costs more than the budget, its card says so, you must accept the price to pick it, and a **Fastest within budget** card is added. Pick one to save it; nothing else is saved | the options screen after **Plan trip** |
 | **Day-by-day plan** (M4) - flights (departure *and* landing, local times), transfers, check-in/out, visits | the package view |
 | **Total and budget, JSON export** (M5) | price panel → **Export JSON** |
 | **Change the package** (M6, G1, G2) - hotel, flights, transfers, add/remove attractions; every option shows the whole-trip price difference; a preview lists the knock-on repairs (e.g. a new airport bus for a new hotel area) before saving | **Change …** buttons in the timeline |
@@ -122,6 +122,10 @@ python3 scripts/demo_smoke.py                            # rehearse the demo aga
   planned with the expanded catalog pass the validator run against the original files.
 - Not built: S1 (quick text request), S2 (bookings using up seats/rooms - confirmation saves a
   snapshot only).
+- G4 ties: Fastest and Best rated prefer the lower total, then catalog order. A hotel without a
+  star value is never used for Best rated (its stars are not guessed); every hotel in the catalog has one.
+  Checked against a brute-force oracle that enumerates all 9,472 combinations of a small request
+  (`backend/tests/test_g4_recommendations.py`).
 - Fastest and Best rated are exact searches with a work cap. If the cap is hit the label is left
   off rather than given to a package that was not proven best, and the screen says so.
 - Two attractions have no free-licence photo (ATT-HKT-007, ATT-DAD-010); the rest are credited in

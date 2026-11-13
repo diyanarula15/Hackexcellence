@@ -6,7 +6,7 @@
  * "Explore trip" succeeds, and then the store opens that saved package.
  */
 
-import { useEffect, useId, useRef } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useStore } from '../../state/store.js';
 import { bookingStore, choosePackageOption, previewPackageOption, startNewSearch } from '../../state/bookingStore.js';
@@ -85,8 +85,21 @@ function formatTravelTime(minutes) {
   return m ? `${h}h ${m}m` : `${h}h`;
 }
 
+/** An option above the budget is chosen only after the traveler accepts its price. */
+function AcceptPrice({ option, accepted, onChange }) {
+  if (!option.over_budget) return null;
+  return (
+    <label className="option-card__accept">
+      <input type="checkbox" checked={accepted} onChange={(event) => onChange(event.target.checked)} />
+      <span>I accept the price, {formatINR(-option.budget_remaining_inr)} above my budget.</span>
+    </label>
+  );
+}
+
 function OptionCard({ option, choosing, selecting }) {
   const titleId = useId();
+  const [accepted, setAccepted] = useState(false);
+  const blocked = Boolean(option.over_budget) && !accepted;
   const { stats } = option;
   const statItems = [
     plural(stats.cities, 'city', 'cities'),
@@ -121,6 +134,13 @@ function OptionCard({ option, choosing, selecting }) {
           </ul>
         )}
       </header>
+      {option.why?.length > 0 && (
+        <ul className="option-card__why" aria-label="Why it won">
+          {option.why.map((reason) => (
+            <li key={reason.label}>{reason.text}</li>
+          ))}
+        </ul>
+      )}
 
       <div className="option-card__price">
         <p className="eyebrow">Total</p>
@@ -171,6 +191,7 @@ function OptionCard({ option, choosing, selecting }) {
         </ul>
       )}
 
+      <AcceptPrice option={option} accepted={accepted} onChange={setAccepted} />
       <div className="option-card__actions">
         <button type="button" className="btn btn--small" onClick={() => previewPackageOption(option.option_id)}>
           View details
@@ -178,8 +199,8 @@ function OptionCard({ option, choosing, selecting }) {
         <button
           type="button"
           className="btn btn--small btn--primary"
-          disabled={choosing}
-          onClick={() => choosePackageOption(option.option_id)}
+          disabled={choosing || blocked}
+          onClick={() => choosePackageOption(option.option_id, { acceptOverBudget: accepted })}
         >
           Explore trip
         </button>
@@ -230,6 +251,7 @@ function trapTab(event, dialog) {
 /** The read-only preview of one option. Nothing here is saved until "Explore trip". */
 function PreviewDialog({ option, choosing }) {
   const titleId = useId();
+  const [accepted, setAccepted] = useState(false);
   const dialogRef = useRef(null);
   const openerRef = useRef(null);
 
@@ -329,11 +351,12 @@ function PreviewDialog({ option, choosing }) {
 
         <footer className="po-dialog__foot">
           <p className="po-dialog__note">Nothing is saved until you click “Explore trip”.</p>
+          <AcceptPrice option={option} accepted={accepted} onChange={setAccepted} />
           <button
             type="button"
             className="btn btn--primary"
-            disabled={choosing}
-            onClick={() => choosePackageOption(option.option_id)}
+            disabled={choosing || (Boolean(option.over_budget) && !accepted)}
+            onClick={() => choosePackageOption(option.option_id, { acceptOverBudget: accepted })}
           >
             Explore trip
           </button>

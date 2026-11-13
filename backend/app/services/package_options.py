@@ -15,9 +15,11 @@ from app.engine.options import (
     BEST_RATED,
     CHEAPEST,
     FASTEST,
+    FASTEST_IN_BUDGET,
     OptionSet,
     avg_stars_per_night,
     travel_minutes,
+    weighted_stars,
 )
 from app.export.to_trip import to_trip_json
 from app.lib.time import fmt_dt
@@ -28,7 +30,18 @@ from app.validate.validate_trip import validate_trip
 
 TTL_SECONDS = 30 * 60
 MAX_SEARCHES = 100
-LABEL_ORDER = (CHEAPEST, FASTEST, BEST_RATED)
+LABEL_ORDER = (CHEAPEST, FASTEST, FASTEST_IN_BUDGET, BEST_RATED)
+MAIN_LABELS = (CHEAPEST, FASTEST, BEST_RATED)  # the three the problem statement asks for
+# why a card won its label; every label shown is proven (an unproven label is never shown)
+WHY = {
+    CHEAPEST: "Lowest verified total price of any complete valid holiday for your request.",
+    FASTEST: "Least combined time on the arrival flight, the return flight and the transfers "
+    "between cities of any complete valid holiday.",
+    FASTEST_IN_BUDGET: "Least flight and between-city transfer time of any complete valid holiday "
+    "within your budget.",
+    BEST_RATED: "Highest hotel stars per night (weighted by nights) of any complete valid holiday "
+    "within your budget.",
+}
 
 _lock = threading.Lock()
 _searches: "OrderedDict[str, dict]" = OrderedDict()
@@ -40,6 +53,10 @@ class SearchExpired(LookupError):
 
 class OptionNotFound(LookupError):
     pass
+
+
+class OverBudgetNotAccepted(Exception):
+    """The option costs more than the budget and the traveler has not accepted that price."""
 
 
 class PlanInvalid(Exception):
@@ -124,7 +141,10 @@ def _summary(pkg, catalog, rank: int, labels: tuple[str, ...]) -> dict:
         (ix.attractions_by_id.get(v.attraction_id) or {}).get("name") or v.attraction_id
         for v in visits
     ]
-    avg = avg_stars_per_night(pkg, catalog)  # weighted by nights (G4 best rated)
+    avg = avg_stars_per_night(pkg, catalog)  # weighted by nights (G4 best rated); display only
+    exact = weighted_stars(pkg, catalog)
+    minutes = travel_minutes(pkg, catalog)
+    shown = [label for label in LABEL_ORDER if label in labels]
     hotel_parts = [
         f"{h['stars']:g}★ {h['name']} ({h['city']})"
         if h["stars"] is not None
@@ -145,12 +165,15 @@ def _summary(pkg, catalog, rank: int, labels: tuple[str, ...]) -> dict:
 
     arr, ret = pkg.arrival_flight, pkg.return_flight
     city_changes = n - 1
+    plan_nights = sum(stay.nights for stay in plan.stays)
     return {
         "option_id": f"opt-{rank}",
         "rank": rank,
         "recommended": rank == 1,
-        "labels": [label for label in LABEL_ORDER if label in labels],
+        "labels": shown,
+        "why": [{"label": label, "text": WHY[label]} for label in shown],
         "proven_minimum": CHEAPEST in labels,
+        "over_budget": pkg.total > pkg.budget,
         "total_inr": pkg.total,
         "budget_inr": pkg.budget,
         "budget_remaining_inr": pkg.budget - pkg.total,
@@ -177,8 +200,16 @@ def _summary(pkg, catalog, rank: int, labels: tuple[str, ...]) -> dict:
             "city_changes": city_changes,
             "transfers": 2 + city_changes,
             "attractions": len(visits),
-            "avg_stars": round(avg, 1),
-            "travel_minutes": travel_minutes(pkg, catalog),
+            "avg_stars": None if avg is None else round(avg, 1),
+            "travel_minutes": minutes,
+        },
+        # the exact values the labels were chosen by (stats are rounded for display)
+        "metrics": {
+            "total_inr": pkg.total,
+            "travel_minutes": minutes,
+            "weighted_hotel_stars": avg,
+            "star_nights": None if exact is None else exact.numerator * plan_nights // exact.denominator,
+            "hotel_nights": plan_nights,
         },
         "badges": [],
         "differences": [],
@@ -207,21 +238,30 @@ def _response(search_id: str, original: dict, objective: str, found: OptionSet, 
     count = len(summaries)
     shown = {label for s in summaries for label in s["labels"]}
     headline = {
+        4: "Cheapest, fastest and best rated: four holidays for your trip",
         3: "Cheapest, fastest and best rated: three holidays for your trip",
         2: "Two holidays for your trip",
         1: "One holiday for your trip",
-    }[min(count, 3)]
+    }[min(count, 4)]
     notes = []
-    if count < 3 and len(shown) == len(LABEL_ORDER):
+    if any(len(s["labels"]) > 1 for s in summaries):
         notes.append(
             "One holiday wins more than one of cheapest, fastest and best rated, so it "
             "carries more than one label."
         )
-    missing = [label.lower() for label in LABEL_ORDER if label not in shown]
+    if any(s["over_budget"] for s in summaries):
+        notes.append(
+            "The fastest holiday costs more than your budget; the fastest one within your budget "
+            "is shown too."
+            if FASTEST_IN_BUDGET in shown
+            else "The fastest holiday costs more than your budget."
+        )
+    unproven = [label.lower() for label in found.unproven if label in MAIN_LABELS]
+    missing = unproven or [label.lower() for label in MAIN_LABELS if label not in shown]
     if missing:
         notes.append(
-            f"We could not prove which holiday is the {' or '.join(missing)} within your "
-            "budget, so that label is not shown."
+            f"We could not prove which holiday is the {' or '.join(missing)}, so that label "
+            "is not shown."
         )
     for s in summaries:
         for key in ("_hotel_ids", "_avg_stars", "_flight_ids"):
@@ -259,9 +299,12 @@ def open_search(trip, original: dict, objective: str, found: OptionSet, catalog)
     return response
 
 
-def choose(search_id: str, option_id: str, catalog) -> tuple[str, bool]:
+def choose(
+    search_id: str, option_id: str, catalog, accept_over_budget: bool = False
+) -> tuple[str, bool]:
     """Save one option as a PLANNED package. Returns (package_id, created). Choosing the same option
-    of the same search again returns the package saved the first time."""
+    of the same search again returns the package saved the first time. An option above the budget
+    is saved only when the traveler accepted its price (accept_over_budget)."""
     with _lock:
         entry = _get(search_id, time.monotonic())
         package = entry["packages"].get(option_id)
@@ -270,6 +313,8 @@ def choose(search_id: str, option_id: str, catalog) -> tuple[str, bool]:
         existing = entry["chosen"].get(option_id)
         if existing is not None:
             return existing, False
+        if package.total > package.budget and not accept_over_budget:
+            raise OverBudgetNotAccepted(option_id)
         violations = validate_trip(to_trip_json(package, catalog), catalog, INITIAL)
         if violations:
             raise PlanInvalid(violations)

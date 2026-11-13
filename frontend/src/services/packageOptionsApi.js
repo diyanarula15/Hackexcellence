@@ -14,10 +14,11 @@ export function searchPackageOptions(trip, options) {
 }
 
 /** @returns {Promise<object>} the same envelope as POST /api/packages (201) for the saved package */
-export function selectPackageOption(searchId, optionId, options) {
+export function selectPackageOption(searchId, optionId, { acceptOverBudget = false, ...options } = {}) {
+  // accept_over_budget: the traveler accepted the price of an option above the budget (else 409)
   return request(`/api/package-options/${encodeURIComponent(searchId)}/select`, {
     method: 'POST',
-    body: { option_id: optionId },
+    body: acceptOverBudget ? { option_id: optionId, accept_over_budget: true } : { option_id: optionId },
     ...options,
   });
 }

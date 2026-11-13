@@ -2,25 +2,33 @@
 
     Cheapest    the lowest total price (the proven minimum build_package finds)
     Fastest     the least total travel time: both flight durations plus every transfer between
-                cities, within budget
+                cities. Not limited by budget (the problem statement puts "within budget" on best
+                rated only). When it costs more than the budget the card says so, the traveler must
+                accept the price to choose it, and "Fastest within budget" is added.
     Best rated  the highest average hotel stars per night (guest rating does not count), within
-                budget
+                budget. A hotel with no star value is never used for this label: it cannot be
+                compared, and its stars are never guessed.
+
+Travel time is not airport transfers, attraction visits or nights in hotels.
 
 Ties: when one package is best on two criteria it is shown once and carries both labels. A tie in
 the metric itself counts as best too ("on a tie show either one"), so the cheapest package also
-carries Fastest when no package travels less, and so on.
+carries Fastest when no package travels less, and so on. Fastest and Best rated prefer the lower
+total on a tie, then the search order (catalog order), so the answer is deterministic.
 
-Fastest and Best rated use a best-first search over the same triples and slots build.py uses. Each
-slot option is keyed (metric, cost) as one integer, metric * _SCALE + cost, so the slot product is
-visited in metric order and, within one metric value, in cost order. The first validated
-within-budget package at the lowest metric is the answer; a tie in the metric goes to the cheaper
-one.
+Fastest and Best rated use a best-first search over the same triples and slots build.py uses, so
+every objective has the same feasibility rules. Each slot option is keyed (metric, cost) as one
+integer, metric * _SCALE + cost, so the slot product is visited in metric order and, within one
+metric value, in cost order. Pruning is safe: a triple's metric floor (fixed part plus the smallest
+metric per slot) never exceeds the metric of any of its packages. Stars are compared exactly
+(integers, or Fraction), never rounded.
 
-Honesty: that search is capped (MAX_OPTION_COMBINATIONS). When the cap is hit `complete` is False
-and the label is not given to a package that was not proven best.
+Honesty: that search is capped (MAX_OPTION_COMBINATIONS). When the cap is hit the label is not given
+to a package that was not proven best; the label is listed in `unproven` instead.
 """
 
 from dataclasses import dataclass
+from fractions import Fraction
 
 from app.engine.build import (
     FOUND,
@@ -39,17 +47,19 @@ from app.validate.validate_trip import validate_trip
 
 MAX_OPTION_COMBINATIONS = 20_000  # work cap for each labelled search (the cheapest has its own)
 CHEAPEST, FASTEST, BEST_RATED = "Cheapest", "Fastest", "Best rated"
+FASTEST_IN_BUDGET = "Fastest within budget"
 MAX_STARS = 5
-_SCALE = 10**9  # above any sum of slot prices, so metric * _SCALE + cost sorts
-# by metric first and by cost second
+# above any sum of slot prices, so metric * _SCALE + cost sorts by metric first and by cost second
+_SCALE = 10**9
 
 
 @dataclass(frozen=True)
 class OptionSet:
     primary: PlanningResult
     packages: tuple[Package, ...]  # empty unless primary is FOUND
-    complete: bool  # False when a labelled search hit its cap
-    labels: tuple[tuple[str, ...], ...] = ()  # aligned with packages
+    complete: bool  # False when a labelled search stopped before a proof
+    labels: tuple[tuple[str, ...], ...] = ()  # aligned with packages; every label is proven
+    unproven: tuple[str, ...] = ()  # labels whose search stopped before a proof
 
 
 def signature(package: Package) -> tuple:
@@ -74,6 +84,8 @@ def cheapest_per_signature(packages) -> dict:
 
 
 def _flight_minutes(flight, catalog) -> int:
+    """The catalog's elapsed duration. Local departure and arrival times are in different time
+    zones, so they are never subtracted when the catalog gives the duration."""
     rec = catalog.indexes.flights_by_id.get(flight.flight_id) or {}
     if rec.get("duration_minutes") is not None:
         return int(rec["duration_minutes"])
@@ -84,8 +96,12 @@ def _transfer_minutes(t) -> int:
     return int((t.arrive - t.pickup).total_seconds() // 60)
 
 
-def _stars(hotel_id: str, catalog) -> int:
-    return int((catalog.indexes.hotels_by_id.get(hotel_id) or {}).get("stars") or 0)
+def _stars(hotel_id: str, catalog) -> int | None:
+    """The catalog star class, or None when the hotel has none (never the guest rating)."""
+    stars = (catalog.indexes.hotels_by_id.get(hotel_id) or {}).get("stars")
+    if isinstance(stars, bool) or not isinstance(stars, (int, float)):
+        return None
+    return int(stars)
 
 
 def _nights(h) -> int:
@@ -101,17 +117,20 @@ def travel_minutes(pkg: Package, catalog) -> int:
     )
 
 
-def avg_stars_per_night(pkg: Package, catalog) -> float:
-    """Hotel stars weighted by nights (G4 "best rated"); guest rating does not count."""
+def weighted_stars(pkg: Package, catalog) -> Fraction | None:
+    """Hotel stars weighted by nights (G4 "best rated"), exact. The number of rooms does not weight
+    it and guest rating does not count. None when a hotel has no star value."""
     nights = sum(_nights(h) for h in pkg.hotels)
-    if not nights:
-        return 0.0
-    return sum(_stars(h.hotel_id, catalog) * _nights(h) for h in pkg.hotels) / nights
+    stars = [_stars(h.hotel_id, catalog) for h in pkg.hotels]
+    if not nights or any(s is None for s in stars):
+        return None
+    return Fraction(sum(s * _nights(h) for s, h in zip(stars, pkg.hotels, strict=True)), nights)
 
 
-def _star_deficit(pkg: Package, catalog) -> int:
-    """Sum over nights of (MAX_STARS - stars): lower is better rated, and an exact integer."""
-    return sum((MAX_STARS - _stars(h.hotel_id, catalog)) * _nights(h) for h in pkg.hotels)
+def avg_stars_per_night(pkg: Package, catalog) -> float | None:
+    """weighted_stars as a float, for display and JSON only (never for choosing a winner)."""
+    exact = weighted_stars(pkg, catalog)
+    return None if exact is None else float(exact)
 
 
 # ------------------------------------------------------------------ search
@@ -125,19 +144,22 @@ class _Capped(Exception):
     pass
 
 
-def _best_by(s: _Search, triples, budget: int, slot_metric, fixed_metric):
-    """The validated package with total <= budget that has the lowest metric, the cheaper on a tie.
-    slot_metric(k, n, payload) -> int for slot k of a plan with n stays; fixed_metric(arr, ret) -> int.
-    Raises _Capped when the work cap is hit."""
+def _best_by(s: _Search, triples, budget, slot_metric, fixed_metric):
+    """The validated package with total <= budget (None: any total) that has the lowest metric, the
+    cheaper on a tie. slot_metric(k, n, payload) -> int for slot k of a plan with n stays, or None to
+    leave that option out; fixed_metric(arr, ret) -> int. Raises _Capped when the work cap is hit."""
+    budget = float("inf") if budget is None else budget
     keyed = []
     for bound, key, plan, arr, ret, slots, floor in triples:
         if bound > budget:
             continue
         n = len(plan.stays)
-        mslots = [
-            sorted(((slot_metric(k, n, p) * _SCALE + c, p) for c, p in slot), key=lambda x: x[0])
-            for k, slot in enumerate(slots)
-        ]
+        mslots = []
+        for k, slot in enumerate(slots):
+            scored = [(m, c, p) for c, p in slot if (m := slot_metric(k, n, p)) is not None]
+            mslots.append(sorted(((m * _SCALE + c, p) for m, c, p in scored), key=lambda x: x[0]))
+        if not all(mslots):
+            continue  # a slot with no usable option (e.g. no hotel with a star value)
         fixed = fixed_metric(arr, ret)
         lower_metric = fixed + sum(m[0][0] // _SCALE for m in mslots)
         keyed.append((lower_metric, bound, key, fixed, plan, arr, ret, mslots, floor))
@@ -181,27 +203,27 @@ def _fastest(s, triples, budget, catalog):
 
 
 def _best_rated(s, triples, budget, catalog):
-    return _best_by(
-        s,
-        triples,
-        budget,
-        lambda k, n, p: (
-            0 if k >= n else (MAX_STARS - _stars(p[0].hotel_id, catalog)) * _nights(p[0])
-        ),
-        lambda arr, ret: 0,
-    )
+    def deficit(k, n, p):
+        """Sum over the stay's nights of (MAX_STARS - stars): exact, lower is better rated."""
+        if k >= n:
+            return 0
+        stars = _stars(p[0].hotel_id, catalog)
+        return None if stars is None else (MAX_STARS - stars) * _nights(p[0])
+
+    return _best_by(s, triples, budget, deficit, lambda arr, ret: 0)
 
 
 def find_package_options(
     request, catalog, objective: str = WITHIN_BUDGET, count: int = 3
 ) -> OptionSet:
-    """Cheapest, Fastest and Best rated, merged when one package wins more than one. `count` is kept
-    for callers; at most three packages are returned (fewer when packages tie)."""
+    """Cheapest, Fastest and Best rated, merged when one package wins more than one (plus Fastest
+    within budget when the fastest costs more than the budget). `count` is kept for callers."""
     primary = build_package(request, catalog, objective)
     if primary.status != FOUND or primary.package is None:
         return OptionSet(primary, (), True)
     if not _clean(primary.package, catalog):
         return OptionSet(primary, (), True)  # build_package's own check is re-run by the route
+    budget = request.budget
     enrich_mode = "BUDGET" if objective == WITHIN_BUDGET else "FREE"
 
     # Cheapest: the proven minimum. If that search could not finish, the label is not given.
@@ -210,32 +232,55 @@ def find_package_options(
     )
     cheapest_proven = minimum.status == FOUND and minimum.package is not None
     cheapest = minimum.package if cheapest_proven else primary.package
+    unproven = [] if cheapest_proven else [CHEAPEST]
     if count <= 1:
-        return OptionSet(primary, (cheapest,), True, ((CHEAPEST,) if cheapest_proven else (),))
+        labels = ((CHEAPEST,) if cheapest_proven else (),)
+        return OptionSet(primary, (cheapest,), not unproven, labels, tuple(unproven))
 
     s = _Search(request, catalog, PlanningConstraints())
-    complete = True
-    found: dict[str, Package | None] = {}
     triples = s.triples()
-    for label, search in ((FASTEST, _fastest), (BEST_RATED, _best_rated)):
-        try:
-            pkg = search(s, triples, request.budget, catalog)
-        except _Capped:
-            complete, pkg = False, None
-        if pkg is not None:
-            richer = s.enrich(pkg, enrich_mode)
-            pkg = richer if richer.total <= request.budget else pkg
-        found[label] = pkg
 
-    # one card per winner; a package that ties the best metric takes the label instead of a new card
+    def run(label, search, limit):
+        try:
+            pkg = search(s, triples, limit, catalog)
+        except _Capped:
+            unproven.append(label)
+            return None
+        if pkg is None:
+            return None
+        richer = s.enrich(pkg, enrich_mode if pkg.total <= budget else "FREE")
+        return richer if (richer.total <= budget or pkg.total > budget) else pkg
+
+    found = {FASTEST: run(FASTEST, _fastest, None)}
+    if found[FASTEST] is not None and found[FASTEST].total > budget:
+        found[FASTEST_IN_BUDGET] = run(FASTEST_IN_BUDGET, _fastest, budget)
+    found[BEST_RATED] = run(BEST_RATED, _best_rated, budget)
+
+    # one card per winner; a package that ties the winning metric takes the label instead of a new
+    # card. Only the global Fastest label may sit on a card above the budget.
+    def stars_key(p):
+        w = weighted_stars(p, catalog)
+        return Fraction(1) if w is None else -w  # no star value: never ties a real rating
+
+    metric = {
+        FASTEST: lambda p: travel_minutes(p, catalog),
+        FASTEST_IN_BUDGET: lambda p: travel_minutes(p, catalog),
+        BEST_RATED: stars_key,
+    }
     cards: list[tuple[Package, list[str]]] = [(cheapest, [CHEAPEST] if cheapest_proven else [])]
-    metric = {FASTEST: travel_minutes, BEST_RATED: lambda p, c: -avg_stars_per_night(p, c)}
-    for label in (FASTEST, BEST_RATED):
-        pkg = found[label]
+    for label in (FASTEST, FASTEST_IN_BUDGET, BEST_RATED):
+        pkg = found.get(label)
         if pkg is None:
             continue
-        score = metric[label](pkg, catalog)
-        holder = next((c for c in cards if metric[label](c[0], catalog) <= score), None)
+        score = metric[label](pkg)
+        holder = next(
+            (
+                c
+                for c in cards
+                if metric[label](c[0]) <= score and (label == FASTEST or c[0].total <= budget)
+            ),
+            None,
+        )
         if holder is not None:
             holder[1].append(label)
         else:
@@ -244,5 +289,9 @@ def find_package_options(
     # every final option is re-checked; a failing one is dropped, never shown
     cards = [c for c in cards if _clean(c[0], catalog)]
     return OptionSet(
-        primary, tuple(c[0] for c in cards), complete, tuple(tuple(c[1]) for c in cards)
+        primary,
+        tuple(c[0] for c in cards),
+        not unproven,
+        tuple(tuple(c[1]) for c in cards),
+        tuple(unproven),
     )

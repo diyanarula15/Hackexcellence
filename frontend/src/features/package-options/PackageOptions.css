@@ -153,6 +153,33 @@
   list-style: none;
 }
 
+.option-card__why {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  color: var(--ink-muted, var(--color-ink));
+  font-size: var(--step--1);
+  line-height: 1.45;
+}
+
+.option-card__accept {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: var(--step--1);
+  line-height: 1.4;
+}
+
+.option-card__accept input {
+  flex: 0 0 18px;
+  width: 18px;
+  height: 18px;
+  margin: 1px 0 0;
+  accent-color: var(--color-ink);
+}
+
 .option-card__badge {
   padding: 2px 10px;
   border-radius: 999px;

@@ -208,8 +208,8 @@ def test_capped_search_drops_the_unproven_labels_and_says_so(client, monkeypatch
     r, body = _search(client)
     assert r.status_code == 200 and body["count"] == 1 and len(body["options"]) == 1
     assert body["options"][0]["labels"] == ["Cheapest"]
-    assert body["note"] == ("We could not prove which holiday is the fastest or best rated within "
-                            "your budget, so that label is not shown.")
+    assert body["note"] == ("We could not prove which holiday is the fastest or best rated, so that "
+                            "label is not shown.")
     assert body["options"][0]["option_id"] == "opt-1" and body["options"][0]["recommended"] is True
 
 

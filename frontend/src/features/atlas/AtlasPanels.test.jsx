@@ -61,6 +61,16 @@ describe('Atlas route panels', () => {
     expect(within(proposed).getByText('₹8,000')).toBeTruthy();
   });
 
+  it('says Added for a new item instead of "None →"', () => {
+    const added = { item_id: 'leg:1', type: 'transfer', label: 'Transfer Tokyo → Osaka', action: 'ADDED', before: null,
+      after: { name: 'Shinkansen Tokyo to Osaka', start: '2027-04-14T10:00', end: '2027-04-14T12:30' } };
+    render(<RouteComparison preview={{ valid: true, status: 'OVER_BUDGET', changed_items: [added], proposed_package: null }} currentPackage={null} />);
+    const row = document.querySelector('.atlas-comparison__item-list li');
+    expect(row.textContent).toContain('Added: Shinkansen Tokyo to Osaka');
+    expect(row.textContent).not.toContain('None');
+    expect(screen.getByText('Over budget')).toBeTruthy();
+  });
+
   it('does not fabricate totals for an incomplete proposal', () => {
     render(<RouteComparison preview={{ status: 'INCOMPLETE', valid: false, proposed_package: null }} currentPackage={null} />);
     expect(screen.getByText('A complete price is not available for this proposal.')).toBeTruthy();
@@ -94,6 +104,8 @@ describe('Atlas route panels', () => {
     expect(hotelRow.textContent).toContain('ROOM-TWIN');
     expect(hotelRow.textContent).toContain('13 Apr');
     expect(rows.filter((row) => row.textContent.includes('Arrival flight'))).toHaveLength(1);
+    expect(document.querySelector('.atlas-comparison__item-list').textContent).not.toContain('None');
+    expect(screen.getByText('Fits your budget')).toBeTruthy();
     expect(screen.queryByRole('heading', { name: 'Automatic repairs' })).toBeNull();
   });
 });

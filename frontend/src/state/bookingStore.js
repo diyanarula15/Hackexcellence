@@ -275,13 +275,13 @@ export function previewPackageOption(optionId) {
  * Choose one option: the backend saves ONLY that one as a normal PLANNED package, and the usual
  * itinerary view opens for it. Ignored while another choice is being saved.
  */
-export async function choosePackageOption(optionId) {
+export async function choosePackageOption(optionId, { acceptOverBudget = false } = {}) {
   const { result, optionPick } = get();
   if (result.status !== 'OPTIONS' || optionPick.selectingId) return;
   const searchId = result.response.search_id;
   set({ optionPick: { previewId: null, selectingId: optionId, error: null } });
   try {
-    const response = await postSelectOption(searchId, optionId);
+    const response = await postSelectOption(searchId, optionId, { acceptOverBudget });
     if (get().result.status !== 'OPTIONS' || get().result.response?.search_id !== searchId) return;
     const packageId = response.package?.id ?? null;
     const back = get().optionsBack;

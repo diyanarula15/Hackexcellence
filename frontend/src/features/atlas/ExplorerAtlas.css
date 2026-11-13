@@ -155,6 +155,8 @@
   .atlas-map-column { height: 100%; padding: 10px 12px 12px; }
   .atlas-map-heading { padding: 0 4px 8px; font-size: .62rem; letter-spacing: .1em; }
   .atlas-map-caption { margin: 6px 4px 0; font-size: .72rem; }
+  /* the map keeps its own height and the column scrolls; a shrinking map overlapped the text below */
+  .atlas-map-column .country-map { flex: none; }
   .atlas-editor {
     display: none;
     position: absolute;

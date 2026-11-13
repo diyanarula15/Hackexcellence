@@ -127,6 +127,7 @@ const OPTIONS = [
     stats: { cities: 2, city_changes: 1, transfers: 3, attractions: 8, avg_stars: 3.5, travel_minutes: 1150 },
     labels: ['Cheapest'],
     badges: ['Cheapest'],
+    why: [{ label: 'Cheapest', text: 'Lowest verified total price of any complete valid holiday for your request.' }],
     differences: [],
     preview: preview(
       233632,
@@ -288,6 +289,10 @@ describe('PackageOptions: cards', () => {
     expect(screen.getByText('Cheapest')).toBeTruthy();
     expect(screen.getByText('Fastest')).toBeTruthy();
     expect(screen.getByText('Best rated')).toBeTruthy();
+    // why each label was won, from the response
+    const why = screen.getAllByRole('list', { name: 'Why it won' });
+    expect(why.length).toBe(1);
+    expect(within(why[0]).getByText(/Lowest verified total price/)).toBeTruthy();
     expect(screen.getAllByText('Different city mix').length).toBe(2);
     expect(screen.getByText('Higher-rated stays')).toBeTruthy();
     expect(screen.getByText('Fewer city changes')).toBeTruthy();
@@ -364,7 +369,7 @@ describe('PackageOptions: choosing', () => {
     fireEvent.click(screen.getAllByRole('button', { name: 'Explore trip' })[1]);
 
     expect(mocks.selectPackageOption).toHaveBeenCalledTimes(1);
-    expect(mocks.selectPackageOption).toHaveBeenCalledWith('search-abc', 'opt-2');
+    expect(mocks.selectPackageOption).toHaveBeenCalledWith('search-abc', 'opt-2', { acceptOverBudget: false });
     expect(bookingStore.getState().optionPick.selectingId).toBe('opt-2');
 
     const chooseButtons = screen.getAllByRole('button', { name: 'Explore trip' });
@@ -373,6 +378,30 @@ describe('PackageOptions: choosing', () => {
     expect(screen.getByText('Opening your trip…')).toBeTruthy();
     expect(container.querySelectorAll('.option-card--selecting').length).toBe(1);
     expect(container.querySelector('.option-card__plane')).toBeTruthy();
+  });
+
+  it('an option above the budget is chosen only after its price is accepted', () => {
+    mocks.selectPackageOption.mockReturnValue(new Promise(() => {}));
+    const over = {
+      ...OPTIONS[1],
+      option_id: 'opt-2',
+      labels: ['Fastest'],
+      badges: ['Fastest'],
+      over_budget: true,
+      total_inr: 360000,
+      budget_remaining_inr: -10000,
+    };
+    showOptions([OPTIONS[0], over]);
+    render(<PackageOptions />);
+    const card = screen.getAllByRole('article')[1];
+    const choose = within(card).getByRole('button', { name: 'Explore trip' });
+    expect(choose.disabled).toBe(true);
+    expect(within(card).getByText(`Over budget by ${formatINR(10000)}`)).toBeTruthy();
+
+    fireEvent.click(within(card).getByRole('checkbox', { name: /I accept the price/ }));
+    expect(choose.disabled).toBe(false);
+    fireEvent.click(choose);
+    expect(mocks.selectPackageOption).toHaveBeenCalledWith('search-abc', 'opt-2', { acceptOverBudget: true });
   });
 
   it('shows the error in an alert, and "Search again" starts a new search', async () => {
