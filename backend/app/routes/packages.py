@@ -28,7 +28,7 @@ from fastapi.responses import JSONResponse, Response
 from pydantic import ValidationError
 
 from app.catalog.load import load_catalog
-from app.engine.build import FOUND, OVER_BUDGET, WITHIN_BUDGET, build_package
+from app.engine.build import FOUND, MINIMUM_COST, OVER_BUDGET, WITHIN_BUDGET, build_package
 from app.export.to_trip import to_trip_json
 from app.lib.money import rupees
 from app.models import ARRIVAL_DELAY, TripRequest
@@ -248,7 +248,15 @@ def create_package(body: Annotated[Any, Body()] = None):
     except InvalidRequest as e:
         return JSONResponse(status_code=422, content=e.payload())
 
-    result = build_package(trip, catalog, WITHIN_BUDGET)
+    # Optional planning objective. WITHIN_BUDGET (default) = a valid package within budget if one exists;
+    # MINIMUM_COST = the proven cheapest package (the Price Landscape sends it so the generated holiday
+    # matches the proven minimum shown for that date).
+    objective = body.get("objective", WITHIN_BUDGET) if isinstance(body, dict) else WITHIN_BUDGET
+    if objective not in (WITHIN_BUDGET, MINIMUM_COST):
+        return JSONResponse(status_code=422, content=InvalidRequest([{
+            "field": GENERAL, "rule": "R-REQ-OBJECTIVE",
+            "message": "objective must be WITHIN_BUDGET or MINIMUM_COST."}]).payload())
+    result = build_package(trip, catalog, objective)
     if (
         "INVALID_REQUEST" in result.reason_codes
     ):  # the planner's own request check (already passed above)

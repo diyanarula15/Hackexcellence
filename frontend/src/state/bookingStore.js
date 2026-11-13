@@ -190,10 +190,14 @@ function showResult(result, focus = true) {
   }));
 }
 
-/** Generate a holiday from the form. Ignored while a generation is already running. */
-export async function generatePackage() {
+/**
+ * Generate a holiday from the form. Ignored while a generation is already running.
+ * @param {{ objective?: 'WITHIN_BUDGET' | 'MINIMUM_COST' }} [options]  MINIMUM_COST is used by the
+ *   Price Landscape so the package matches the proven minimum it showed for the chosen date.
+ */
+export async function generatePackage({ objective } = {}) {
   if (get().submit.status === 'loading') return;
-  const body = toRequestBody(get().form);
+  const body = { ...toRequestBody(get().form), ...(objective ? { objective } : {}) };
   set({ submit: { status: 'loading', fieldErrors: {}, message: null } });
   try {
     const response = await createPackage(body);
