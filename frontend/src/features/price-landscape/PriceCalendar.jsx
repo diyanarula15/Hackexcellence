@@ -15,11 +15,11 @@ import PriceTile from './PriceTile.jsx';
  * @param {{ monthKey: string, fetchState: { status: string, response: object | null },
  *   window: object | null, selected: string | null, referenceDate: string | null,
  *   bestDate: string | null, focusDate: string | null, onFocusDate: (iso: string) => void,
- *   onSelect: (iso: string) => void, onMonthStep: (step: number, focus?: string) => void,
- *   tripLine: string }} props
+ *   onSelect: (iso: string) => void, onInspect: (iso: string) => void,
+ *   onMonthStep: (step: number, focus?: string) => void, tripLine: string }} props
  */
 export default function PriceCalendar({ monthKey, fetchState, window, selected, referenceDate, bestDate,
-  focusDate, onFocusDate, onSelect, onMonthStep, tripLine }) {
+  focusDate, onFocusDate, onSelect, onInspect, onMonthStep, tripLine }) {
   const gridRef = useRef(null);
   const weeks = useMemo(() => monthGrid(monthKey), [monthKey]);
   const response = fetchState.status === 'ready' ? fetchState.response : null;
@@ -87,6 +87,7 @@ export default function PriceCalendar({ monthKey, fetchState, window, selected, 
                 tabIndex={iso === tabbable ? 0 : -1}
                 tripLine={tripLine}
                 onSelect={onSelect}
+                onInspect={onInspect}
                 onKeyDown={onKeyDown}
               />
             );

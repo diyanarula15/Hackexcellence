@@ -6,6 +6,7 @@ import {
   elevationFor,
   formatINR,
   isProven,
+  nearestProvenDate,
   normalizedLevel,
   provenRange,
   tileState,
@@ -26,6 +27,44 @@ const proven = (date, min_total_inr) => ({
   status: FOUND,
   min_total_inr,
   proven_minimum: true,
+});
+
+describe('nearestProvenDate', () => {
+  it('returns the proven date with the smallest day distance, on either side', () => {
+    const cells = [proven('2027-04-05', 300000), proven('2027-04-09', 250000), proven('2027-04-20', 100000)];
+    expect(nearestProvenDate(cells, '2027-04-12')).toBe(cells[1]);
+    expect(nearestProvenDate(cells, '2027-04-18')).toBe(cells[2]);
+  });
+
+  it('breaks a tie in distance towards the earlier date', () => {
+    const cells = [proven('2027-04-14', 200000), proven('2027-04-10', 260000)];
+    // 12 April is two days from both 10 and 14 April
+    expect(nearestProvenDate(cells, '2027-04-12').date).toBe('2027-04-10');
+    expect(nearestProvenDate([...cells].reverse(), '2027-04-12').date).toBe('2027-04-10');
+  });
+
+  it('ignores cells that are not proven, including FOUND cells without proven_minimum', () => {
+    const cells = [
+      { date: '2027-04-13', status: INFEASIBLE, min_total_inr: null, proven_minimum: false },
+      { date: '2027-04-11', status: SEARCH_INCOMPLETE, min_total_inr: null, proven_minimum: false },
+      { date: '2027-04-12', status: FOUND, min_total_inr: 100000, proven_minimum: false },
+      proven('2027-04-20', 240000),
+    ];
+    expect(nearestProvenDate(cells, '2027-04-13').date).toBe('2027-04-20');
+  });
+
+  it('returns null when no date is proven, or the input is empty or invalid', () => {
+    expect(nearestProvenDate([{ date: '2027-04-13', status: INFEASIBLE, min_total_inr: null, proven_minimum: false }],
+      '2027-04-13')).toBeNull();
+    expect(nearestProvenDate([], '2027-04-13')).toBeNull();
+    expect(nearestProvenDate(null, '2027-04-13')).toBeNull();
+    expect(nearestProvenDate([proven('2027-04-20', 240000)], 'not-a-date')).toBeNull();
+  });
+
+  it('measures distance across month and year boundaries', () => {
+    const cells = [proven('2028-01-02', 150000), proven('2027-12-20', 170000)];
+    expect(nearestProvenDate(cells, '2027-12-31').date).toBe('2028-01-02');
+  });
 });
 const unprovenFound = (date, min_total_inr = 200000) => ({
   date,

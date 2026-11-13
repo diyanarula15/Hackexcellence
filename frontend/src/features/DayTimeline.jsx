@@ -28,7 +28,17 @@ function describe(event, day) {
   switch (event.kind) {
     case 'FLIGHT':
       return [
-        <LocalTime iso={event.start} day={day} />,
+        // both ends of the flight, each in its own airport's local time
+        <span className="event__flight-times">
+          <span className="event__flight-time">
+            <span className="event__flight-label">Dep</span>
+            <LocalTime iso={event.start} day={day} />
+          </span>
+          <span className="event__flight-time">
+            <span className="event__flight-label">Arr</span>
+            <LocalTime iso={event.end} day={day} />
+          </span>
+        </span>,
         `${d.flight_number} · ${d.from.code} → ${d.to.code}`,
         [
           d.airline,

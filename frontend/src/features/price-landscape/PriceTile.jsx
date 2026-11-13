@@ -16,9 +16,11 @@ const SELECTABLE = new Set([FOUND, SEARCH_INCOMPLETE]);
 /**
  * @param {{ iso: string, state: import('./types.js').TileState, cell: object | null, level: number | null,
  *   selected: boolean, isReference: boolean, isBest: boolean, tabIndex: number, tripLine: string,
- *   onSelect: (iso: string) => void, onKeyDown: (e: KeyboardEvent, iso: string) => void }} props
+ *   onSelect: (iso: string) => void, onInspect: (iso: string) => void,
+ *   onKeyDown: (e: KeyboardEvent, iso: string) => void }} props
  */
-function PriceTile({ iso, state, cell, level, selected, isReference, isBest, tabIndex, tripLine, onSelect, onKeyDown }) {
+function PriceTile({ iso, state, cell, level, selected, isReference, isBest, tabIndex, tripLine, onSelect, onInspect,
+  onKeyDown }) {
   const day = parseIso(iso).day;
   const selectable = SELECTABLE.has(state);
   const tipId = `pl-tip-${iso}`;
@@ -48,7 +50,10 @@ function PriceTile({ iso, state, cell, level, selected, isReference, isBest, tab
       aria-disabled={!selectable}
       aria-label={`${describeTile(iso, state, cell)}${isReference ? ' (your original date)' : ''}`}
       aria-describedby={tipId}
-      onClick={() => selectable && onSelect(iso)}
+      onClick={() => {
+        if (selectable) onSelect(iso);
+        else if (state === INFEASIBLE) onInspect(iso);   // "no trip" tiles explain themselves, never select
+      }}
       onKeyDown={(e) => onKeyDown(e, iso)}
     >
       <span className="pl-tile__face">

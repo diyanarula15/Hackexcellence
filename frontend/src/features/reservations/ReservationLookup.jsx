@@ -2,6 +2,7 @@ import { useRef, useState } from 'react';
 import { exportReservation, getReservation } from '../../services/reservationsApi.js';
 import ReservationDetails from './ReservationDetails.jsx';
 import ReservationModal from './ReservationModal.jsx';
+import { copyText } from './copyText.js';
 
 const INVALID_REFERENCE = 'Enter a valid 10-digit reservation reference.';
 
@@ -53,14 +54,7 @@ export default function ReservationLookup({ onClose, initialReference = '' }) {
     }
   };
 
-  const copyReference = async () => {
-    try {
-      await navigator.clipboard.writeText(reservation.reference ?? reference);
-      setCopied(true);
-    } catch {
-      setCopied(false);
-    }
-  };
+  const copyReference = async () => setCopied((await copyText(reservation.reference ?? reference)) ? true : 'failed');
 
   return (
     <ReservationModal titleId="lookup-title" onClose={onClose} className="reservation-dialog--lookup">
@@ -93,7 +87,8 @@ export default function ReservationLookup({ onClose, initialReference = '' }) {
         {reservation && (
           <>
             <p className="reservation-lookup__found">Reservation <span className="mono">{reservation.reference}</span> · {reservation.status}</p>
-            <button type="button" className="link-button" onClick={copyReference}>{copied ? 'Reference copied' : 'Copy reference'}</button>
+            <button type="button" className="link-button" onClick={copyReference}>{copied === true ? 'Reference copied' : 'Copy reference'}</button>
+            {copied === 'failed' && <span className="results__muted" role="status"> This browser blocked copying; select the reference and copy it by hand.</span>}
             <ReservationDetails reservation={reservation} />
             <div className="reservation-dialog__actions">
               <button type="button" className="btn" onClick={downloadTrip} disabled={downloadStatus === 'loading'}>{downloadStatus === 'loading' ? 'Preparing…' : 'Download JSON'}</button>

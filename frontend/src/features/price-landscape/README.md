@@ -7,7 +7,7 @@ Phase 7A (`POST /api/date-prices`), drawn as a gently tilted terrain of tiles.
 |---|---|
 | `ExploreDatesButton.jsx` | Entry point beside the request form; snapshots the form's 7-field request (`toRequestBody`) and opens the dialog. Generating sets the form's start date and runs the normal `generatePackage()` (a NEW saved package). |
 | `PriceLandscape.jsx` | Dialog container: month, selection, reference date, loading/error/partial states, Generate. |
-| `useMonthPrices.js` | One fetch per month (abort + sequence guard against stale responses; finished months kept); separate fetch for the original date when it is in another month. |
+| `useMonthPrices.js` | One fetch per month: identical in-flight requests are shared (no duplicate search in React dev mode), a sequence guard drops stale responses, finished months are kept; separate fetch for the original date when it is in another month. |
 | `PriceCalendar.jsx` / `PriceTile.jsx` / `PriceTerrain.jsx` | Monday-first grid, roving-tabindex keyboard navigation, tile states, CSS 3D terrain. |
 | `PriceComparison.jsx` / `usePriceCounter.js` | Original vs selected date; tweens only between two proven prices. |
 | `PriceLegend.jsx` | Ramp with the month's proven low/high and the state keys. |

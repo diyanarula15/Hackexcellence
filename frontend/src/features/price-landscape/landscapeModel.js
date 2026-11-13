@@ -8,7 +8,7 @@
  *   - "cheapest date" is only claimed when the backend says the whole range was evaluated.
  */
 
-import { formatLongDate, isWithin } from './dateUtils.js';
+import { formatLongDate, isWithin, parseIso } from './dateUtils.js';
 import { ERROR, FOUND, INFEASIBLE, LOADING, NOT_ELIGIBLE, OUTSIDE_WINDOW, SEARCH_INCOMPLETE } from './types.js';
 
 export const MIN_ELEVATION = 4;     // px; even the cheapest date stands slightly off the board
@@ -39,6 +39,36 @@ export function tileState(iso, cellsByDate, window, { loading = false, failed = 
   if (cell.status === FOUND) return isProven(cell) ? FOUND : SEARCH_INCOMPLETE; // unproven = unverified
   if (cell.status === INFEASIBLE) return INFEASIBLE;
   return SEARCH_INCOMPLETE;
+}
+
+/** Whole days since 1970-01-01 for a valid ISO date (no timezone involved). */
+const dayNumber = (iso) => {
+  const d = parseIso(iso);
+  return d ? Date.UTC(d.year, d.month - 1, d.day) / 86400000 : null;
+};
+
+/**
+ * The proven date nearest to `iso` (smallest distance in days, either side); a tie goes to the
+ * earlier date. Only proven cells count. Returns the cell, or null when no date is proven.
+ * @param {import('./types.js').DatePriceCell[] | null} cells
+ * @param {string} iso
+ * @returns {import('./types.js').DatePriceCell | null}
+ */
+export function nearestProvenDate(cells, iso) {
+  const target = dayNumber(iso);
+  if (target === null) return null;
+  let best = null;
+  let bestDistance = Infinity;
+  for (const cell of cells ?? []) {
+    const day = isProven(cell) ? dayNumber(cell.date) : null;
+    if (day === null) continue;
+    const distance = Math.abs(day - target);
+    if (distance < bestDistance || (distance === bestDistance && cell.date < best.date)) {
+      best = cell;
+      bestDistance = distance;
+    }
+  }
+  return best;
 }
 
 /** Lowest and highest proven price in a list of cells (null when none is proven). */

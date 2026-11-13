@@ -10,6 +10,8 @@ import {
   generatePackage,
   openPackage,
   retryResult,
+  searchAlternative,
+  startNewSearch,
 } from '../state/bookingStore.js';
 import ChangeDrawer from './ChangeDrawer.jsx';
 import DelayRescue from './DelayRescue.jsx';
@@ -53,6 +55,73 @@ function EditTrip({ label = 'Edit the trip' }) {
     <button type="button" className="btn" onClick={scrollToPlanner}>
       {label}
     </button>
+  );
+}
+
+/** Leave this package (it stays saved, reopen it with its id) and start a fresh search. */
+function NewSearch({ label = 'Search a new trip' }) {
+  return (
+    <button
+      type="button"
+      className="btn new-search"
+      onClick={() => {
+        startNewSearch();
+        scrollToPlanner();
+      }}
+    >
+      {label}
+    </button>
+  );
+}
+
+const KIND_LABEL = { START_DATE: 'Different start date', DEPARTURE: 'Different departure city', NIGHTS: 'Different length' };
+
+/** "If you change X you'll find one": the nearest one-field changes that do have a holiday. */
+function Alternatives() {
+  const alternatives = useStore(bookingStore, (s) => s.alternatives);
+  const submit = useStore(bookingStore, (s) => s.submit);
+  const busy = submit.status === 'loading';
+  if (alternatives.status === 'idle') return null;
+  if (alternatives.status === 'loading') {
+    return <p className="alternatives__status" aria-live="polite">Looking for the nearest trip that works…</p>;
+  }
+  if (alternatives.status === 'error') {
+    return <p className="alternatives__status">Could not look for nearby trips: {alternatives.error}</p>;
+  }
+  const suggestions = alternatives.data?.suggestions ?? [];
+  if (!suggestions.length) {
+    return (
+      <p className="alternatives__status">
+        No trip works within a week of this date, from another departure city, or with a few nights more or less.
+        Try another country or fewer travelers.
+      </p>
+    );
+  }
+  const [first] = suggestions;
+  return (
+    <section className="alternatives" aria-labelledby="alternatives-title">
+      <h3 className="eyebrow" id="alternatives-title">Nearest trips that work</h3>
+      <p className="alternatives__lead">
+        If you change your search — <strong>{first.label.charAt(0).toLowerCase() + first.label.slice(1)}</strong> — you'll
+        find a holiday from <strong>{formatINR(first.min_total_inr)}</strong>.
+      </p>
+      <ul className="alternatives__list">
+        {suggestions.map((s) => (
+          <li key={`${s.kind}:${s.change.to}`} className="alternatives__item">
+            <span className="alternatives__kind">{KIND_LABEL[s.kind] ?? humanize(s.kind)}</span>
+            <span className="alternatives__label">{s.label}</span>
+            <span className="alternatives__price">
+              from {formatINR(s.min_total_inr)}
+              {!s.within_budget && <span className="is-over"> · over budget</span>}
+            </span>
+            <button type="button" className="btn btn--small" disabled={busy} onClick={() => searchAlternative(s)}>
+              Search this trip
+            </button>
+          </li>
+        ))}
+      </ul>
+      <p className="alternatives__note">Prices are the cheapest complete holiday for that search, already checked by the planner.</p>
+    </section>
   );
 }
 
@@ -239,6 +308,9 @@ function PackageView({ response, receipt, onConfirmed }) {
           </span>
         </p>
         <Route pkg={pkg} />
+        <div className="pkg__header-actions">
+          <NewSearch />
+        </div>
       </header>
 
       {response.status === 'OVER_BUDGET' && <OverBudget response={response} />}
@@ -319,8 +391,10 @@ function Content({ result, receipt, onConfirmed }) {
         <Notice eyebrow="No package possible" title="No holiday package can be built for this trip">
           <p>Every package must follow all travel rules. This request cannot, because:</p>
           <Reasons reasons={response.reasons} />
+          <Alternatives />
           <div className="results__actions">
             <EditTrip />
+            <NewSearch label="Start a new search" />
           </div>
         </Notice>
       );

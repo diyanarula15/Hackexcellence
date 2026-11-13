@@ -6,7 +6,7 @@ from fastapi import FastAPI
 
 from app.catalog.load import load_catalog
 from app.db import create_tables
-from app.routes import date_prices, health, meta, packages, reservations, validate
+from app.routes import alternatives, date_prices, health, meta, packages, reservations, validate
 
 
 @asynccontextmanager
@@ -24,3 +24,4 @@ app.include_router(packages.router, prefix="/api")
 
 app.include_router(reservations.router, prefix="/api")
 app.include_router(date_prices.router, prefix="/api")  # Phase 7A Price Landscape (read-only)
+app.include_router(alternatives.router, prefix="/api")  # trip alternatives (read-only)

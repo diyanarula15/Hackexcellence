@@ -3,8 +3,13 @@
  *
  * - One request per (trip, month); finished months are kept for the life of the dialog, so going
  *   back is instant (the backend caches too).
- * - Rapid month changes: the previous request is aborted AND tagged with a sequence number, so a
- *   slower old response can never overwrite the month now on screen.
+ * - In-flight requests are shared: React StrictMode runs an effect twice in development, and the
+ *   second run for the same (trip, range) reuses the pending request instead of asking the backend
+ *   again. A shared request is never aborted (the backend would still compute it); a stale result
+ *   is simply ignored. A request leaves the shared map as soon as it settles, so a failed request
+ *   is never reused and Retry always fires a new one.
+ * - Rapid month changes: a sequence number makes sure a slower old response can never overwrite the
+ *   month now on screen.
  * - A month with no day inside the travel window is not fetched at all (status 'outside').
  * - The reference (original) date is fetched separately when it is not in the visible month, so a
  *   comparison never relies on a guess.
@@ -15,6 +20,25 @@ import { getDatePrices } from '../../services/datePricesApi.js';
 import { monthBounds, monthKeyOf } from './dateUtils.js';
 
 const tripKey = (trip) => JSON.stringify(trip);
+
+/** `${tripKey}|${start}|${end}` -> the pending promise for that request (removed when it settles). */
+const inFlight = new Map();
+
+/**
+ * Starts the request for `key`, or returns the one already in flight for it. The request is not
+ * tied to any component, so cleanup never cancels it.
+ */
+function sharedRequest(key, send) {
+  const pending = inFlight.get(key);
+  if (pending) return pending;
+  const promise = send(new AbortController().signal);
+  inFlight.set(key, promise);
+  const settle = () => {
+    if (inFlight.get(key) === promise) inFlight.delete(key);
+  };
+  promise.then(settle, settle);
+  return promise;
+}
 
 function overlapsWindow(monthKey, window) {
   if (!window) return true;
@@ -50,9 +74,9 @@ export function useMonthPrices(trip, monthKey, window, fetcher = getDatePrices) 
     }
     // never show the previous month's prices while this one loads
     setState({ status: 'loading', month: monthKey, response: null, error: null });
-    const controller = new AbortController();
     const { start, end } = monthBounds(monthKey);
-    fetcher(JSON.parse(key), { rangeStart: start, rangeEnd: end }, { signal: controller.signal })
+    sharedRequest(`${key}|${start}|${end}`, (signal) =>
+      fetcher(JSON.parse(key), { rangeStart: start, rangeEnd: end }, { signal }))
       .then((response) => {
         if (mine !== seq.current) return;              // stale: a newer month is on screen
         // only keep a month once every date in it has a final answer; incomplete ones are re-asked
@@ -60,10 +84,10 @@ export function useMonthPrices(trip, monthKey, window, fetcher = getDatePrices) 
         setState({ status: 'ready', month: monthKey, response, error: null });
       })
       .catch((error) => {
-        if (error?.name === 'AbortError' || mine !== seq.current) return;
+        if (mine !== seq.current) return;
         setState({ status: 'error', month: monthKey, response: null, error });
       });
-    return () => controller.abort();
+    return undefined;   // no abort: the request may be shared; a stale result is ignored above
   }, [key, monthKey, window?.first_night, window?.last_departure, attempt, fetcher]);
 
   const retry = useCallback(() => setAttempt((n) => n + 1), []);
@@ -87,15 +111,13 @@ export function useReferenceCell(trip, referenceDate, visibleMonth, monthState, 
   const needFetch = Boolean(referenceDate) && !sameMonth;
   useEffect(() => {
     if (!needFetch || state.key === `${key}|${referenceDate}`) return undefined;
-    const controller = new AbortController();
     setState({ status: 'loading', cell: null, key: `${key}|${referenceDate}` });
-    fetcher(JSON.parse(key), { rangeStart: referenceDate, rangeEnd: referenceDate }, { signal: controller.signal })
+    sharedRequest(`${key}|${referenceDate}|${referenceDate}`, (signal) =>
+      fetcher(JSON.parse(key), { rangeStart: referenceDate, rangeEnd: referenceDate }, { signal }))
       .then((r) => setState({ status: 'ready', cell: r?.dates?.find((c) => c.date === referenceDate) ?? null,
         key: `${key}|${referenceDate}` }))
-      .catch((error) => {
-        if (error?.name !== 'AbortError') setState({ status: 'error', cell: null, key: `${key}|${referenceDate}` });
-      });
-    return () => controller.abort();
+      .catch(() => setState({ status: 'error', cell: null, key: `${key}|${referenceDate}` }));
+    return undefined;   // no abort: shared with a StrictMode re-run; see sharedRequest
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [needFetch, key, referenceDate, fetcher]);
 

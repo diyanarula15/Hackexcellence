@@ -3,6 +3,7 @@
  * network: every response is built in this file in the shape of the POST /api/date-prices contract.
  */
 
+import { StrictMode } from 'react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, within, waitFor, act, cleanup } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -81,14 +82,15 @@ function stubMatchMedia(reduced = false) {
 }
 
 function renderDialog({ trip = TRIP, window: travelWindow = WINDOW, fetcher = vi.fn(answer(APRIL)),
-  onGenerate = vi.fn(() => Promise.resolve()) } = {}) {
+  onGenerate = vi.fn(() => Promise.resolve()), strict = false } = {}) {
   const onClose = vi.fn();
   const onSelectDate = vi.fn();
   const user = userEvent.setup();
-  const utils = render(
+  const dialog = (
     <PriceLandscape trip={trip} window={travelWindow} countryName="Japan" onClose={onClose}
-      onSelectDate={onSelectDate} onGenerate={onGenerate} fetcher={fetcher} />,
+      onSelectDate={onSelectDate} onGenerate={onGenerate} fetcher={fetcher} />
   );
+  const utils = render(strict ? <StrictMode>{dialog}</StrictMode> : dialog);
   return { user, fetcher, onClose, onSelectDate, onGenerate, ...utils };
 }
 
@@ -349,6 +351,112 @@ describe('traveler details and failures', () => {
 
     await user.click(screen.getByRole('button', { name: 'Retry' }));
     await waitFor(() => expect(monthCalls(fetcher, '2027-04-01')).toHaveLength(2));
+  });
+});
+
+describe('shared requests under StrictMode, and retry', () => {
+  it('makes one request for April under React.StrictMode, which runs effects twice in development', async () => {
+    const fetcher = vi.fn(answer(APRIL));
+    renderDialog({ fetcher, strict: true });
+
+    await waitForState('2027-04-12', 'FOUND');
+    expect(monthCalls(fetcher, '2027-04-01')).toHaveLength(1);
+    expect(fetcher).toHaveBeenCalledTimes(1);
+  });
+
+  it('under React.StrictMode, a slow month that arrives after navigation is still ignored', async () => {
+    const aprilReply = deferred();
+    const mayReply = deferred();
+    const fetcher = vi.fn((trip, range) => {
+      if (range.rangeStart === '2027-04-01') return aprilReply.promise;
+      if (range.rangeStart === '2027-05-01') return mayReply.promise;
+      return answer(APRIL)(trip, range);
+    });
+    const { user } = renderDialog({ window: WIDE_WINDOW, fetcher, strict: true });
+
+    await waitFor(() => expect(monthCalls(fetcher, '2027-04-01')).toHaveLength(1));
+    await user.click(screen.getByRole('button', { name: 'Next month' }));
+    await waitFor(() => expect(monthCalls(fetcher, '2027-05-01')).toHaveLength(1));
+
+    mayReply.resolve(response({
+      rangeStart: '2027-05-01', rangeEnd: '2027-05-31', window: WIDE_WINDOW,
+      dates: [found('2027-05-05', 333333)],
+    }));
+    await waitForState('2027-05-05', 'FOUND');
+
+    await act(async () => {
+      aprilReply.resolve(response({
+        rangeStart: '2027-04-01', rangeEnd: '2027-04-30', window: WIDE_WINDOW,
+        dates: [found('2027-04-12', 111111)],
+      }));
+      await new Promise((r) => setTimeout(r, 0));
+    });
+
+    expect(screen.getByRole('heading', { level: 3, name: 'May 2027' })).toBeTruthy();
+    expect(tile('2027-04-12')).toBeNull();
+    expect(document.body.textContent).not.toContain('₹1,11,111');
+    expect(monthCalls(fetcher, '2027-04-01')).toHaveLength(1);
+  });
+
+  it('after a failed month, Retry fires a second request and shows the prices', async () => {
+    const fetcher = vi.fn()
+      .mockImplementationOnce(() => Promise.reject(new Error('Cannot reach the planner. Check your connection.')))
+      .mockImplementation(answer(APRIL));
+    const { user } = renderDialog({ fetcher, strict: true });
+
+    expect(await screen.findByText('Cannot reach the planner. Check your connection.')).toBeTruthy();
+    expect(monthCalls(fetcher, '2027-04-01')).toHaveLength(1);
+
+    await user.click(screen.getByRole('button', { name: 'Retry' }));
+    await waitForState('2027-04-12', 'FOUND');
+    expect(monthCalls(fetcher, '2027-04-01')).toHaveLength(2);
+  });
+});
+
+describe('no complete trip on an INFEASIBLE date', () => {
+  it('explains the date and offers the nearest proven start, which Show selects', async () => {
+    const { user, onSelectDate } = renderDialog();
+
+    const infeasible = await waitForState('2027-04-13', 'INFEASIBLE');
+    await user.click(infeasible);
+
+    expect(await screen.findByText('No complete trip starts on 13 April 2027.')).toBeTruthy();
+    expect(screen.getByText('No complete trip starts on 13 April 2027.')).toBeTruthy();
+    // 12 April is one day away (the nearest proven date), at ₹2,18,700
+    expect(screen.getByText('Nearest possible start: 12 April 2027 · ₹2,18,700')).toBeTruthy();
+
+    // the infeasible tile is still not selectable
+    expect(infeasible.getAttribute('aria-pressed')).toBeNull();
+    expect(onSelectDate).not.toHaveBeenCalled();
+
+    await user.click(screen.getByRole('button', { name: 'Show 12 Apr' }));
+    expect(onSelectDate).toHaveBeenCalledWith('2027-04-12');
+    expect(tile('2027-04-12').getAttribute('aria-pressed')).toBe('true');
+    expect(tile('2027-04-13').getAttribute('aria-pressed')).toBeNull();
+    expect(document.querySelector('.pl-inspect')).toBeNull();
+  });
+
+  it('opens the same note with Enter on the infeasible tile', async () => {
+    const { user, onSelectDate } = renderDialog();
+
+    const infeasible = await waitForState('2027-04-13', 'INFEASIBLE');
+    act(() => infeasible.focus());
+    await user.keyboard('{Enter}');
+
+    expect(await screen.findByText('No complete trip starts on 13 April 2027.')).toBeTruthy();
+    expect(onSelectDate).not.toHaveBeenCalled();
+  });
+
+  it('says there is no proven trip this month and steps to the next month when none is proven', async () => {
+    const fetcher = vi.fn(answer([cell('2027-04-13', 'INFEASIBLE'), cell('2027-04-14', 'SEARCH_INCOMPLETE')]));
+    const { user } = renderDialog({ fetcher, window: WIDE_WINDOW, trip: { ...TRIP, start_date: '2027-04-13' } });
+
+    await user.click(await waitForState('2027-04-13', 'INFEASIBLE'));
+    expect(await screen.findByText('No proven trip this month — try the next month.')).toBeTruthy();
+
+    await user.click(screen.getByRole('button', { name: 'Show May 2027' }));
+    expect(await screen.findByRole('heading', { level: 3, name: 'May 2027' })).toBeTruthy();
+    expect(document.querySelector('.pl-inspect')).toBeNull();
   });
 });
 

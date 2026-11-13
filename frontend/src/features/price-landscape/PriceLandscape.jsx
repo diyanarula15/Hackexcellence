@@ -12,8 +12,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { getDatePrices } from '../../services/datePricesApi.js';
-import { addMonths, formatLongDate, formatMonth, monthKeyOf, monthsBetween, parseIso } from './dateUtils.js';
-import { bestDateNote, formatINR, isProven, isSelectable, provenRange, viewState } from './landscapeModel.js';
+import { addMonths, formatLongDate, formatMonth, MONTH_NAMES, monthKeyOf, monthsBetween, parseIso } from './dateUtils.js';
+import { bestDateNote, formatINR, isProven, isSelectable, nearestProvenDate, provenRange, viewState } from './landscapeModel.js';
 import { useMonthPrices, useReferenceCell } from './useMonthPrices.js';
 import PriceCalendar from './PriceCalendar.jsx';
 import PriceComparison from './PriceComparison.jsx';
@@ -32,6 +32,12 @@ function tripLineOf(trip, countryName) {
   const parts = [`${trip.nights} nights · ${countryName ?? trip.country}`,
     `${trip.adults} ${Number(trip.adults) === 1 ? 'adult' : 'adults'}${kids ? ` · ${kids} ${kids === 1 ? 'child' : 'children'}` : ''}`];
   return parts.join(' — ');
+}
+
+/** "2027-04-12" → "12 Apr" */
+function shortDayMonth(iso) {
+  const d = parseIso(iso);
+  return d ? `${d.day} ${MONTH_NAMES[d.month - 1].slice(0, 3)}` : '';
 }
 
 function errorMessages(error) {
@@ -56,6 +62,7 @@ export default function PriceLandscape({ trip, window: travelWindow, countryName
     () => (referenceDate ? monthKeyOf(referenceDate) : months[0] ?? monthKeyOf(new Date().toISOString())));
   const [selected, setSelected] = useState(referenceDate);
   const [focusDate, setFocusDate] = useState(referenceDate);
+  const [inspected, setInspected] = useState(null);   // an INFEASIBLE date the user asked about
   const [generating, setGenerating] = useState({ status: 'idle', error: null });
   const headingRef = useRef(null);
 
@@ -85,9 +92,18 @@ export default function PriceLandscape({ trip, window: travelWindow, countryName
   const select = useCallback((iso) => {
     setSelected(iso);
     setFocusDate(iso);
+    setInspected(null);
     setGenerating({ status: 'idle', error: null });
     onSelectDate?.(iso);
   }, [onSelectDate]);
+
+  const inspect = useCallback((iso) => {
+    setInspected(iso);
+    setFocusDate(iso);
+  }, []);
+  // the note belongs to the month it was asked in; it is not shown on any other month
+  const inspectedHere = inspected && monthKeyOf(inspected) === monthKey ? inspected : null;
+  const nearest = inspectedHere ? nearestProvenDate(response?.dates, inspectedHere) : null;
 
   useEffect(() => {
     headingRef.current?.focus();
@@ -148,6 +164,7 @@ export default function PriceLandscape({ trip, window: travelWindow, countryName
               focusDate={focusDate}
               onFocusDate={setFocusDate}
               onSelect={select}
+              onInspect={inspect}
               onMonthStep={stepMonth}
               tripLine={tripLine}
             />
@@ -176,6 +193,29 @@ export default function PriceLandscape({ trip, window: travelWindow, countryName
                   {formatLongDate(note.date)} · {formatINR(note.total)}
                 </button>
                 {note.detail && <p className="pl-best__detail">{note.detail}</p>}
+              </div>
+            )}
+
+            {inspectedHere && (
+              <div className="pl-inspect" role="status" aria-live="polite" key={`inspect-${inspectedHere}`}>
+                <p>No complete trip starts on {formatLongDate(inspectedHere)}.</p>
+                {nearest ? (
+                  <>
+                    <p>Nearest possible start: {formatLongDate(nearest.date)} · {formatINR(nearest.min_total_inr)}</p>
+                    <button type="button" className="btn btn--small" onClick={() => select(nearest.date)}>
+                      Show {shortDayMonth(nearest.date)}
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <p>No proven trip this month — try the next month.</p>
+                    {!atLast && (
+                      <button type="button" className="btn btn--small" onClick={() => stepMonth(1)}>
+                        Show {formatMonth(addMonths(monthKey, 1))}
+                      </button>
+                    )}
+                  </>
+                )}
               </div>
             )}
 

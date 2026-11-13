@@ -233,6 +233,9 @@
   transition: opacity 140ms var(--ease-out), transform 140ms var(--ease-out);
 }
 .pl-tile:hover .pl-tooltip, .pl-tile:focus-visible .pl-tooltip { opacity: 1; transform: translate(-50%, 0); }
+/* one tooltip at a time: while the pointer is over a tile, a keyboard-focused tile elsewhere hides its tooltip
+   (the edge-column rules below only move the tooltip, so this opacity rule covers them too) */
+.pl-grid:has(.pl-tile:hover) .pl-tile:focus-visible:not(:hover) .pl-tooltip { opacity: 0; }
 .pl-tooltip__date { font-size: var(--step-0); }
 .pl-tooltip__label { opacity: 0.75; }
 .pl-tooltip__price { font-size: var(--step-1); font-weight: var(--weight-medium); font-variant-numeric: tabular-nums; }
@@ -264,6 +267,8 @@
 .pl-best__date:hover, .pl-best__date:focus-visible { color: var(--color-accent); }
 .pl-best__detail { margin: 6px 0 0; font-size: var(--step--1); }
 
+.pl-inspect { display: grid; gap: 8px; justify-items: start; font-size: var(--step--1); }
+.pl-inspect p { margin: 0; }
 .pl-compare { display: grid; gap: 10px; }
 .pl-compare h3 { margin: 0; }
 .pl-compare__line { display: grid; grid-template-columns: 1fr auto; column-gap: 8px; }

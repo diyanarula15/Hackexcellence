@@ -15,6 +15,16 @@ import { download, request } from './apiClient.js';
  *   allowed_dates: {first_night: string, last_departure: string},
  *   nights: {min: number, max: number, min_per_city: number}, max_travelers: number }>}
  */
+/**
+ * The nearest changed trips that DO have a valid holiday (one field changed each: start date,
+ * departure city or nights), with their proven minimum price. Read-only; nothing is saved.
+ * Response: { original, original_status, suggestions: [{ kind, label, change, request,
+ *   min_total_inr, within_budget }], planner_searches }.
+ */
+export function getTripAlternatives(trip, options) {
+  return request('/api/trip-alternatives', { method: 'POST', body: trip, ...options });
+}
+
 export function getMeta(options) {
   return request('/api/meta', options);
 }

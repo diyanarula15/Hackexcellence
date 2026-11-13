@@ -17,6 +17,7 @@ import {
   getMeta,
   getPackage,
   getPackageOptions,
+  getTripAlternatives,
   previewPackageChange,
 } from '../services/travelApi.js';
 
@@ -77,6 +78,8 @@ export const bookingStore = createStore({
   exporting: { status: 'idle', name: null, error: null },
   change: CLOSED_CHANGE,
   delay: CLOSED_DELAY,
+  /** alternatives.status: idle | loading | ready | error — nearest searches that do have a trip */
+  alternatives: { status: 'idle', data: null, error: null },
 });
 
 const get = bookingStore.getState;
@@ -187,6 +190,7 @@ function showResult(result, focus = true) {
     result: { ...EMPTY_RESULT, ...result, focus: state.result.focus + (focus ? 1 : 0) },
     change: CLOSED_CHANGE,
     exporting: { status: 'idle', name: null, error: null },
+    alternatives: { status: 'idle', data: null, error: null },
   }));
 }
 
@@ -205,6 +209,7 @@ export async function generatePackage({ objective } = {}) {
     const packageId = response.package?.id ?? null;
     writePackageIdToUrl(packageId, 'push');
     showResult({ status: response.status, packageId, response });
+    if (response.status === 'INFEASIBLE') loadAlternatives(body);
   } catch (error) {
     if (error instanceof ApiError && error.status === 422 && error.body?.field_errors) {
       set({
@@ -214,6 +219,50 @@ export async function generatePackage({ objective } = {}) {
       set({ submit: { status: 'error', fieldErrors: {}, message: error.message } });
     }
   }
+}
+
+// ── No trip possible: nearest searches that work ───────────────────────────
+let alternativesSeq = 0;
+
+/** Ask the backend which one-field changes of this request do have a holiday. */
+export async function loadAlternatives(body) {
+  alternativesSeq += 1;
+  const mine = alternativesSeq;
+  const { objective: _ignored, ...trip } = body;
+  set({ alternatives: { status: 'loading', data: null, error: null } });
+  try {
+    const data = await getTripAlternatives(trip);
+    if (mine === alternativesSeq) set({ alternatives: { status: 'ready', data, error: null } });
+  } catch (error) {
+    if (mine === alternativesSeq) set({ alternatives: { status: 'error', data: null, error: error.message } });
+  }
+}
+
+/** Run a suggested search: put its 7 fields in the form and plan it at its proven minimum price. */
+export function searchAlternative(suggestion) {
+  const r = suggestion?.request;
+  if (!r) return;
+  const text = (v) => (v === null || v === undefined ? '' : String(v));
+  set({
+    form: {
+      departure: text(r.departure),
+      country: text(r.country),
+      start_date: text(r.start_date),
+      nights: text(r.nights),
+      adults: text(r.adults),
+      child_ages: Array.isArray(r.child_ages) ? r.child_ages.join(', ') : '',
+      budget: text(r.budget),
+    },
+  });
+  return generatePackage({ objective: 'MINIMUM_COST' });
+}
+
+/** Leave the open package (it stays saved) and go back to an empty result for a new search. */
+export function startNewSearch() {
+  alternativesSeq += 1;
+  writePackageIdToUrl(null, 'push');
+  showResult(EMPTY_RESULT, false);
+  set({ submit: { status: 'idle', fieldErrors: {}, message: null }, alternatives: { status: 'idle', data: null, error: null } });
 }
 
 /** Load a saved package by id (from the URL, the "open" box, or a retry). */
