@@ -26,6 +26,7 @@ from app.engine.hotels import min_rooms
 from app.engine.model import ARRIVAL_LEG, DEPARTURE_LEG, Package, intercity_leg_id
 from app.engine.repair import ChangeProposal, request_of
 from app.lib.money import amount
+from app.services.itinerary import transfer_route
 from app.lib.time import at, in_window, on_slot, window_on
 from app.models import (
     ADD_ATTRACTION,
@@ -358,7 +359,7 @@ def _airport_transfers(pkg: Package, item_id, catalog) -> list[Alternative]:
     out = []
     for tid in sorted(pool):
         rec = pool[tid]
-        name = rec.get("name") or tid
+        name = transfer_route(rec, item_id == DEPARTURE_LEG)[0] or tid
         if tid == now.transfer_id:
             details = _transfer_details(rec, now.pickup.isoformat(), now.arrive.isoformat())
             out.append(_current(pkg, catalog_id=tid, name=name, price=now.price, details=details))

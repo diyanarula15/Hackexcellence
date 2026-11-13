@@ -350,7 +350,8 @@ def test_25_add_an_attraction_that_would_overlap(env):
     r = propose(env, kind="ADD_ATTRACTION", date="2027-04-11", attraction_id="ATT-X-LONG")
     assert_refused(r, "R-ATT-8")
     assert "ATT-X-1 10:00–11:00" in r.violations[0].message
-    # a preferred time that overlaps: the new visit moves to free time, the planned one never moves
+    # a preferred time that overlaps: the new visit moves to free time (an hour after ATT-X-1 ends,
+    # like the first build's gap between visits), the planned one never moves
     r = propose(
         env,
         kind="ADD_ATTRACTION",
@@ -361,8 +362,8 @@ def test_25_add_an_attraction_that_would_overlap(env):
     p = assert_valid(r, env.data)
     assert changed(env.pkg, p) == {"visit:ATT-X-3"}
     new = next(v for v in p.visits if v.attraction_id == "ATT-X-3")
-    assert new.start.strftime("%H:%M") == "11:00"
-    assert any("10:30" in w and "11:00" in w for w in r.warnings)
+    assert new.start.strftime("%H:%M") == "12:00"
+    assert any("10:30" in w and "12:00" in w for w in r.warnings)
 
 
 def test_26_a_duplicate_attraction_is_refused(env):

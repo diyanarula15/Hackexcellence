@@ -121,16 +121,31 @@ def _hotel_item(h: HotelOption, ix) -> dict:
     }
 
 
+def transfer_route(rec: dict, departure: bool) -> tuple[str, str | None, str | None]:
+    """(name, from, to) as the traveler rides it. The catalog has one record per airport transfer,
+    written airport -> hotels ("Narita limousine bus to Ueno", NRT -> Ueno area hotels); on the way
+    home the same service runs hotels -> airport, so it reads "... from Ueno", Ueno area hotels -> NRT."""
+    name = rec.get("name") or rec.get("transfer_id") or ""
+    start, end = rec.get("from_point"), rec.get("to_point")
+    if departure and rec.get("airport"):
+        head, sep, area = name.rpartition(" to ")
+        if sep:
+            name = f"{head} from {area}"
+        start, end = end, start
+    return name, start, end
+
+
 def _transfer_item(t: TransferOption, role: str, ix) -> dict:
     rec = ix.transfers_by_id.get(t.transfer_id) or {}
     per_vehicle = rec.get("pricing") == "PER_VEHICLE"
+    name, start, end = transfer_route(rec, role == "AIRPORT_DEPARTURE")
     return {
         "item_id": t.leg_id,
         "type": "transfer",
         "catalog_id": t.transfer_id,
         "room_id": None,
         "leg_id": t.leg_id,
-        "name": rec.get("name") or t.transfer_id,
+        "name": name or t.transfer_id,
         "city": rec.get("city") or rec.get("to_city"),
         "start": fmt_dt(t.pickup),
         "end": fmt_dt(t.arrive),
@@ -139,8 +154,8 @@ def _transfer_item(t: TransferOption, role: str, ix) -> dict:
         "details": {
             "role": role,
             "mode": rec.get("type"),
-            "from_point": rec.get("from_point"),
-            "to_point": rec.get("to_point"),
+            "from_point": start,
+            "to_point": end,
             "from_city": rec.get("from_city"),
             "to_city": rec.get("to_city"),
             "duration_minutes": rec.get("duration_minutes"),

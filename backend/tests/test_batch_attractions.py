@@ -6,7 +6,7 @@ Each test gets a fresh temporary database and the real catalog (Menon package). 
 read from GET /api/packages/{id}/options, never hardcoded, so the tests follow the catalog.
 """
 
-from datetime import date
+from datetime import date, datetime
 
 import pytest
 from fastapi.testclient import TestClient
@@ -317,3 +317,28 @@ def test_remove_batch_naming_an_unplanned_visit_is_refused(client, package):
     assert r.json()["valid"] is False
     assert any("ATT-NOT-PLANNED" in v["message"] for v in r.json()["violations"])
     assert _get(client, pid)["version"] == package["version"]
+
+
+# ------------------------------------------------------------------ added visits keep a gap
+
+
+def test_added_visits_keep_the_first_builds_hour_between_visits_when_the_day_allows(client, package):
+    # recorded demo: two attractions added to one day used to land back to back (no time to get
+    # from one to the next). Like the first build, an Add now keeps an hour between visits when it fits.
+    pid = package["id"]
+    full_days = [d["date"] for d in package["days"][1:-1]]
+    for day in full_days:
+        city = _city_of(package, day)
+        alts = [a for a in _options(client, pid, day) if a["valid"] and not a["current"] and a["details"]["city"] == city]
+        if len(alts) >= 2:
+            break
+    else:
+        pytest.skip("no full day with two addable attractions")
+    body = _body(package, "ADD_ATTRACTIONS", additions=[{"attraction_id": a["catalog_id"], "date": day} for a in alts[:2]])
+    preview = _preview(client, pid, body).json()
+    assert preview["valid"] is True, preview["violations"]
+    todays = sorted((v["start"], v["end"]) for v in _visits(preview["proposed_package"]) if v["start"].startswith(day))
+    assert len(todays) >= 3, todays
+    for (_, end_a), (start_b, _) in zip(todays, todays[1:]):
+        gap = datetime.fromisoformat(start_b[:16]) - datetime.fromisoformat(end_a[:16])
+        assert gap.total_seconds() >= 3600, todays

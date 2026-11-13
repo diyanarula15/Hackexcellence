@@ -19,7 +19,7 @@ may not displace any other visit, and a removal changes nothing else.
 """
 
 from dataclasses import replace
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from app.engine import dependencies as dep
 from app.engine.constraints import HotelLock, PlanningConstraints, RequiredAttraction, TransferLock
@@ -28,6 +28,7 @@ from app.engine.repair import REPAIR_OUT_OF_SCOPE, ChangeProposal, propose_repai
 from app.engine.schedule import (
     DEPARTURE,
     FULL,
+    GAP_MINUTES,
     classify_days,
     find_start,
     fits,
@@ -327,12 +328,17 @@ def _add_attractions(pkg: Package, additions, cat) -> tuple[PlanningConstraints,
         want = at(day, preferred) if preferred else None
         start = None
         if slot is not None and slot.kind != DEPARTURE and slot.city == a["city"]:
-            taken = list(blocks) + [(v.start, v.end) for v in pkg.visits]
-            taken += [(v.start, v.end) for v in placed]
+            others = [*pkg.visits, *placed]
+            taken = list(blocks) + [(v.start, v.end) for v in others]
+            # Like the first build, keep GAP_MINUTES between visits when the day allows it (time to
+            # get from one sight to the next); back to back only when nothing else fits. A time the
+            # traveler picked is kept as long as it does not overlap.
+            gap = timedelta(minutes=GAP_MINUTES)
+            spaced = list(blocks) + [(v.start - gap, v.end + gap) for v in others]
             start = (
                 want
                 if want is not None and fits(a, day, want, taken)
-                else find_start(a, day, taken, prefer=want)
+                else find_start(a, day, spaced, prefer=want) or find_start(a, day, taken, prefer=want)
             )
         if start is None:
             later = sorted((*pkg.visits, *placed), key=lambda v: (v.start, v.attraction_id))

@@ -274,13 +274,44 @@
   color: var(--ink-muted);
   opacity: 0;
   transform: translateY(var(--space-1));
-  transition: opacity 400ms var(--ease-out), transform 400ms var(--ease-out);
+  transition: opacity 400ms var(--ease-out), transform 400ms var(--ease-out), visibility 0s linear 400ms;
   pointer-events: none;
+  visibility: hidden;
 }
 
 [data-stage="cabin"] .cue {
   opacity: 1;
   transform: none;
+  visibility: visible;
+  transition: opacity 400ms var(--ease-out), transform 400ms var(--ease-out), visibility 0s;
+}
+
+/* The nav is hidden during the intro, so this is the one click straight to the form. */
+.cue__skip {
+  margin-left: var(--space-2);
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  color: var(--color-accent);
+  cursor: pointer;
+}
+
+[data-stage="cabin"] .cue__skip {
+  pointer-events: auto;
+}
+
+.cue__skip:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.cue__skip:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+  border-radius: var(--radius-box);
 }
 
 .cue__line {

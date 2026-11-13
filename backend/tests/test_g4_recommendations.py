@@ -247,12 +247,22 @@ def _rows():
         return conn.execute("SELECT COUNT(*) FROM packages").fetchone()[0]
 
 
+SMALL_API = {
+    "departure": "DEL",
+    "country": "Japan",
+    "start_date": "2027-04-10",
+    "nights": 5,
+    "adults": 1,
+    "child_ages": [],
+}
+
+
 def test_fastest_above_the_budget_is_shown_with_a_within_budget_fastest(client):
-    # 216 000: the fastest holiday costs 219 324 (1030 min); the cheapest (215 544) is the fastest
-    # one within the budget and the best rated one too
-    body = client.post("/api/package-options", json={**MENON, "budget": 216_000}).json()
+    # 100 000: the fastest holiday costs 106 439 (1145 min); the cheapest (87 483) is the fastest
+    # one within the budget, and a better-rated one (97 507) still fits
+    body = client.post("/api/package-options", json={**SMALL_API, "budget": 100_000}).json()
     labels = [o["labels"] for o in body["options"]]
-    assert labels == [[CHEAPEST, FASTEST_IN_BUDGET, BEST_RATED], [FASTEST]]
+    assert labels == [[CHEAPEST, FASTEST_IN_BUDGET], [FASTEST], [BEST_RATED]]
     over = body["options"][1]
     assert over["over_budget"] is True and over["budget_remaining_inr"] < 0
     assert over["metrics"]["travel_minutes"] < body["options"][0]["metrics"]["travel_minutes"]

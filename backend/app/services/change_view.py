@@ -16,6 +16,7 @@ from app.engine.repair import ChangedItem
 from app.lib.money import rupees
 from app.rules.common import Violation
 from app.rules.transfers import BUFFER_TEXT
+from app.services.itinerary import transfer_route
 
 _TOKEN = re.compile(r"[A-Za-z0-9][A-Za-z0-9_-]*")
 
@@ -106,6 +107,11 @@ def _summary(c: ChangedItem, label: str, before: dict | None, after: dict | None
 def changed_item_view(c: ChangedItem, catalog) -> dict:
     kind, label = item_kind(c.component)
     before, after = _side(c.before, catalog), _side(c.after, catalog)
+    if c.component == DEPARTURE_LEG:  # the way home: "... from Ueno", not the catalog's "... to Ueno"
+        for side in (before, after):
+            rec = side and catalog.indexes.transfers_by_id.get(side["catalog_id"])
+            if rec:
+                side["name"] = transfer_route(rec, departure=True)[0]
     return {
         "item_id": c.component,
         "type": kind,

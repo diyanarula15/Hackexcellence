@@ -518,3 +518,19 @@ def test_modify_package_refuses_a_stale_version_without_calling_the_change(clien
         repo.modify_package(pid, 7, never)
     assert (e.value.expected, e.value.current) == (7, 1)
     assert _row(pid) == before
+
+
+def test_a_late_landing_flight_change_picks_up_the_same_night_not_the_next_morning(client):
+    # judge-check run: changing Menon to FL-405 (lands 21:30) kept the airport bus, which stops at
+    # 22:00, so the pickup moved to 06:30 the next morning. The repair now prefers a service that
+    # picks up on the landing day (a taxi runs until 23:00), like the first build does.
+    pid = _create(client)
+    pkg = client.get(f"/api/packages/{pid}").json()["package"]
+    body = {"kind": "CHANGE_ARRIVAL_FLIGHT", "flight_id": "FL-405", "base_version": pkg["version"]}
+    preview = client.post(f"/api/packages/{pid}/preview-change", json=body).json()
+    assert preview["valid"] is True, preview["violations"]
+    items = preview["proposed_package"]["items"]
+    flight = next(i for i in items if i["item_id"] == "flight:arrival")
+    pickup = next(i for i in items if i["item_id"] == "leg:arrival")
+    assert flight["end"][:10] == "2027-04-10"
+    assert pickup["start"][:10] == "2027-04-10", pickup

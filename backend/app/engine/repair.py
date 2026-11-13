@@ -72,6 +72,10 @@ class _Reject(Exception):
         self.violations = violations
 
 
+_TONIGHT = ("The flight lands late; the {label} now picks you up the same night instead of the next "
+            "morning, so nobody waits overnight at the airport.")
+
+
 def _lock_violation(message, item=None):
     return Violation(LOCKED_CHOICE_INCOMPATIBLE, message, item)
 
@@ -248,9 +252,15 @@ def _repair(old: Package, con: PlanningConstraints, cat) -> ChangeProposal:
         else:
             opts = finder(TransferLock(current.transfer_id, current.pickup))
             if opts:
-                return current if opts[0] == current else opts[0]
-            same = finder(TransferLock(current.transfer_id))
-            if same:
+                keep = current if opts[0] == current else opts[0]
+                tonight = _landing_day_pickup(leg_id, keep, finder) if leg_id in scope else None
+                if tonight is None:
+                    return keep
+                new, reason = tonight, _TONIGHT.format(label=label)
+            elif (same := finder(TransferLock(current.transfer_id))) and (
+                    tonight := _landing_day_pickup(leg_id, same[0], finder)) is not None:
+                new, reason = tonight, _TONIGHT.format(label=label)
+            elif same:
                 new, reason = same[0], f"The {label} keeps the same service at a new time."
             else:
                 every = finder(None)
@@ -270,6 +280,15 @@ def _repair(old: Package, con: PlanningConstraints, cat) -> ChangeProposal:
             changed.append(ChangedItem(leg_id, source, action, _desc_transfer(current), _desc_transfer(new),
                                        new.price - current.price, reason))
         return new
+
+    def _landing_day_pickup(leg_id, chosen, finder):
+        """Nobody waits overnight at the airport (as in the first build, engine/build.py): when the
+        chosen arrival pickup is the next morning but some service picks up on the landing day, the
+        cheapest such service. None when the choice is already that day or nothing runs that night."""
+        if leg_id != ARRIVAL_LEG or chosen.pickup.date() == arr.arrival.date():
+            return None
+        tonight = [t for t in finder(None) if t.pickup.date() == arr.arrival.date()]
+        return min(tonight, key=lambda t: (t.price, t.pickup, t.transfer_id)) if tonight else None
 
     first_h, last_h = hotels[0], hotels[-1]
     first_rec, last_rec = ix.hotels_by_id[first_h.hotel_id], ix.hotels_by_id[last_h.hotel_id]

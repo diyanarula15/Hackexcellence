@@ -244,10 +244,7 @@ function Preview({ preview }) {
             {preview.changed_items
               .filter((item) => item.source !== 'AUTOMATIC_REPAIR')
               .map((item) => (
-                <li key={item.item_id}>
-                  {item.summary}
-                  {item.price_difference_inr ? ` (${formatSignedINR(item.price_difference_inr)})` : ''}
-                </li>
+                <li key={item.item_id}>{item.summary}</li>
               ))}
           </ul>
         </div>

@@ -61,7 +61,7 @@ export default function PlaneButton({ label, busyLabel, busy = false, disabled =
     <>
       <button
         type={type}
-        className={`box-btn${flying ? ' box-btn--flying' : ''} ${className}`}
+        className={`box-btn${flying ? ' box-btn--flying' : ''}${showBusy ? ' box-btn--busy' : ''} ${className}`}
         disabled={busy || disabled}
         onClick={handleClick}
       >

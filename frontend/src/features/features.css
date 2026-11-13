@@ -260,6 +260,27 @@
   color: var(--ink-muted);
 }
 
+/* What is wrong with a field, right under it. Placed like the hint, but it wraps within the
+   field; while any field shows one, the rows and the status line make room (two lines). */
+.field__error {
+  position: absolute;
+  top: calc(100% + 3px);
+  left: 2px;
+  right: 0;
+  margin: 0;
+  font-size: var(--step--2);
+  line-height: 1.2;
+  color: var(--color-accent);
+}
+
+.planner__fields--errors {
+  row-gap: calc(var(--space-3) + 2.4em);
+}
+
+.planner__fields--errors + .planner__status {
+  margin-top: calc(var(--space-3) + 2.4em);
+}
+
 /* ── Box button ("Plan trip", "Export JSON") ───────────────────────────── */
 /* Same box as .btn (faint fill, hairline border, accent on hover), plus the small plane and label morph. */
 .box-btn {
@@ -299,6 +320,13 @@
 
 .box-btn:disabled {
   cursor: progress;
+}
+
+/* Disabled because the form is not ready (not busy): it should look it. */
+.box-btn:disabled:not(.box-btn--busy) {
+  cursor: not-allowed;
+  opacity: 0.45;
+  box-shadow: none;
 }
 
 /* Label morph: each label is a one-column grid animating 0fr ↔ 1fr, so the button's width

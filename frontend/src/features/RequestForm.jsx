@@ -8,7 +8,7 @@ import PlaneButton from './PlaneButton.jsx';
 import DateField from './DateField.jsx';
 import ExploreDatesButton from './price-landscape/ExploreDatesButton.jsx';
 import QuickRequest, { QuickRequestToggle } from './quick-request/QuickRequest.jsx';
-import { formReadiness } from './quick-request/formReadiness.js';
+import { fieldIssues, latestStartDate } from './quick-request/formReadiness.js';
 
 const FIELD_ORDER = ['departure', 'country', 'start_date', 'nights', 'adults', 'child_ages', 'budget'];
 
@@ -21,34 +21,36 @@ function countryValue(countries, value) {
 }
 
 /**
- * Backend field errors → one list of unique messages, plus which messages describe which field
- * (one message, e.g. "start date plus nights…", can belong to two fields).
- * @param {Record<string, string[]>} fieldErrors
+ * The message to show on each field: the backend's (after a search) wins, else the form's own
+ * check. Backend errors for names that are not form fields are returned as `other`.
+ * @param {Record<string, string[]>} fieldErrors   from the last search (422)
+ * @param {{ field: string | null, text: string }[]} clientIssues   shown only when `showClient`
  */
-function collectMessages(fieldErrors) {
-  const names = [...FIELD_ORDER, ...Object.keys(fieldErrors).filter((n) => !FIELD_ORDER.includes(n))];
-  const messages = [];
-  const describedBy = {};
-  for (const name of names) {
-    for (const text of fieldErrors[name] ?? []) {
-      let message = messages.find((m) => m.text === text);
-      if (!message) {
-        message = { id: `trip-error-${messages.length}`, text };
-        messages.push(message);
-      }
-      describedBy[name] = [describedBy[name], message.id].filter(Boolean).join(' ');
+function errorsByField(fieldErrors, clientIssues, showClient) {
+  const errors = {};
+  const other = [];
+  for (const [name, texts] of Object.entries(fieldErrors)) {
+    if (!texts?.length) continue;
+    if (FIELD_ORDER.includes(name)) errors[name] = texts[0];
+    else other.push(...texts);
+  }
+  if (showClient) {
+    for (const { field, text } of clientIssues) {
+      if (field && !errors[field]) errors[field] = text;
     }
   }
-  return { messages, describedBy };
+  return { errors, other: [...new Set(other)] };
 }
 
 /**
- * @param {{ name: string, label: string, describedBy?: string, hint?: string,
+ * @param {{ name: string, label: string, error?: string, hint?: string,
  *           children: (props: object) => JSX.Element }} props
+ *   error - what is wrong with this field, shown right under it.
  *   hint - optional micro-caption shown under the control (hidden while the field is invalid).
  */
-function Field({ name, label, describedBy, hint, children }) {
-  const invalid = Boolean(describedBy);
+function Field({ name, label, error, hint, children }) {
+  const invalid = Boolean(error);
+  const errorId = `trip-${name}-error`;
   return (
     <div className={`field field--${name}${invalid ? ' field--invalid' : ''}`}>
       <label className="field__label" htmlFor={`trip-${name}`}>
@@ -59,12 +61,18 @@ function Field({ name, label, describedBy, hint, children }) {
         name,
         className: 'field__control',
         'aria-invalid': invalid,
-        'aria-describedby': describedBy ?? (hint ? `trip-${name}-hint` : undefined),
+        'aria-describedby': invalid ? errorId : hint ? `trip-${name}-hint` : undefined,
       })}
-      {hint && !invalid && (
-        <p className="field__hint" id={`trip-${name}-hint`}>
-          {hint}
+      {invalid ? (
+        <p className="field__error" id={errorId}>
+          {error}
         </p>
+      ) : (
+        hint && (
+          <p className="field__hint" id={`trip-${name}-hint`}>
+            {hint}
+          </p>
+        )
       )}
     </div>
   );
@@ -81,9 +89,15 @@ export default function RequestForm() {
   const options = meta.data;
   const countries = options?.countries ?? [];
   const loading = submit.status === 'loading';
-  const readiness = formReadiness(form, options, naturalLanguage?.unresolved ?? []);
+  const issues = fieldIssues(form, options, naturalLanguage?.unresolved ?? []);
+  const blocked = issues.length > 0;
+  // The form's own checks show once every required field has a value (or after a quick request),
+  // so nobody is told off while still typing.
+  const showClient =
+    Boolean(naturalLanguage?.active) || FIELD_ORDER.filter((name) => name !== 'child_ages').every((name) => form[name] !== '');
   const bind = (name) => ({ value: form[name], onChange: (e) => setField(name, e.target.value) });
-  const { messages, describedBy } = collectMessages(submit.fieldErrors ?? {});
+  const { errors, other } = errorsByField(submit.status === 'invalid' ? (submit.fieldErrors ?? {}) : {}, issues, showClient);
+  const unplaced = showClient ? issues.filter((issue) => !issue.field).map((issue) => issue.text) : [];
 
   return (
     <form
@@ -94,7 +108,7 @@ export default function RequestForm() {
       aria-busy={loading}
       onSubmit={(e) => {
         e.preventDefault();
-        if (readiness.length) return;
+        if (blocked) return;
         generatePackage();
       }}
     >
@@ -118,8 +132,8 @@ export default function RequestForm() {
 
       <QuickRequest form={form} onApply={applyParsedTrip} disabled={loading}
         departures={options?.departure_airports ?? []} open={quickOpen} onOpenChange={setQuickOpen} />
-      <div className="planner__fields">
-        <Field name="departure" label="From" describedBy={describedBy.departure}>
+      <div className={`planner__fields${Object.keys(errors).length ? ' planner__fields--errors' : ''}`}>
+        <Field name="departure" label="From" error={errors.departure}>
           {(props) => (
             <select {...props} {...bind('departure')}>
               <option value="">Departure city</option>
@@ -132,7 +146,7 @@ export default function RequestForm() {
           )}
         </Field>
 
-        <Field name="country" label="To" describedBy={describedBy.country}>
+        <Field name="country" label="To" error={errors.country}>
           {(props) => (
             <select
               {...props}
@@ -149,19 +163,19 @@ export default function RequestForm() {
           )}
         </Field>
 
-        <Field name="start_date" label="First day" describedBy={describedBy.start_date}>
+        <Field name="start_date" label="First day" error={errors.start_date}>
           {(props) => (
             <DateField
               {...props}
               value={form.start_date}
               onChange={(value) => setField('start_date', value)}
               min={options?.allowed_dates.first_night}
-              max={options?.allowed_dates.last_departure}
+              max={latestStartDate(options, form.nights)}
             />
           )}
         </Field>
 
-        <Field name="nights" label="Nights" describedBy={describedBy.nights}>
+        <Field name="nights" label="Nights" error={errors.nights}>
           {(props) => (
             <input
               {...props}
@@ -175,18 +189,18 @@ export default function RequestForm() {
           )}
         </Field>
 
-        <Field name="adults" label="Adults" describedBy={describedBy.adults}>
+        <Field name="adults" label="Adults" error={errors.adults}>
           {(props) => <input {...props} {...bind('adults')} type="number" inputMode="numeric" min={1} placeholder="2" />}
         </Field>
 
-        <Field name="child_ages" label="Children's ages" describedBy={describedBy.child_ages}>
+        <Field name="child_ages" label="Children's ages" error={errors.child_ages}>
           {(props) => <input {...props} {...bind('child_ages')} type="text" placeholder="Optional (e.g. 6, 9)" />}
         </Field>
 
         <Field
           name="budget"
           label="Budget (₹)"
-          describedBy={describedBy.budget}
+          error={errors.budget}
           hint={submit.status === 'invalid' ? undefined : budgetHint(form)}
         >
           {(props) => <input {...props} {...bind('budget')} type="text" inputMode="numeric" placeholder="3,50,000" />}
@@ -196,7 +210,7 @@ export default function RequestForm() {
           type="submit"
           className="planner__submit"
           label="Find Holidays"
-          disabled={readiness.length > 0}
+          disabled={blocked}
           busyLabel="Choreographing…"
           busy={loading}
           onClick={() => window.dispatchEvent(new CustomEvent('scene:flyby'))}
@@ -204,18 +218,20 @@ export default function RequestForm() {
       </div>
 
       <div className="planner__status" aria-live="polite">
-        {(naturalLanguage?.active || FIELD_ORDER.filter((name) => name !== 'child_ages').every((name) => form[name] !== '')) && readiness.length > 0 && <div><p>Complete or correct these details before searching:</p><ul>{readiness.map((message) => <li key={message}>{message}</li>)}</ul></div>}
+        {submit.status !== 'invalid' && showClient && blocked && (
+          <p>{unplaced.length ? unplaced.join(' ') : 'Fix the highlighted fields to search.'}</p>
+        )}
         {loading && <p>Choosing cities, flights, hotels, transfers and attractions…</p>}
         {submit.status === 'invalid' && (
           <>
             <p className="planner__alert">{submit.message}</p>
-            <ul className="planner__errors">
-              {messages.map(({ id, text }) => (
-                <li key={id} id={id}>
-                  {text}
-                </li>
-              ))}
-            </ul>
+            {other.length > 0 && (
+              <ul className="planner__errors">
+                {other.map((text) => (
+                  <li key={text}>{text}</li>
+                ))}
+              </ul>
+            )}
           </>
         )}
         {submit.status === 'error' && (
