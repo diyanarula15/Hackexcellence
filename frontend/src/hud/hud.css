@@ -12,7 +12,7 @@
  *
  * STAGE-DRIVEN VISIBILITY
  *   scene/choreography.js sets <html data-stage="cabin|flight|hero">.
- *   cabin → nav + scroll cue only · flight → nav only · hero → headline
+ *   cabin → scroll cue only · flight → nothing · hero → nav slides in, headline
  *   slides up, search slot becomes active. With no attribute (WebGL failed)
  *   everything is simply visible.
  *
@@ -74,6 +74,18 @@
   justify-content: space-between;
   height: var(--nav-height);
   padding: 0 var(--gutter);
+  transition: opacity 500ms var(--ease-out), transform 500ms var(--ease-out), visibility 0s linear 0s;
+}
+
+/* The nav stays out of the airplane-window intro and slides in once the view opens up (hero).
+   visibility also takes its links out of the tab order while hidden. */
+[data-stage="cabin"] .nav,
+[data-stage="flight"] .nav {
+  opacity: 0;
+  transform: translateY(calc(-1 * var(--space-2)));
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 300ms var(--ease-out), transform 300ms var(--ease-out), visibility 0s linear 300ms;
 }
 
 .nav__brand {

@@ -19,6 +19,8 @@ import {
 import ChangeDrawer from './ChangeDrawer.jsx';
 import DelayRescue from './DelayRescue.jsx';
 import AttractionDetails from './AttractionDetails.jsx';
+import HotelDetails from './HotelDetails.jsx';
+import PhotoCredits from './PhotoCredits.jsx';
 import DayTimeline from './DayTimeline.jsx';
 import SaveTripButton from './saved-trips/SaveTripButton.jsx';
 import PackageOptions from './package-options/PackageOptions.jsx';
@@ -309,7 +311,7 @@ function SavedAs({ pkg }) {
   return (
     <section aria-labelledby="saved-title">
       <h3 className="eyebrow" id="saved-title">
-        Saved package
+        Package ID
       </h3>
       <p className="mono">{pkg.id}</p>
       <p className="results__muted">
@@ -317,6 +319,10 @@ function SavedAs({ pkg }) {
         <button type="button" className="link-button" onClick={copy}>
           {copied ? 'Copied' : 'Copy ID'}
         </button>
+      </p>
+      <p className="results__muted">
+        Every plan gets an ID automatically, so you can reopen it from “Package ID” in the top bar. To keep it in
+        your list, use Save trip.
       </p>
     </section>
   );
@@ -359,6 +365,7 @@ function PackageView({ response, receipt, onConfirmed }) {
       <ChangeDrawer />
       <DelayRescue />
       <AttractionDetails />
+      <HotelDetails />
       {reviewOpen && <ConfirmHoliday pkg={pkg} onClose={() => setReviewOpen(false)} onConfirmed={onConfirmed} />}
       <header className="pkg__header">
         <p className="eyebrow">Your holiday package</p>
@@ -418,6 +425,7 @@ function PackageView({ response, receipt, onConfirmed }) {
             Day by day · all times local
           </h3>
           <DayTimeline days={pkg.days} editable={pkg.status === 'PLANNED'} />
+          <PhotoCredits />
         </section>
       </div>
     </div>
@@ -432,13 +440,13 @@ function Content({ result, receipt, onConfirmed }) {
       return <PackageOptions />; // pick your trip: several complete options, nothing saved yet
     case 'LOADING':
       return (
-        <Notice eyebrow="Saved package" title="Loading your holiday…">
+        <Notice eyebrow="Your package" title="Loading your holiday…">
           <p className="mono results__muted">{result.packageId}</p>
         </Notice>
       );
     case 'NOT_FOUND':
       return (
-        <Notice eyebrow="Saved package" title="Package not found">
+        <Notice eyebrow="Your package" title="Package not found">
           <p>{result.error}</p>
           <p className="mono results__muted">{result.packageId}</p>
           <div className="results__actions">
@@ -448,7 +456,7 @@ function Content({ result, receipt, onConfirmed }) {
       );
     case 'ERROR':
       return (
-        <Notice eyebrow="Saved package" title="Could not load this package">
+        <Notice eyebrow="Your package" title="Could not load this package">
           <p>{result.error}</p>
           <div className="results__actions">
             <button type="button" className="btn btn--primary" onClick={retryResult}>

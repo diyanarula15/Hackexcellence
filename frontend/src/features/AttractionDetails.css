@@ -200,9 +200,16 @@
   font: inherit;
   text-align: left;
   text-decoration: underline;
-  text-underline-offset: 3px;
+  text-decoration-color: color-mix(in srgb, var(--color-ink) 25%, transparent);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
   cursor: pointer;
   overflow-wrap: anywhere;
+  transition: color 0.15s ease, text-decoration-color 0.15s ease;
+}
+.attraction-link:hover {
+  color: var(--color-accent);
+  text-decoration-color: currentColor;
 }
 
 @media (max-width: 600px) {

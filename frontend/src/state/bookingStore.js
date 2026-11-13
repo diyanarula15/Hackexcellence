@@ -87,6 +87,8 @@ export const bookingStore = createStore({
   attractionSelection: [],
   /** The attraction detail drawer: { open, attraction_id, item_id (visit:<id> when planned) | null, date | null } */
   attractionDetails: { open: false, attraction_id: null, item_id: null, date: null },
+  /** The hotel detail drawer: { open, hotel_id, stay_id (the stay it was opened from) | null } */
+  hotelDetails: { open: false, hotel_id: null, stay_id: null },
   /** Which top-level overlay is open: null | 'landscape' | 'saved' | 'lookup' */
   panel: null,
   /**
@@ -564,6 +566,15 @@ export function openAttractionDetails({ attraction_id, item_id = null, date = nu
 
 export function closeAttractionDetails() {
   set((state) => ({ attractionDetails: { ...state.attractionDetails, open: false } }));
+}
+
+/** Open the read-only hotel drawer (photo, facts, rooms, map link) for one catalog hotel. */
+export function openHotelDetails({ hotel_id, stay_id = null }) {
+  set({ hotelDetails: { open: true, hotel_id, stay_id } });
+}
+
+export function closeHotelDetails() {
+  set((state) => ({ hotelDetails: { ...state.hotelDetails, open: false } }));
 }
 
 // ── Top-level overlays (navigation) ────────────────────────────────────────

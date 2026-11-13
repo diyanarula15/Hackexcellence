@@ -41,6 +41,9 @@ function AttractionRow({ option, date, ticked, disabled, busy }) {
       data-catalog-id={option.catalog_id}
       data-valid={String(addable)}
     >
+      {option.details?.image_url && (
+        <img className="option-thumb option-thumb--float" src={option.details.image_url} alt="" loading="lazy" />
+      )}
       <label className="attraction-picker__check">
         <input
           type="checkbox"

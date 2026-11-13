@@ -92,6 +92,9 @@ function Option({ option, kind, selected, busy }) {
       data-valid={String(option.valid)}
       data-current={String(option.current)}
     >
+      {option.details?.image_url && (
+        <img className="option-thumb" src={option.details.image_url} alt="" loading="lazy" />
+      )}
       <div className="change-option__main">
         <p className="change-option__name">
           {title}

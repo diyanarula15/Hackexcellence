@@ -3,6 +3,7 @@
 Run from backend/: ../.venv/bin/python -m pytest -q tests/test_attraction_details.py
 Reads the real data/ and images/ files; never modifies them.
 """
+
 from urllib.parse import parse_qs, urlsplit
 
 import pytest
@@ -32,11 +33,11 @@ def test_japan_attraction_has_image_credit_and_serves_jpeg():
 
 
 def test_expanded_country_attraction_without_image_has_null_image_fields():
-    body = _get("ATT-BKK-001").json()
+    body = _get("ATT-HKT-007").json()
     assert body["country"] == "Thailand"
     assert body["image_url"] is None
     assert body["image_credit"] is None
-    assert client.get("/api/attractions/ATT-BKK-001/image").status_code == 404
+    assert client.get("/api/attractions/ATT-HKT-007/image").status_code == 404
 
 
 def test_maps_url_decodes_to_name_city_country():
@@ -60,7 +61,9 @@ def test_unknown_id_is_404_with_error_code():
     assert "message" in res.json()
 
 
-@pytest.mark.parametrize("attempt", ["..%2F..%2Fetc%2Fpasswd", "..%2F..%2F..%2Fbackend%2Fapp%2Fconfig.py"])
+@pytest.mark.parametrize(
+    "attempt", ["..%2F..%2Fetc%2Fpasswd", "..%2F..%2F..%2Fbackend%2Fapp%2Fconfig.py"]
+)
 def test_traversal_attempt_is_404(attempt):
     assert client.get(f"/api/attractions/{attempt}").status_code == 404
     assert client.get(f"/api/attractions/{attempt}/image").status_code == 404

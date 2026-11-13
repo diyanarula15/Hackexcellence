@@ -1,6 +1,12 @@
 // The backend returns events in itinerary order; this component only formats them.
 
-import { openAttractionDetails, openChange, openDelayRescue, previewRemoveAttraction } from '../state/bookingStore.js';
+import {
+  openAttractionDetails,
+  openChange,
+  openDelayRescue,
+  openHotelDetails,
+  previewRemoveAttraction,
+} from '../state/bookingStore.js';
 import { formatDay, formatDuration, formatINR, formatTime, humanize, plural } from './format.js';
 import './AttractionDetails.css'; // styles the attraction name button below
 
@@ -41,15 +47,14 @@ function describe(event, day, preview = false) {
           </span>
         </span>,
         `${d.flight_number} · ${d.from.code} → ${d.to.code}`,
+        // departure and landing times are already in the time column (each airport's local time)
         [
           d.airline,
-          `departs ${formatDay(event.start)} ${formatTime(event.start)} ${d.from.city} time`,
-          `lands ${formatDay(event.end)} ${formatTime(event.end)} ${d.to.city} time`,
+          `${d.from.city} → ${d.to.city}`,
           formatDuration(d.duration_minutes),
+          d.stops == null ? null : d.stops === 0 ? 'Non-stop' : plural(d.stops, 'stop'),
           plural(event.quantity, 'seat'),
-        ]
-          .filter(Boolean)
-          .join(' · '),
+        ],
       ];
     case 'TRANSFER':
       return [
@@ -60,26 +65,38 @@ function describe(event, day, preview = false) {
           `${d.from_point} → ${d.to_point}`,
           `${formatDuration(d.duration_minutes)}, arrives ${formatTime(event.end)}`,
           plural(event.quantity, d.unit === 'vehicles' ? 'vehicle' : 'ticket'),
-        ].join(' · '),
+        ],
       ];
     // Stays are booked by date, so hotel rows carry no clock time: the hotel's check-in/check-out
     // hours are policies, and in the time column they would read as out-of-order times.
     case 'CHECK_IN':
       return [
         '',
-        `Check in · ${event.name}`,
+        preview ? (
+          `Check in · ${event.name}`
+        ) : (
+          <>
+            Check in ·{' '}
+            <button
+              type="button"
+              className="attraction-link"
+              aria-haspopup="dialog"
+              onClick={() => openHotelDetails({ hotel_id: event.catalog_id, stay_id: event.item_id })}
+            >
+              {event.name}
+            </button>
+          </>
+        ),
         [
-          d.check_in_from ? `check-in from ${d.check_in_from}` : null,
           d.stars ? `${d.stars}★` : null,
           d.area,
           `${d.room?.name ?? 'Room'} × ${d.rooms}`,
           `${plural(d.nights, 'night')}, ${formatDay(event.start)} – ${formatDay(event.end)}`,
-        ]
-          .filter(Boolean)
-          .join(' · '),
+          d.check_in_from ? `Check-in from ${d.check_in_from}` : null,
+        ],
       ];
     case 'CHECK_OUT':
-      return ['', `Check out · ${event.name}`, d.check_out_until ? `check-out by ${d.check_out_until}` : ''];
+      return ['', `Check out · ${event.name}`, [d.check_out_until ? `Check-out by ${d.check_out_until}` : null]];
     case 'ATTRACTION':
       return [
         `${formatTime(event.start)}–${formatTime(event.end)}`,
@@ -91,12 +108,10 @@ function describe(event, day, preview = false) {
         >
           {event.name}
         </button>,
-        [humanize(d.category), formatDuration(d.visit_minutes), plural(event.quantity, 'ticket')]
-          .filter(Boolean)
-          .join(' · '),
+        [humanize(d.category), formatDuration(d.visit_minutes), plural(event.quantity, 'ticket')],
       ];
     default:
-      return [formatTime(event.start), event.name, ''];
+      return [formatTime(event.start), event.name, []];
   }
 }
 
@@ -161,15 +176,33 @@ function DelayButton({ event }) {
 function Event({ event, day, editable, preview }) {
   const [time, title, detail] = describe(event, day, preview);
   const price = event.price_inr == null ? '' : event.price_inr === 0 ? 'Free' : formatINR(event.price_inr);
+  const photo = (event.kind === 'ATTRACTION' || event.kind === 'CHECK_IN') && event.display_details?.image_url;
   return (
-    <li className={`event event--${event.kind.toLowerCase()}`}>
+    <li className={`event event--${event.kind.toLowerCase()}${photo ? ' event--photo' : ''}`}>
       <div className="event__time">{time}</div>
       <div className="event__body">
+        {photo && (
+          <img
+            className="event__thumb"
+            src={photo}
+            alt=""
+            loading="lazy"
+            onError={(e) => {
+              e.currentTarget.style.display = 'none';
+            }}
+          />
+        )}
         <p className="event__name">
           <span className="event__tag">{TAG[event.kind] ?? event.type}</span>
           {title}
         </p>
-        {detail && <p className="event__detail">{detail}</p>}
+        {detail.filter(Boolean).length > 0 && (
+          <ul className="event__facts">
+            {detail.filter(Boolean).map((fact) => (
+              <li key={fact}>{fact}</li>
+            ))}
+          </ul>
+        )}
         {editable && <EventActions event={event} />}
         {!preview && event.item_id === 'flight:arrival' && <DelayButton event={event} />}
       </div>

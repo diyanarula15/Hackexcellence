@@ -22,6 +22,7 @@ from app.engine.model import FlightOption, HotelOption, Package, TransferOption,
 from app.engine.schedule import ARRIVAL, CHANGE, DEPARTURE, FULL, classify_days
 from app.lib.money import amount
 from app.lib.time import fmt_dt, weekday_code
+from app.services.photos import attraction_photo_url, hotel_photo_url
 
 ARRIVAL_FLIGHT, RETURN_FLIGHT = "flight:arrival", "flight:return"
 DAY_TYPES = {ARRIVAL: "ARRIVAL", FULL: "FULL_DAY", CHANGE: "CITY_CHANGE", DEPARTURE: "DEPARTURE"}
@@ -104,6 +105,7 @@ def _hotel_item(h: HotelOption, ix) -> dict:
             "rating": hotel.get("rating"),
             "check_in_from": hotel.get("check_in_from"),
             "check_out_until": hotel.get("check_out_until"),
+            "image_url": hotel_photo_url(hotel),
             "nights": (h.check_out - h.check_in).days,
             "rooms": h.rooms,
             "room": {
@@ -170,6 +172,7 @@ def _visit_item(v: VisitOption, ix) -> dict:
             "open_from": rec.get("open_from"),
             "open_until": rec.get("open_until"),
             "child_friendly": rec.get("child_friendly"),
+            "image_url": attraction_photo_url(rec),
             "tickets": v.quantity,
             "price_per_person_inr": _price(rec, "price_per_person"),
             "child_price_inr": _price(rec, "child_price"),

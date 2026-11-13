@@ -39,6 +39,7 @@ from app.models import (
 from app.rules import pricing
 from app.rules.common import Party
 from app.services.change_view import changed_item_view, headline, name_ids, violation_view
+from app.services.photos import attraction_photo_url, hotel_photo_url
 
 OPTION_KINDS = (
     "hotel",
@@ -211,6 +212,7 @@ def _hotels(pkg: Package, stay_id, catalog) -> list[Alternative]:
                 "area": hotel.get("area"),
                 "stars": hotel.get("stars"),
                 "rating": hotel.get("rating"),
+                "image_url": hotel_photo_url(hotel),
                 "rooms": k,
                 "nights": stay.nights,
                 "check_in": stay.check_in.isoformat(),
@@ -536,6 +538,7 @@ def _attractions(pkg: Package, day: Date, catalog) -> list[Alternative]:
             "open_until": rec.get("open_until"),
             "category": rec.get("category"),
             "child_friendly": rec.get("child_friendly"),
+            "image_url": attraction_photo_url(rec),
         }
         out.append(
             _alternative(

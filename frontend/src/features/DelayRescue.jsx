@@ -18,37 +18,20 @@ import { formatDay, formatINR, formatTime, plural } from './format.js';
 
 const FOCUSABLE = 'button:not(:disabled), [href], [tabindex]:not([tabindex="-1"])';
 
-/** Meter and outcome styling. The text label and glyph carry the meaning; colour only reinforces it. */
+/** Outcome styling. The text label and glyph carry the meaning; colour only reinforces it. */
 const OUTCOMES = {
-  ABSORBED: { key: 'absorbed', label: 'Absorbed', glyph: '✓' },
-  REPAIRED: { key: 'repaired', label: 'Repaired', glyph: '↻' },
-  UNRECOVERABLE: { key: 'unrecoverable', label: 'Unrecoverable', glyph: '✕' },
+  ABSORBED: { key: 'absorbed', label: 'No change', glyph: '✓', title: 'No changes needed' },
+  REPAIRED: { key: 'repaired', label: 'Repaired', glyph: '↻', title: 'Your holiday can still work' },
+  UNRECOVERABLE: { key: 'unrecoverable', label: 'Breaks', glyph: '✕', title: 'No valid repair found' },
 };
-const NOT_EVALUATED = { key: 'unknown', label: 'Not evaluated', glyph: '–' };
+const NOT_EVALUATED = { key: 'unknown', label: '…', glyph: '–', title: '' };
 
-const PLANE_PATH = 'M21 16v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5z';
-
-const ROW_PX = 30;
-const TICK_STEPS = [60, 120, 360, 720]; // minutes
+const KIND_LABEL = { landing: 'Flight lands', pickup: 'Airport pickup', hotel_arrival: 'Hotel arrival', visit: 'Visit' };
 
 const scenarioFor = (batch, minutes) => batch?.scenarios?.find((s) => s.delay_minutes === minutes) ?? null;
 
-/** "2027-04-10T10:30" → minutes since the epoch, read as wall-clock time (no time-zone shifts). */
-function minutesOf(iso) {
-  if (!iso) return null;
-  const [day, time = '00:00'] = iso.split('T');
-  const [y, mo, d] = day.split('-').map(Number);
-  const [h, mi] = time.split(':').map(Number);
-  return Date.UTC(y, mo - 1, d, h, mi) / 60000;
-}
-
-/** Inverse of minutesOf, to the minute. */
-const isoOf = (minutes) => new Date(minutes * 60000).toISOString().slice(0, 16);
-
-/** The timeline key: visits carry an item_id; landing, pickup and hotel arrival are unique by kind. */
+/** The row key: visits carry an item_id; landing, pickup and hotel arrival are unique by kind. */
 const keyOf = (event) => event.item_id ?? event.kind;
-
-const estimateWidth = (text) => text.length * 1.3 + 2;
 
 function hoursText(minutes) {
   return plural(minutes / 60, 'hour');
@@ -61,16 +44,6 @@ function when(iso, dayRef) {
   return iso.slice(0, 10) === dayRef?.slice(0, 10) ? time : `${formatDay(iso)} ${time}`;
 }
 
-/** Repair items the backend changed, excluding the removals listed separately. */
-function changedOf(scenario) {
-  const seen = new Set();
-  return [...(scenario.changed_items ?? []), ...(scenario.automatic_repairs ?? [])].filter((item) => {
-    if (item.action === 'REMOVED' || seen.has(item.item_id)) return false;
-    seen.add(item.item_id);
-    return true;
-  });
-}
-
 function removedOf(scenario) {
   const seen = new Set();
   return [...(scenario.removed_activities ?? []), ...(scenario.changed_items ?? [])].filter((item) => {
@@ -80,363 +53,179 @@ function removedOf(scenario) {
   });
 }
 
-/** One changed item as "name: old → new". Names and times come from the item's before/after. */
-function describeChange(item, dayRef) {
-  const { before, after } = item;
-  const name = item.label || before?.name || after?.name || '';
-  if (item.action === 'REPLACED' && before?.name && after?.name) {
-    return `${name ? `${name}: ` : ''}${before.name} → ${after.name}`;
-  }
-  if (before?.start && after?.start) {
-    return `${name ? `${name}: ` : ''}${when(before.start, dayRef)} → ${when(after.start, dayRef)}`;
-  }
-  return item.summary ?? name;
-}
-
-function ToleranceSummary({ batch }) {
-  const hours = batch.tested_absorbed_continuous_minutes;
-  const exact = batch.exact_absorbed_tolerance_minutes;
-  return (
-    <div className="delay-summary">
-      <p>
-        {hours > 0
-          ? `Your current itinerary absorbs tested delays of up to ${hoursText(hours)}.`
-          : 'Your current pickup needs a change for any tested delay.'}
-      </p>
-      {exact != null && <p className="delay-summary__exact">Verified at the boundary: exactly up to {exact} min.</p>}
-    </div>
-  );
-}
-
-function Meter({ batch, selected }) {
-  return (
-    <div className="delay-meter-wrap">
-      <p className="eyebrow" id="delay-meter-title">
-        Delay resilience meter
-      </p>
-      <ol className="delay-meter" aria-labelledby="delay-meter-title">
-        {DELAY_LEVELS.map((minutes) => {
-          const tone = OUTCOMES[scenarioFor(batch, minutes)?.outcome] ?? NOT_EVALUATED;
-          return (
-            <li
-              key={minutes}
-              className={`delay-meter__seg is-${tone.key}${minutes === selected ? ' is-selected' : ''}`}
-            >
-              <span className="delay-meter__delay">+{minutes / 60} h</span>
-              <span className="delay-meter__status">
-                <span className="delay-meter__glyph" aria-hidden="true">
-                  {tone.glyph}
-                </span>
-                {tone.label}
-              </span>
-            </li>
-          );
-        })}
-      </ol>
-    </div>
-  );
-}
-
-function PlaneIcon() {
-  return (
-    <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false">
-      <path d={PLANE_PATH} fill="currentColor" />
-    </svg>
-  );
-}
-
-/** Lays items into the fewest rows that do not overlap, so the lane stays readable. */
-function packRows(items) {
-  const sorted = [...items].sort((a, b) => a.left - b.left);
-  const ends = [];
-  for (const item of sorted) {
-    const span = Math.max(item.width ?? 0, estimateWidth(item.text));
-    let row = ends.findIndex((end) => item.left >= end);
-    if (row === -1) {
-      row = ends.length;
-      ends.push(0);
-    }
-    ends[row] = item.left + span;
-    item.row = row;
-  }
-  return { items: sorted, rows: Math.max(ends.length, 1) };
-}
-
-function toItem(event, pct, state) {
-  const start = minutesOf(event.time);
-  const stop = minutesOf(event.end);
-  const left = pct(start);
-  const width = stop == null ? null : Math.max(pct(stop) - left, 1.5);
-  const clock = formatTime(event.time);
-  const label = event.label ?? '';
-  return {
-    key: keyOf(event),
-    kind: event.kind,
-    state,
-    left,
-    width,
-    label,
-    clock,
-    text: `${state === 'removed' ? 'Removed ' : ''}${clock} ${label}`,
-    title: `${clock}${event.end ? `–${formatTime(event.end)}` : ''} ${label}`,
-  };
-}
-
 /**
- * Positions for the arrival timeline. Original events keep their times; the proposed lane uses
- * the same keys, so a moved visit or pickup keeps its element and slides, a removed one stays at
- * its original time labelled "Removed", and a new one appears.
+ * Before/after rows for the arrival: every event of the current plan with its time, and its time
+ * under the simulated delay (moved, unchanged, removed or new). Times come from the backend timeline.
  */
-function buildTimeline(scenario) {
+function buildRows(scenario) {
   const { timeline } = scenario;
-  if (!timeline?.original) return null;
-  const original = timeline.original.filter((e) => e.kind !== 'landing');
-  const simulated = timeline.simulated ? timeline.simulated.filter((e) => e.kind !== 'landing') : null;
-  const origByKey = new Map(original.map((e) => [keyOf(e), e]));
+  if (!timeline?.original) return [];
+  const original = timeline.original;
+  const simulated = timeline.simulated ?? null;
   const simByKey = new Map((simulated ?? []).map((e) => [keyOf(e), e]));
-
-  const moments = [
-    scenario.scheduled_landing,
-    scenario.simulated_landing,
-    scenario.original_pickup,
-    scenario.proposed_pickup,
-    ...[...original, ...(simulated ?? [])].flatMap((e) => [e.time, e.end]),
-  ]
-    .map(minutesOf)
-    .filter((v) => v != null);
-  if (!moments.length) return null;
-
-  let lo = Math.min(...moments) - 30;
-  let hi = Math.max(...moments) + 30;
-  if (hi - lo < 180) {
-    const mid = (lo + hi) / 2;
-    lo = mid - 90;
-    hi = mid + 90;
+  const origKeys = new Set(original.map(keyOf));
+  const rows = original.map((orig) => {
+    const key = keyOf(orig);
+    const sim = simulated ? simByKey.get(key) : orig;
+    const state = !sim ? 'removed' : sim.time !== orig.time ? 'moved' : 'same';
+    return { key, kind: orig.kind, label: orig.label, before: orig.time, after: sim?.time ?? null, state };
+  });
+  for (const sim of simulated ?? []) {
+    if (!origKeys.has(keyOf(sim))) {
+      rows.push({ key: keyOf(sim), kind: sim.kind, label: sim.label, before: null, after: sim.time, state: 'new' });
+    }
   }
-  const span = hi - lo;
-  const pct = (m) => ((m - lo) / span) * 100;
-
-  const pickupMoved = Boolean(scenario.proposed_pickup) && scenario.proposed_pickup !== scenario.original_pickup;
-  const current = packRows(original.map((e) => toItem(e, pct, e.kind === 'pickup' && pickupMoved ? 'struck' : 'static')));
-
-  let proposed = null;
-  if (simulated) {
-    const keys = [...origByKey.keys(), ...[...simByKey.keys()].filter((k) => !origByKey.has(k))];
-    proposed = packRows(
-      keys.map((key) => {
-        const sim = simByKey.get(key);
-        const orig = origByKey.get(key);
-        if (!sim) return toItem(orig, pct, 'removed');
-        if (!orig) return toItem(sim, pct, 'new');
-        const moved = sim.time !== orig.time || sim.end !== orig.end;
-        return toItem(sim, pct, moved ? 'moved' : 'same');
-      }),
-    );
+  // the landing always moves by the delay, even when the backend has no simulated lane
+  const landing = rows.find((r) => r.kind === 'landing');
+  if (landing) {
+    landing.after = scenario.simulated_landing;
+    landing.state = 'moved';
   }
-
-  const step = TICK_STEPS.find((s) => span / s <= 8) ?? TICK_STEPS[TICK_STEPS.length - 1];
-  const ticks = [];
-  for (let t = Math.ceil(lo / step) * step; t <= hi; t += step) {
-    const iso = isoOf(t);
-    ticks.push({ key: t, left: pct(t), clock: formatTime(iso), day: ticks.length === 0 || t % 1440 === 0 ? formatDay(iso) : '' });
-  }
-
-  return {
-    landing: {
-      ghost: pct(minutesOf(scenario.scheduled_landing)),
-      plane: pct(minutesOf(scenario.simulated_landing)),
-      scheduledClock: formatTime(scenario.scheduled_landing),
-      simulatedClock: formatTime(scenario.simulated_landing),
-    },
-    current,
-    proposed,
-    ticks,
-  };
+  return rows;
 }
 
-function TimelineLane({ label, lane }) {
+/** One tab per tested delay; each tab carries its own outcome, so it doubles as the resilience meter. */
+function DelayTabs({ batch, selected, disabled }) {
   return (
-    <div className="delay-tl__group">
-      <p className="delay-tl__label">{label}</p>
-      <div className="delay-tl__lane" style={{ height: `${lane.rows * ROW_PX}px` }}>
-        {lane.items.map((item) => (
-          <span
-            key={item.key}
-            className={`delay-tl__event delay-tl__event--${item.kind} is-${item.state}`}
-            style={{
-              // chips in the right half grow leftwards from their end so their label stays visible
-              ...(item.left > 50
-                ? { right: `${Math.max(0, 100 - item.left - (item.width ?? 0))}%` }
-                : { left: `${item.left}%` }),
-              top: `${item.row * ROW_PX}px`,
-              width: item.width == null ? undefined : `${item.width}%`,
-            }}
-            title={item.title}
+    <div className="delay-tabs" role="group" aria-label="Simulated arrival delay">
+      {DELAY_LEVELS.map((minutes) => {
+        const tone = OUTCOMES[scenarioFor(batch, minutes)?.outcome] ?? NOT_EVALUATED;
+        return (
+          <button
+            key={minutes}
+            type="button"
+            className={`delay-tab is-${tone.key}`}
+            aria-pressed={minutes === selected}
+            disabled={disabled}
+            onClick={() => selectDelay(minutes)}
           >
-            {item.state === 'removed' && <em className="delay-tl__tag">Removed</em>}
-            <span className="delay-tl__text">{item.label}</span>
-            <span className="delay-tl__clock">{item.clock}</span>
-          </span>
-        ))}
-      </div>
+            <span className="delay-tab__delay">+{minutes / 60} h late</span>
+            <span className="delay-tab__status">
+              <span className="delay-tab__dot" aria-hidden="true">
+                {tone.glyph}
+              </span>
+              {tone.label}
+            </span>
+          </button>
+        );
+      })}
     </div>
   );
 }
 
-/** Before/after arrival timeline. Positions slide, removals fade with a label; no data is changed. */
-function DelayTimeline({ layout, delayMinutes }) {
-  return (
-    <section className="delay-tl" aria-label="Arrival timeline, local times">
-      <div className="delay-tl__group">
-        <p className="delay-tl__label">Flight landing</p>
-        <div className="delay-tl__lane delay-tl__lane--landing" style={{ height: `${ROW_PX}px` }}>
-          <span className="delay-tl__ghost" style={{ left: `${layout.landing.ghost}%` }} title={`Scheduled landing ${layout.landing.scheduledClock}`} />
-          <span className="delay-tl__plane" style={{ left: `${layout.landing.plane}%` }}>
-            <PlaneIcon />
-          </span>
-          <span
-            className={`delay-tl__plane-label${layout.landing.plane > 80 ? ' is-flip' : ''}`}
-            style={{ left: `${layout.landing.plane}%` }}
-          >
-            Lands {layout.landing.simulatedClock}
-          </span>
-        </div>
-      </div>
-      <TimelineLane label="Current plan" lane={layout.current} />
-      {layout.proposed && <TimelineLane label={`With a +${delayMinutes / 60} h delay`} lane={layout.proposed} />}
-      <div className="delay-tl__axis" aria-hidden="true">
-        {layout.ticks.map((tick) => (
-          <span key={tick.key} className="delay-tl__tick" style={{ left: `${tick.left}%` }}>
-            {tick.day && <small>{tick.day}</small>}
-            {tick.clock}
-          </span>
-        ))}
-      </div>
-    </section>
-  );
+function toleranceText(batch) {
+  const minutes = batch.tested_absorbed_continuous_minutes;
+  const exact = batch.exact_absorbed_tolerance_minutes;
+  if (exact != null && exact > 0) return `Your plan as booked copes with a delay of up to ${exact} min.`;
+  if (minutes > 0) return `Your plan as booked copes with a delay of up to ${hoursText(minutes)}.`;
+  return 'Any of these delays means changing your airport pickup. Pick one to see the fix.';
 }
 
-function Repair({ scenario, batch, applying }) {
-  const { outcome } = scenario;
-  const dayRef = batch.scheduled_landing;
-  const note = !scenario.can_apply && scenario.apply_blocked_reason;
-
-  if (outcome === 'ABSORBED') {
-    return (
-      <section className="delay-repair">
-        <h4 className="delay-repair__title">No changes needed.</h4>
-        {note && <p className="delay-note">{scenario.apply_blocked_reason}</p>}
-      </section>
-    );
-  }
-
-  if (outcome === 'UNRECOVERABLE') {
-    return (
-      <section className="delay-repair">
-        <h4 className="delay-repair__title">No valid repair found.</h4>
-        {scenario.violations?.length > 0 && (
-          <ul className="delay-list">
-            {scenario.violations.map((v, i) => (
-              <li key={`${v.rule}-${i}`}>{v.message}</li>
-            ))}
-          </ul>
-        )}
-        <p className="delay-note">Your original holiday remains unchanged.</p>
-        {note && <p className="delay-note">{scenario.apply_blocked_reason}</p>}
-      </section>
-    );
-  }
-
-  if (outcome !== 'REPAIRED') return null;
-
-  const changed = changedOf(scenario);
-  const removed = removedOf(scenario);
-  const difference = scenario.price_difference_inr ?? 0;
-  const over = scenario.over_budget_inr > 0;
+function ChangeTable({ rows, dayRef }) {
+  if (rows.length === 0) return null;
   return (
-    <section className="delay-repair">
-      <h4 className="delay-repair__title">Your holiday can still work.</h4>
-      {changed.length > 0 && (
-        <ul className="delay-list">
-          {changed.map((item) => (
-            <li key={item.item_id}>{describeChange(item, dayRef)}</li>
-          ))}
-        </ul>
-      )}
-      {removed.map((item) => (
-        <p key={item.item_id} className="delay-removed">
-          This repair removes {item.before?.name ?? item.label}. {item.reason}
-        </p>
-      ))}
-      <dl className="delay-figures">
-        <div>
-          <dt>Current total</dt>
-          <dd>{formatINR(scenario.original_total_inr)}</dd>
-        </div>
-        <div>
-          <dt>Repaired total</dt>
-          <dd>{formatINR(scenario.proposed_total_inr)}</dd>
-        </div>
-        <div>
-          <dt>{difference > 0 ? 'Extra cost' : difference < 0 ? 'Saving' : 'Price change'}</dt>
-          <dd key={`${scenario.delay_minutes}-${applying}`} className="delay-price__value">
-            {difference === 0 ? formatINR(0) : formatINR(Math.abs(difference))}
-          </dd>
-        </div>
-      </dl>
-      {over && (
-        <p className="delay-budget is-over" role="status">
-          Over budget by {formatINR(scenario.over_budget_inr)}.
-        </p>
-      )}
-      {note && <p className="delay-note">{scenario.apply_blocked_reason}</p>}
-    </section>
+    <table className="delay-table">
+      <caption className="sr-only">Your arrival, before and after the delay (local times)</caption>
+      <thead>
+        <tr>
+          <th scope="col">What</th>
+          <th scope="col">Planned</th>
+          <th scope="col">With delay</th>
+        </tr>
+      </thead>
+      <tbody>
+        {rows.map((row) => (
+          <tr key={row.key} className={`is-${row.state}`}>
+            <th scope="row">
+              <span className="delay-table__kind">{KIND_LABEL[row.kind] ?? row.kind}</span>
+              {row.kind !== 'landing' && row.label && <span className="delay-table__name">{row.label}</span>}
+            </th>
+            <td className="delay-table__before">{row.before ? when(row.before, dayRef) : '—'}</td>
+            <td className="delay-table__after">
+              {row.state === 'removed' ? (
+                <span className="delay-table__flag">Dropped</span>
+              ) : row.state === 'same' ? (
+                <span className="delay-table__same">No change</span>
+              ) : (
+                <>
+                  <strong>{when(row.after, dayRef)}</strong>
+                  {row.state === 'new' && <span className="delay-table__flag">New</span>}
+                </>
+              )}
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
   );
 }
 
 function ScenarioBody({ batch, scenario, applying }) {
   const tone = OUTCOMES[scenario.outcome] ?? NOT_EVALUATED;
-  const layout = useMemo(() => buildTimeline(scenario), [scenario]);
+  const rows = useMemo(() => buildRows(scenario), [scenario]);
+  const dayRef = batch.scheduled_landing;
+  const removed = removedOf(scenario);
+  const difference = scenario.price_difference_inr ?? 0;
+  const note = !scenario.can_apply && scenario.apply_blocked_reason;
+  // the backend explanation can open with the same words as the title; show only the detail after it
+  const why = (scenario.explanation ?? '').replace(/^your holiday can still work[^:]*:\s*/i, '');
+  const explanation = why ? why.charAt(0).toUpperCase() + why.slice(1) : '';
+  const warnings = (scenario.warnings ?? []).filter((text) => !explanation.toLowerCase().includes(text.toLowerCase()));
   return (
-    <>
-      <dl className="delay-facts">
-        <div>
-          <dt>Scheduled landing</dt>
-          <dd>
-            {formatDay(batch.scheduled_landing)} {formatTime(batch.scheduled_landing)} · {batch.arrival_airport}
-          </dd>
-        </div>
-        <div>
-          <dt>Current pickup</dt>
-          <dd>{batch.original_pickup ? `${formatDay(batch.original_pickup)} ${formatTime(batch.original_pickup)}` : '-'}</dd>
-        </div>
-      </dl>
-
-      <section className="delay-outcome" aria-live="polite" aria-atomic="true">
-        <p className="delay-outcome__landing">
-          Simulated landing{' '}
-          <strong>
-            {formatDay(scenario.simulated_landing)} {formatTime(scenario.simulated_landing)}
-          </strong>
-        </p>
-        <p className={`delay-badge is-${tone.key}`}>
+    <section className={`delay-result is-${tone.key}`} aria-live="polite" aria-atomic="true">
+      <header className="delay-result__head">
+        <span className="delay-badge">
           <span aria-hidden="true">{tone.glyph}</span> {tone.label}
+        </span>
+        <p className="delay-result__landing">
+          Lands <strong>{when(scenario.simulated_landing, dayRef)}</strong> instead of {formatTime(batch.scheduled_landing)} at{' '}
+          {batch.arrival_airport}
         </p>
-        <p className="delay-outcome__explanation">{scenario.explanation}</p>
-      </section>
+      </header>
+      <h4 className="delay-result__title">{tone.title}</h4>
+      {explanation && <p className="delay-result__why">{explanation}</p>}
 
-      {layout && <DelayTimeline layout={layout} delayMinutes={scenario.delay_minutes} />}
+      <ChangeTable rows={rows} dayRef={dayRef} />
 
-      <Repair scenario={scenario} batch={batch} applying={applying} />
+      {removed.map((item) => (
+        <p key={item.item_id} className="delay-removed">
+          Drops {item.before?.name ?? item.label}. {item.reason}
+        </p>
+      ))}
+      {scenario.outcome === 'UNRECOVERABLE' && scenario.violations?.length > 0 && (
+        <ul className="delay-list">
+          {scenario.violations.map((v, i) => (
+            <li key={`${v.rule}-${i}`}>{v.message}</li>
+          ))}
+        </ul>
+      )}
+      {scenario.outcome === 'UNRECOVERABLE' && <p className="delay-note">Your original holiday stays as it is.</p>}
 
-      {scenario.warnings?.length > 0 && (
+      {scenario.outcome === 'REPAIRED' && (
+        <p className="delay-price">
+          <span>
+            Price change:{' '}
+            <strong key={`${scenario.delay_minutes}-${applying}`} className="delay-price__value">
+              {difference === 0 ? 'none' : `${difference > 0 ? '+' : '−'}${formatINR(Math.abs(difference))}`}
+            </strong>
+          </span>
+          <span className="delay-price__total">New total {formatINR(scenario.proposed_total_inr)}</span>
+        </p>
+      )}
+      {scenario.over_budget_inr > 0 && (
+        <p className="delay-budget is-over" role="status">
+          Over budget by {formatINR(scenario.over_budget_inr)}.
+        </p>
+      )}
+      {warnings.length > 0 && (
         <ul className="delay-list delay-list--warnings">
-          {scenario.warnings.map((text) => (
+          {warnings.map((text) => (
             <li key={text}>{text}</li>
           ))}
         </ul>
       )}
-    </>
+      {note && <p className="delay-note">{scenario.apply_blocked_reason}</p>}
+    </section>
   );
 }
 
@@ -495,26 +284,12 @@ export default function DelayRescue() {
           <h3 id="delay-title" className="change-drawer__title">
             If your flight lands late
           </h3>
-          <p className="delay-note">These delays are simulated. Nothing changes until you switch to a plan.</p>
+          <p className="delay-note">A what-if check. Nothing changes unless you switch to the safer plan.</p>
         </header>
 
         <div className="change-drawer__body delay-body">
-          <div className="delay-levels" role="group" aria-label="Simulated arrival delay">
-            {DELAY_LEVELS.map((minutes) => (
-              <button
-                key={minutes}
-                type="button"
-                className="btn btn--small delay-levels__btn"
-                aria-pressed={minutes === selected}
-                disabled={status === 'applying'}
-                onClick={() => selectDelay(minutes)}
-              >
-                +{minutes / 60} h
-              </button>
-            ))}
-          </div>
-
-          <Meter batch={ready ? batch : null} selected={selected} />
+          <DelayTabs batch={ready ? batch : null} selected={selected} disabled={status === 'applying'} />
+          {ready && <p className="delay-note delay-tolerance">{toleranceText(batch)}</p>}
 
           {status === 'loading' && <p className="results__muted">Checking the four delays…</p>}
 
@@ -538,7 +313,6 @@ export default function DelayRescue() {
 
           {ready && scenario && (
             <>
-              <ToleranceSummary batch={batch} />
               <ScenarioBody batch={batch} scenario={scenario} applying={status === 'applying'} />
             </>
           )}
