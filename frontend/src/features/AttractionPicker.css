@@ -61,11 +61,19 @@
   gap: var(--space-1);
 }
 
+/* Pinned to the bottom of the drawer's scroll area, so ticking a box always shows what to do next
+   (the list is long; without this the Preview button sits far below the fold). */
 .attraction-picker__footer {
+  position: sticky;
+  bottom: calc(-1 * var(--space-3));
+  z-index: 1;
   display: grid;
   gap: var(--space-1);
-  padding-top: var(--space-2);
+  max-height: 50vh;
+  overflow-y: auto;
+  padding: var(--space-2) 0;
   border-top: 1px solid var(--ink-hair);
+  background: var(--color-canvas);
 }
 
 .attraction-picker__selected {

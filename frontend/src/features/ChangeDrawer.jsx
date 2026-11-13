@@ -179,8 +179,13 @@ function Preview({ preview }) {
   const valid = preview.valid;
   const batch = BATCH_KINDS.has(preview.kind);
   const over = preview.over_budget_inr > 0;
+  // The preview renders below a long option list: bring it into view when it arrives.
+  const sectionRef = useRef(null);
+  useEffect(() => {
+    sectionRef.current?.scrollIntoView?.({ behavior: 'smooth', block: 'start' });
+  }, [preview]);
   return (
-    <section className="change-preview" data-valid={String(valid)} aria-label="Change preview" aria-live="polite">
+    <section ref={sectionRef} className="change-preview" data-valid={String(valid)} aria-label="Change preview" aria-live="polite">
       <p className="change-headline">{preview.message}</p>
       {valid && (
         <dl className="change-figures">

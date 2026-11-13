@@ -1,143 +1,101 @@
-# Build My Holiday
+# Wanderline
 
-Our entry for Hackathon Problem 1 (holiday packages).
+### Complete journeys, effortlessly choreographed.
 
-You pick where you're flying from, the country, the first day, nights, travelers and a budget. The
-backend builds one complete, rule-checked holiday from the catalog - flights, hotels, airport
-transfers, trains/buses between cities and attractions for each day - saves it, lets you change it,
-and books it with a 10-digit reservation number.
+**Wanderline** is a constraint-aware holiday planner that brings flights, stays, transfers, and attractions into one connected itinerary. Search in natural language or with a structured form, compare optimized trips, customize the route, and confirm a persistent reservation—all with catalog-backed pricing and validation.
 
-Problem statement: `problem-1-holiday-package.md` · data notes: `DATA_DICTIONARY.md` ·
-architecture: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) · demo script: [`docs/DEMO.md`](docs/DEMO.md)
+![React](https://img.shields.io/badge/Frontend-React-20232A?logo=react&logoColor=61DAFB) ![FastAPI](https://img.shields.io/badge/Backend-FastAPI-009688?logo=fastapi&logoColor=white) ![SQLite](https://img.shields.io/badge/Database-SQLite-003B57?logo=sqlite&logoColor=white) ![NLP](https://img.shields.io/badge/NLP-Rule--based-343A40) ![Planner](https://img.shields.io/badge/Planning-Constraint--aware-343A40)
 
-## Start the app (2 commands)
+![Wanderline homepage](assets/homepage.png)
 
-Needs Python 3.11+ and Node 18+.
+## Features
 
-```
-./setup.sh      # first time: makes .venv, installs backend + frontend dependencies
-./start.sh      # backend on :8000 and frontend on :5173 - open http://localhost:5173
-```
+- **Smart trip search:** A rule-based NLP parser extracts departure, destination, arrival date, nights, adults, children's ages, and INR budget from everyday language. Missing or conflicting details can be corrected in the form before searching—no LLM or external AI service is required.
+- **Complete itineraries:** Builds valid multi-city holidays with flights, room allocations, airport and intercity transfers, and day-by-day attractions using the provided travel catalog.
+- **Three ways to travel (G4):** Compare **Cheapest** (minimum complete-trip cost), **Fastest** (minimum combined flight and intercity-transfer duration), and **Best Rated** (highest night-weighted hotel-star rating within budget).
+- **Interactive Explorer's Atlas:** Explore a monochrome country map, click city pins, edit city order and nights, and preview a rebuilt route before applying it.
+- **Flexible changes:** Preview and apply flight, hotel, transfer, and attraction changes with dependency checks, itinerary revalidation, and updated pricing.
+- **Delay Rescue:** Simulate arrival delays and preview feasible repairs to pickup times and affected activities.
+- **Price Landscape:** Browse flexible dates with catalog-derived complete-trip prices, then generate an itinerary for the selected date.
+- **Saved trips, confirmation & export:** Reopen planned holidays, confirm a package with a unique 10-digit reference, retrieve it later, and export the itinerary as JSON.
 
-`Ctrl+C` stops both. Ports: `BACKEND_PORT` / `FRONTEND_PORT`. Trips and reservations live in SQLite
-(`backend/app.db`, created on startup, survives restarts); `HOLIDAY_DB_PATH` moves it. API docs: <http://localhost:8000/docs>.
+## Quick start
 
-## What you can do
+**Requirements:** Python 3.11+, Node.js 18+, and a Bash-compatible terminal.
 
-| Feature | Where |
-|---|---|
-| **Plan a holiday** (M1–M3) - the form's options come from `destinations.json`; invalid values get a message on the field | form → **Find Holidays** |
-| **Describe a holiday (S1)** - turn a short English request into the seven trip fields, review interpretations and clarifications, then choose what to apply | **Describe your holiday** above the form |
-| **Three packages** (G4) - **Cheapest** (proven lowest total), **Fastest** (least time on both flights + transfers between cities; airport transfers and visits don't count) and **Best rated** (highest hotel stars per night, weighted by nights, within budget; guest rating doesn't count). One package that wins two goes on one card with both labels, and each card says why it won. If the fastest costs more than the budget, its card says so, you must accept the price to pick it, and a **Fastest within budget** card is added. Pick one to save it; nothing else is saved | the options screen after **Find Holidays** |
-| **Day-by-day plan** (M4) - flights (departure *and* landing, local times), transfers, check-in/out, visits | the package view |
-| **Total and budget, JSON export** (M5) | price panel → **Export JSON** |
-| **Change the package** (M6, G1, G2) - hotel, flights, transfers, add/remove attractions; every option shows the whole-trip price difference; a preview lists the knock-on repairs (e.g. a new airport bus for a new hotel area) before saving | **Change …** buttons in the timeline |
-| **Change city plan (G3)** - open a monochrome country atlas, choose exact cities/order/nights, preview the rebuilt holiday and all price changes, then apply to the same saved package | **Explore & Change Cities** beside the route |
-| **Confirm and reservation summary** (M7) - unique 10-digit number, works after a backend restart, wrong number → "not found" | **Confirm Holiday**, **Find reservation** (nav) |
-| **Budget too small** (M8) - says so, shows the proven cheapest total and the shortfall, suggests a change | result panel |
-| **No trip possible** - explains why, then offers the nearest searches that *do* work (another start date, departure city or length) with their proven price, one click to search it | result panel |
-| **Flexible dates (Price Landscape)** - the proven cheapest complete holiday for every start date of a month as a 3D-style price calendar; pick a date and generate the holiday at exactly that price | **Explore flexible dates** next to the form |
-| **Delay Rescue** - "what if my flight lands 1–4 h late?": shows whether the trip still works and a safer pickup plan you can switch to; the delay itself is never saved | **Delay resilience** on the arrival flight |
-| **Search a new trip** | package header |
-
-## The city rule
-
-The app chooses the cities itself. It enumerates every valid city plan of the country (cities linked
-by a directed transfer, each ≥ 2 nights, nights adding up), then searches flights, rooms, transfers
-and attractions for all of them with an exact branch-and-bound search. The **Plan trip** screen
-picks each of Cheapest, Fastest and Best rated across every city plan, so the cities are whatever wins
-that measure. `POST /api/packages` (one package) prefers **about one city per three nights**
-(6 nights → 2 cities), then the cheapest valid package within the budget, and an airport pickup on the
-landing day. If nothing fits the budget, both return the proven cheapest valid package (M8). Flexible
-dates and "nearest trip" prices use the proven minimum. The traveler can then pick exact cities,
-order and nights in the Atlas (G3).
-
-## What we finished
-
-| Item | Status |
-|---|---|
-| M1–M8 (form, valid holiday, rules, day plan, total + JSON, change, confirm + reservation, budget too small) | done |
-| G1 change hotel/flights/transfers/attractions with price differences | done |
-| G2 knock-on repairs shown before saving | done |
-| G3 change the city plan (Atlas) | done |
-| G4 Cheapest / Fastest / Best rated | done |
-| S1 quick text request | done |
-| S2 bookings use up seats and rooms | not built |
-| S3 own ideas | done: flexible dates price calendar, nearest working trip, Delay Rescue, attraction photos and details |
-
-## Rule thresholds
-
-The airport timing rules (section 4) live in one place, `backend/app/config.py`:
-`PICKUP_AFTER_LANDING_MINUTES` (60) and `AIRPORT_BEFORE_DEPARTURE_MINUTES` (180). Change a value and
-restart: the validator, the planner, the change checks, Delay Rescue and every message that names the
-rule use the new value.
-
-## Architecture (short)
-
-```
-frontend (React, Vite)  ──/api──▶  FastAPI routes ──▶ services ──▶ engine (planner, repair, delay scenarios)
-  only displays what the API              │                          │
-  returns; no prices or rules             ▼                          ▼
-                                SQLite (packages, versions,   rules + independent validator
-                                reservations)                  + pricing, catalog loader (data/catalog)
+```bash
+# From the project root
+./setup.sh
+./start.sh
 ```
 
-Every package - new, changed, delay-repaired or booked - is exported and re-checked by the same
-independent validator before it is saved or shown. Details: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
+Open the frontend URL displayed in the terminal. The setup script installs dependencies; the start script launches the application. No paid maps API or LLM API key is needed.
 
-## API
+## Try it
 
-| | |
-|---|---|
-| `GET /api/health`, `GET /api/meta` | status; form values (airports, countries, dates, nights) |
-| `POST /api/parse-trip-request` | parse trip text into the seven form fields; optional `reference_date` (ISO date) and `timezone` (default `Asia/Kolkata`); parse only, no planning or saving |
-| `POST /api/packages` | plan + save (`objective`: `WITHIN_BUDGET` default, or `MINIMUM_COST`) |
-| `POST /api/package-options` · `/{search_id}/select` | Cheapest / Fastest / Best rated (nothing saved) · save the one picked |
-| `GET /api/packages/{id}` · `/export` | saved trip · trip JSON (shared format, section 4 of the data dictionary) |
-| `GET /api/packages/{id}/options?kind=…` | valid replacements for one part, with price differences |
-| `GET /api/packages/{id}/city-plan-options` | Atlas cities, directed connections, night rules and current route/version |
-| `POST /api/packages/{id}/preview-change` · `/apply-change` | what a change would do (nothing saved) · save it (version check, 409 if outdated) |
-| `POST /api/packages/{id}/delay-scenarios` | +1…+4 h arrival-delay simulation (read-only) |
-| `POST /api/packages/{id}/confirm` | book (`{"base_version": n}`) → 10-digit reference; booked trips are read-only |
-| `GET /api/reservations/{ref}` · `/export` | look up a booking · booked trip JSON |
-| `POST /api/date-prices` | proven cheapest holiday per start date (7 trip fields + `range_start`, `range_end`) |
-| `POST /api/trip-alternatives` | nearest one-field changes that have a holiday, with proven prices |
-| `POST /api/validate` | check any trip JSON against the rules |
+Paste this into **Describe your trip**, or enter the same details in **Build my holiday**:
 
-## Checks
+> Plan a 6-night holiday in Japan from Bangalore starting 10 April 2027 for 2 adults and our 6-year-old child, with a budget of ₹3.5 lakh.
 
+Review the seven extracted fields, then select **Find Holidays**. Compare available packages, choose one, inspect the day-by-day plan, and try changing a hotel or city before confirming.
+
+**Example request:** `BLR → Japan · 10 Apr 2027 · 6 nights · 2 adults · child age 6 · ₹3,50,000`
+
+## How it works
+
+```text
+Natural language / seven-field form
+                ↓
+    Parsing + request validation
+                ↓
+    Catalog-backed trip planner
+                ↓
+   Constraints + objective ranking
+                ↓
+     Complete-trip validation
+                ↓
+  Compare → Customize → Confirm
+                ↓
+       SQLite + JSON export
 ```
-cd backend && ../.venv/bin/python -m pytest -q          # backend tests
-cd frontend && npm test                                  # frontend tests
-python3 scripts/demo_smoke.py                            # rehearse the demo against a running backend
-.venv/bin/python scripts/check_trip_export.py trip.json  # check an exported JSON against the shared format
+
+The **FastAPI backend** owns planning, pricing, and validation; React renders the interactive experience. It checks flight-seat and room capacity, minimum city stays, directed transfers, airport timing buffers, attraction schedules, and the complete budget. A modification is previewed and revalidated before it is saved; confirmed reservations remain immutable.
+
+Travel inventory and prices come from the supplied JSON catalog, not fabricated bookings or live third-party travel APIs. **Confirmation creates an in-app reservation record; it does not purchase real-world tickets or rooms.**
+
+## Stack
+
+| Layer | Technology |
+| --- | --- |
+| Frontend | React, Vite, JavaScript/CSS |
+| API and planning | Python, FastAPI |
+| Persistence | SQLite |
+| Travel data | JSON catalog |
+| Trip input | Deterministic, rule-based NLP |
+| Maps and interactions | SVG-based geographic UI and CSS effects |
+
+## Project layout
+
+```text
+assets/            README homepage screenshot
+frontend/          React interface
+backend/           API, planner, validation, persistence
+data/catalog/      Travel inventory and prices
+images/            Attraction imagery and attributions
+scripts/           Setup checks and export verification
+docs/              Architecture and demo notes
+setup.sh           Dependency setup
+start.sh           Local application startup
 ```
 
-## Known limitations
+The homepage preview is stored at `assets/homepage.png`, next to the root `README.md`. Keep both paths unchanged so GitHub displays the image.
 
-- **Expanded catalog.** `data/catalog` contains the supplied Japan/UAE records **plus five added
-  countries** (Thailand, Singapore, Malaysia, Indonesia, Vietnam) generated by
-  `scripts/expand_catalog.py` with the identical schema; every original record is unchanged. The
-  supplied files are kept byte-for-byte in `backups/catalog_original/`;
-  `python3 scripts/expand_catalog.py --restore` puts them back (and re-running it re-expands).
-  The added countries only show the planner is not tied to Japan/UAE: Japan and UAE packages
-  planned with the expanded catalog pass the validator run against the original files.
-- Not built: S2 (bookings using up seats/rooms - confirmation saves a snapshot only).
-- G4 ties: Fastest and Best rated prefer the lower total, then catalog order. A hotel without a
-  star value is never used for Best rated (its stars are not guessed); every hotel in the catalog has one.
-  Checked against a brute-force oracle that enumerates all 9,472 combinations of a small request
-  (`backend/tests/test_g4_recommendations.py`).
-- Fastest and Best rated are exact searches with a work cap. If the cap is hit the label is left
-  off rather than given to a package that was not proven best, and the screen says so.
-- Two attractions have no free-licence photo (ATT-HKT-007, ATT-DAD-010); the rest are credited in
-  [`images/ATTRIBUTIONS.md`](images/ATTRIBUTIONS.md).
-- Delay Rescue's "cannot be repaired" outcome is covered by tests but rare in this catalog.
-- The planner's "proven minimum" is exact within its timing model (earliest airport pickup after
-  landing, latest one before the return flight, train/bus departure nearest 10:00).
+See `docs/ARCHITECTURE.md` for the implementation overview, `docs/DEMO.md` for the judging flow, and `images/ATTRIBUTIONS.md` for image credits.
 
-The Explorer’s Atlas renders local Natural Earth country outlines and GeoNames presentation anchors;
-[map provenance and licenses](frontend/src/features/atlas/data/ATTRIBUTION.md). No map tiles or paid APIs
-are required. G3 uses `CHANGE_CITY_PLAN` in the existing preview/apply endpoints; apply requires the
-accepted preview token and package version. Booked packages remain immutable.
+## Verification
 
-No AI/LLM calls inside the app. The frontend only talks to our backend.
+The project includes backend/frontend tests, end-to-end flows, and a JSON export checker (`scripts/check_trip_export.py`). Key checks cover itinerary constraints, modification safety, optimizer objectives, reservation persistence, and judge-compatible exports.
+
+## Contributing & license
+
+Bug reports and focused pull requests are welcome through the project's repository. Check for a `LICENSE` file before reusing or redistributing the code; if none is provided, permission is not implied.
