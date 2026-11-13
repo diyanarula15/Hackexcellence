@@ -1,62 +1,80 @@
-# Hackathon data pack: Problem 1: Holiday Package → Build My Holiday
+# Build My Holiday
 
-Everything your team needs for this problem.
+Our entry for Hackathon Problem 1 (holiday packages).
 
-## Start here
+You pick where you're flying from, the country, dates, how many people and a budget, and the app puts together a full trip from the catalog: flights, hotels, airport pickups/drops, trains or buses between cities, and things to do each day. The trip gets saved, so you can come back to it, and you can change bits of it later (swap the hotel, pick another flight, add or remove a place to visit etc.).
 
-| Step | Read | Why |
-|---|---|---|
-| 1 | `problem-1-holiday-package.md` | The problem statement: what to build, the rules, and how we judge |
-| 2 | `DATA_DICTIONARY.md` | What each data file is, how the files link, every field, a worked example, and a data FAQ |
-| 3 | `data/` | The mock data (below) |
+Problem statement: `problem-1-holiday-package.md`. Data notes: `DATA_DICTIONARY.md`.
 
-## The data in this pack
-
-| File | One record is | Your app uses it to |
-|---|---|---|
-| `data/catalog/destinations.json` | The list of departure cities, destination countries, their cities, and the links between cities | Fill the request form (M1). Choose cities and the order to visit them (M2). |
-| `data/catalog/airports.json` | One airport | Find the airports that serve a city. Get the time zone. |
-| `data/catalog/flights.json` | One flight on one date | Choose the arrival flight and the return flight |
-| `data/catalog/hotels.json` | One hotel | Choose a hotel in each city |
-| `data/catalog/rooms.json` | One room type in one hotel | Choose the room type, check who fits, get the price per night |
-| `data/catalog/availability.json` | One room type on one night | Check that enough rooms are free on every night |
-| `data/catalog/transfers.json` | One transfer service (taxi, bus, train) | Airport to hotel, hotel to airport, and city to city |
-| `data/catalog/attractions.json` | One attraction | Plan visits on each day |
-| `data/trip_format_example.json` | A short example of an exported package | See the JSON shape of the export (section 4) |
-| `images/` | One photo (JPG) | Show hotel and attraction photos (optional). Credits: `images/ATTRIBUTIONS.md`. |
-
-All data is synthetic, except the photos (real photos with free licenses; see `images/ATTRIBUTIONS.md`). All times are local times. All prices are in INR. The data files are read-only: keep your own data in your own database.
-
-## Rules (short version)
-
-1. Any language, framework, and database. AI tools to help you write code are allowed. **Your app must not call an AI or LLM model.**
-2. Build a **backend** and a **frontend** that work together. The frontend gets data from your backend, not from the files.
-3. Do not change the data files. Judges use the same files.
-4. Write feature code during the event. Push to Git every hour.
-5. Your app must start with 1–2 commands. Write them in your README.
-6. At code freeze, upload a zip to HackerEarth (no `node_modules`, no virtual environments, no API keys).
-
-## Questions
-
-Read the FAQ at the end of `DATA_DICTIONARY.md` first. Then ask at the help desk or in the event chat channel. We send every answer to all teams.
-
-## Run the app
+## Running it
 
 ```
-./setup.sh   # creates .venv and installs backend/requirements.txt
-./start.sh   # backend on http://localhost:8000 (Swagger at /docs)
-cd frontend && npm install && npm run dev   # UI on http://localhost:5173 (proxies /api to :8000)
+./setup.sh      # first time only, makes .venv and installs backend deps
+./start.sh      # backend on localhost:8000 (API docs at /docs)
+cd frontend && npm install && npm run dev    # frontend on localhost:5173
 ```
 
-Saved packages live in SQLite at `backend/app.db` (created on startup, git-ignored; `HOLIDAY_DB_PATH` overrides the location).
+Trips are stored in SQLite (`backend/app.db`, gets created on startup). You can point it somewhere else with `HOLIDAY_DB_PATH`.
 
-Endpoints so far: `GET /api/health`, `GET /api/meta`, `POST /api/validate`, `POST /api/packages` (plan and save a package), `GET /api/packages/{id}` (saved package, never re-planned), `GET /api/packages/{id}/export` (trip JSON download), `GET /api/packages/{id}/options` (valid and invalid replacements for one item), `POST /api/packages/{id}/preview-change` (full result of one change, nothing saved), `POST /api/packages/{id}/apply-change` (recomputes, validates and saves one change atomically; 409 on an outdated version).
+## How it works
 
+The backend does all the real work. The frontend only shows what the API sends back, it never reads the data files or calculates prices itself.
 
-Phase 6 adds simulated booking confirmation with a durable ten-digit reference:
-`POST /api/packages/{id}/confirm` (`{"base_version": 1}`),
-`GET /api/reservations/{reference}`, and `GET /api/reservations/{reference}/export`.
-Use **Confirm Holiday** on a saved package to review the final price, and **Find reservation**
-in the navigation to retrieve a confirmed itinerary. Confirmed packages cannot be edited.
-Packages saved before catalog identity tracking must be regenerated before first confirmation.
-See [the Phase 6 delivery report](docs/PHASE6.md) for transactions, migration, API contracts and checks.
+- **Planning**: `POST /api/packages` takes the trip request, finds cities, flights, rooms, transfers and visits that actually fit together, and saves the package as version 1. If nothing fits (no seats, no rooms, over budget...) it tells you why.
+- **Rules**: every trip, new or edited, goes through the same checks (`backend/app/rules`, `backend/app/validate`). Wrong airport, room too small, transfer outside its timings, attraction closed that day, that kind of thing.
+- **Changing a trip**: from the day-by-day view you can hit Change flight / Change hotel / Change transfer / Add attraction / Remove. The flow is:
+  1. `GET /options` shows the other choices, each already checked against the rest of your trip, with the price difference for the whole trip (or why it won't work).
+  2. `POST /preview-change` shows exactly what would change before anything is saved. Sometimes other things have to move too, like a different hotel area needs a different airport bus, and those are listed.
+  3. `POST /apply-change` saves it. The server works the change out again (doesn't trust the browser) and bumps the version. If someone changed the trip in between, you get a 409 and have to reload.
+
+- **Delay Rescue**: on the arrival flight you can see what happens if it lands 1–4 hours late, and switch to a safer pickup plan if needed. The delay itself is never saved.
+- **Booking**: **Confirm Holiday** books the saved trip and gives a 10-digit reference; **Find reservation** in the nav opens it again. See `docs/PHASE6.md`.
+- **Flexible dates**: **Explore flexible dates** next to the form shows the cheapest complete trip for every start date, and can plan the trip for the date you pick (at that exact price, `objective: "MINIMUM_COST"`).
+
+## API
+
+| | |
+|---|---|
+| `GET /api/health` | is it up |
+| `GET /api/meta` | values for the form (airports, countries, dates, nights) |
+| `POST /api/validate` | check a trip JSON against the rules |
+| `POST /api/packages` | plan + save a trip |
+| `GET /api/packages/{id}` | get a saved trip |
+| `GET /api/packages/{id}/export` | download the trip JSON |
+| `GET /api/packages/{id}/options?kind=...` | other choices for one part of the trip (`hotel&stay_id=`, `arrival_flight`, `return_flight`, `airport_transfer&item_id=`, `intercity_transfer&item_id=`, `attraction&date=`) |
+| `POST /api/packages/{id}/preview-change` | what a change would do, nothing saved |
+| `POST /api/packages/{id}/apply-change` | save a change |
+| `POST /api/packages/{id}/delay-scenarios` | simulate a late arrival flight (+1 to +4 h) and show if the trip still works; read-only |
+| `POST /api/packages/{id}/confirm` | book the saved trip (`{"base_version": n}`), returns a 10-digit reference; booked trips can't be edited |
+| `GET /api/reservations/{reference}` | look up a booking |
+| `GET /api/reservations/{reference}/export` | download the booked trip JSON |
+| `POST /api/date-prices` | cheapest complete trip for each start date in a month (the 7 trip fields + `range_start`, `range_end`) |
+
+Example change:
+
+```json
+{ "base_version": 1, "kind": "CHANGE_HOTEL", "stay_id": "stay:Tokyo:2027-04-10:2027-04-12",
+  "hotel_id": "HTL-TYO-004", "room_id": "RM-TYO-004-B" }
+```
+
+Other kinds: `CHANGE_ARRIVAL_FLIGHT`, `CHANGE_RETURN_FLIGHT`, `CHANGE_AIRPORT_TRANSFER`, `CHANGE_INTERCITY_TRANSFER`, `ADD_ATTRACTION`, `REMOVE_ATTRACTION`.
+
+## Where things are
+
+- `backend/app/routes` – the endpoints
+- `backend/app/engine` – planner (`build.py`) and the change/repair logic (`change.py`, `dependencies.py`, `repair.py`)
+- `backend/app/rules`, `backend/app/validate` – the checks
+- `backend/app/services` – options, preview/apply, the itinerary view
+- `backend/app/repositories` – SQLite stuff
+- `frontend/src/features` – form, trip view, timeline, the change drawer
+- `frontend/src/services` – API calls
+
+## Tests
+
+```
+cd backend && ../.venv/bin/python -m pytest -q
+```
+
+## Rules we followed
+
+No AI/LLM calls inside the app. The frontend only talks to our backend. The app starts with the commands above.
