@@ -1,0 +1,67 @@
+/**
+ * hud/NavBar.jsx — frameless top navigation.
+ *
+ * Brand placeholder (left) + three placeholder links (right). No background,
+ * border or shadow: it floats directly over the 3D scene.
+ */
+
+import Slot from './Slot.jsx';
+
+/** Placeholder routes — replace `href` with real routes / router <Link>s. */
+const NAV_LINKS = [
+  { label: 'Packages', href: '#packages' },
+  { label: 'Itineraries', href: '#itineraries' },
+  { label: 'Explore', href: '#explore' },
+];
+
+/**
+ * Placeholder logo mark: ink orbit + accent dot. Swap for the real SVG.
+ * Colours come from the theme tokens, so it re-skins automatically.
+ * @returns {JSX.Element}
+ */
+function BrandMark() {
+  return (
+    <svg className="nav__mark" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <circle cx="12" cy="12" r="9" stroke="var(--color-ink)" strokeWidth="2.5" />
+      <circle cx="18.5" cy="5.5" r="3.5" fill="var(--color-accent)" stroke="var(--color-canvas)" strokeWidth="1.5" />
+    </svg>
+  );
+}
+
+/**
+ * Top navigation bar.
+ * @param {{ actions?: React.ReactNode }} props
+ *   actions — optional widgets (sign-in button, currency picker…) mounted in
+ *   the [HACKATHON_NAV_ACTIONS_SLOT] to the right of the links.
+ * @returns {JSX.Element}
+ */
+export default function NavBar({ actions }) {
+  return (
+    <header className="nav">
+      {/* Brand logo placeholder */}
+      <a className="nav__brand" href="/" aria-label="Wayline — home">
+        <BrandMark />
+        <span className="nav__wordmark">wayline</span>
+      </a>
+
+      <div className="nav__right">
+        <nav aria-label="Primary">
+          <ul className="nav__links">
+            {NAV_LINKS.map((link) => (
+              <li key={link.label}>
+                <a className="nav__link" href={link.href}>
+                  {link.label}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </nav>
+
+        {/* [HACKATHON_NAV_ACTIONS_SLOT] — sign-in / profile / currency */}
+        <Slot name="HACKATHON_NAV_ACTIONS_SLOT" className="slot--nav-actions">
+          {actions}
+        </Slot>
+      </div>
+    </header>
+  );
+}

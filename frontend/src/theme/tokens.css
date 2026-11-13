@@ -1,0 +1,112 @@
+/**
+ * tokens.css — SINGLE SOURCE OF TRUTH for the visual system.
+ *
+ * Everything visual (2D HUD *and* the 3D scene) derives from this file.
+ * The 3D scene reads the three colour variables at boot via `theme.js`,
+ * so changing a hex here re-skins buildings, planes, contrails and fog too.
+ *
+ * ── HOW TO SWAP THE THEME ────────────────────────────────────────────────
+ *   Edit ONLY the three `--color-*` values below. Nothing else in the
+ *   codebase contains a hard-coded colour.
+ * ─────────────────────────────────────────────────────────────────────────
+ */
+
+:root {
+  /* ═══ 60 / 30 / 10 ═══════════════════════════════════════════════════ */
+  --color-canvas: #F8FAFC; /* 60% — primary canvas (crisp off-white)        */
+  --color-ink:    #0F172A; /* 30% — structure + typography (midnight slate) */
+  --color-accent: #FF5A36; /* 10% — contrails, highlights, micro-states     */
+
+  /* Derived tints — never introduce a 4th hue, mix the three above. */
+  --ink-muted: color-mix(in srgb, var(--color-ink) 66%, var(--color-canvas));
+  --ink-soft:  color-mix(in srgb, var(--color-ink) 40%, var(--color-canvas));
+  --ink-hair:  color-mix(in srgb, var(--color-ink) 12%, var(--color-canvas));
+
+  /* ═══ Modular type scale — 1.25 (Major Third), base 16px ═════════════ */
+  --step--1: 0.8rem;    /* 12.8px  captions, eyebrow          */
+  --step-0:  1rem;      /* 16px    body, nav links            */
+  --step-1:  1.25rem;   /* 20px    hero tagline               */
+  --step-2:  1.563rem;  /* 25px                               */
+  --step-3:  1.953rem;  /* 31.25px                            */
+  --step-4:  2.441rem;  /* 39px                               */
+  --step-5:  3.052rem;  /* 48.8px  hero display (mobile)      */
+  --step-6:  3.815rem;  /* 61px                               */
+  --step-7:  4.768rem;  /* 76.3px  hero display (desktop max) */
+  --step-8:  5.96rem;   /* 95.4px                             */
+
+  --font-display: "Bricolage Grotesque", "Inter", system-ui, sans-serif;
+  --font-body: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --weight-display: 800;
+  --weight-medium: 500;
+  --weight-body: 400;
+
+  /* ═══ 8pt spatial grid ═══════════════════════════════════════════════ */
+  --space-1: 8px;
+  --space-2: 16px;
+  --space-3: 24px;
+  --space-4: 32px;
+  --space-5: 40px;
+  --space-6: 48px;
+  --space-8: 64px;
+  --space-10: 80px;
+  --space-12: 96px;
+
+  /* Page gutter + nav height (both multiples of 8). */
+  --gutter: var(--space-3);
+  --nav-height: var(--space-8);
+
+  /* Scroll-sequence length — keep equal to SCROLL.trackVh in scene/config.js */
+  --scroll-track: 280vh;
+
+  /* Motion */
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@media (min-width: 768px) {
+  :root {
+    --gutter: var(--space-5);
+    --nav-height: var(--space-10);
+  }
+}
+
+@media (min-width: 1200px) {
+  :root {
+    --gutter: var(--space-8);
+  }
+}
+
+/* ═══ Base ═════════════════════════════════════════════════════════════ */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  margin: 0;
+  min-height: 100%;
+}
+
+body {
+  background: var(--color-canvas);
+  color: var(--color-ink);
+  font-family: var(--font-body);
+  font-size: var(--step-0);
+  font-weight: var(--weight-body);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  overflow-x: hidden;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+::selection {
+  background: var(--color-accent);
+  color: var(--color-canvas);
+}

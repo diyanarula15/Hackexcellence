@@ -54,6 +54,11 @@ class Indexes:
     transfers_by_id: dict
     attractions_by_city: dict
     city_links_by_origin: dict           # from_city -> [link objects]
+    hotels_by_id: dict
+    rooms_by_id: dict
+    attractions_by_id: dict
+    countries_by_code: dict              # "JP" -> country object
+    country_by_city: dict                # city name -> country object
 
 
 @dataclass
@@ -175,6 +180,11 @@ def build_indexes(c: Catalog) -> Indexes:
         city_links_by_origin=_group(
             [ln for co in c.destinations["countries"] for ln in co["links"]],
             lambda ln: ln["from_city"]),
+        hotels_by_id={h["hotel_id"]: h for h in c.hotels},
+        rooms_by_id={r["room_id"]: r for r in c.rooms},
+        attractions_by_id={a["attraction_id"]: a for a in c.attractions},
+        countries_by_code={co["code"]: co for co in c.destinations["countries"]},
+        country_by_city={x["name"]: co for co in c.destinations["countries"] for x in co["cities"]},
     )
 
 
