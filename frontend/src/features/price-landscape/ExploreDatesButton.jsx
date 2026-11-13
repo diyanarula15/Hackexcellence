@@ -55,7 +55,7 @@ export default function ExploreDatesButton() {
       <button
         type="button"
         ref={triggerRef}
-        className="btn btn--small pl-entry"
+        className="pl-entry"
         disabled={!ready}
         aria-describedby={ready ? undefined : 'pl-entry-hint'}
         onClick={() => {
@@ -63,7 +63,13 @@ export default function ExploreDatesButton() {
           setOpen(true);
         }}
       >
+        <svg className="pl-entry__icon" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+          <rect x="2.5" y="4" width="15" height="13.5" rx="2.5" stroke="currentColor" strokeWidth="1.6" />
+          <path d="M2.5 8.5h15M6.5 2v3.5M13.5 2v3.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+          <circle cx="13" cy="13" r="1.6" fill="currentColor" />
+        </svg>
         Explore flexible dates
+        <span className="pl-entry__arrow" aria-hidden="true">→</span>
       </button>
       {!ready && (
         <span id="pl-entry-hint" className="pl-entry__hint">Fill in from, to, first day, nights and adults to compare dates.</span>

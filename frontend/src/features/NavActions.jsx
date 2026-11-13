@@ -1,5 +1,6 @@
 // Top navigation: every button opens a real feature. Overlays are tracked in the store (`panel`),
 // so other parts of the page (e.g. "View saved trips" after saving) can open the same ones.
+// Flexible dates live next to the request form ("Explore flexible dates"), not here.
 
 import { useState } from 'react';
 import { useStore } from '../state/store.js';
@@ -8,23 +9,9 @@ import { scrollToPlanner } from './format.js';
 import ReservationLookup from './reservations/ReservationLookup.jsx';
 import SavedTrips from './saved-trips/SavedTrips.jsx';
 
-const isReady = (form) => Boolean(form.departure && form.country && form.start_date && form.nights && form.adults);
-
 export default function NavActions() {
   const panel = useStore(bookingStore, (s) => s.panel);
-  const form = useStore(bookingStore, (s) => s.form);
   const [packageId, setPackageId] = useState('');
-  const [hint, setHint] = useState('');
-
-  const exploreDates = () => {
-    if (isReady(form)) {
-      setHint('');
-      openPanel('landscape');
-      return;
-    }
-    scrollToPlanner();
-    setHint('Fill in from, to, first day, nights and adults, then choose Explore dates.');
-  };
 
   return (
     <div className="nav-actions">
@@ -53,9 +40,6 @@ export default function NavActions() {
         </button>
       </form>
       <div className="nav-actions__links">
-        <button type="button" className="nav-actions__link" onClick={exploreDates}>
-          Explore dates
-        </button>
         <button type="button" className="nav-actions__link" onClick={() => openPanel('saved')}>
           Saved trips
         </button>
@@ -63,17 +47,9 @@ export default function NavActions() {
           Find booking
         </button>
       </div>
-      <button
-        type="button"
-        className="btn btn--small btn--primary"
-        onClick={() => {
-          setHint('');
-          scrollToPlanner();
-        }}
-      >
+      <button type="button" className="btn btn--small btn--primary" onClick={scrollToPlanner}>
         Plan holiday
       </button>
-      <p className="nav-actions__hint" role="status" aria-live="polite">{hint}</p>
     </div>
   );
 }

@@ -7,7 +7,50 @@
  * Depth uses transform only (no animated width/height). Reduced motion removes tilt and movement.
  */
 
-.pl-entry { white-space: nowrap; }
+/* Entry button beside the request form: a soft accent chip with a calendar, not another outline pill. */
+.pl-entry {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 38px;
+  padding: 0 14px 0 12px;
+  border: 1px solid color-mix(in srgb, var(--color-accent) 35%, transparent);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--color-accent) 8%, var(--color-canvas));
+  color: var(--color-ink);
+  font: inherit;
+  font-size: var(--step--1);
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+.pl-entry__icon { width: 18px; height: 18px; color: var(--color-accent); transition: color 0.15s ease; }
+.pl-entry__arrow { color: var(--color-accent); transition: transform 0.15s ease, color 0.15s ease; }
+.pl-entry:hover:not(:disabled),
+.pl-entry:focus-visible {
+  border-color: var(--color-accent);
+  background: var(--color-accent);
+  color: var(--color-canvas);
+  outline: none;
+}
+.pl-entry:hover:not(:disabled) .pl-entry__icon,
+.pl-entry:hover:not(:disabled) .pl-entry__arrow,
+.pl-entry:focus-visible .pl-entry__icon,
+.pl-entry:focus-visible .pl-entry__arrow { color: var(--color-canvas); }
+.pl-entry:hover:not(:disabled) .pl-entry__arrow { transform: translateX(3px); }
+.pl-entry:disabled {
+  border-color: var(--ink-hair);
+  background: transparent;
+  color: var(--ink-soft);
+  cursor: not-allowed;
+}
+.pl-entry:disabled .pl-entry__icon,
+.pl-entry:disabled .pl-entry__arrow { color: var(--ink-soft); }
+@media (prefers-reduced-motion: reduce) {
+  .pl-entry, .pl-entry__icon, .pl-entry__arrow { transition: none; }
+  .pl-entry:hover:not(:disabled) .pl-entry__arrow { transform: none; }
+}
 
 .pl-overlay {
   position: fixed;

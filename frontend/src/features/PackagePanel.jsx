@@ -139,24 +139,24 @@ function Alternatives({ maxTotal = null, title = 'Nearest trips that work' }) {
       </p>
     );
   }
-  const [first] = suggestions;
   return (
     <section className="alternatives" aria-labelledby="alternatives-title">
       <h3 className="eyebrow" id="alternatives-title">{title}</h3>
-      <p className="alternatives__lead">
-        If you change your search — <strong>{first.label.charAt(0).toLowerCase() + first.label.slice(1)}</strong> — you'll
-        find a holiday from <strong>{formatINR(first.min_total_inr)}</strong>.
-      </p>
       <ul className="alternatives__list">
         {suggestions.map((s) => (
           <li key={`${s.kind}:${s.change.to}`} className="alternatives__item">
             <span className="alternatives__kind">{KIND_LABEL[s.kind] ?? humanize(s.kind)}</span>
             <span className="alternatives__label">{s.label}</span>
             <span className="alternatives__price">
-              from {formatINR(s.min_total_inr)}
+              <span className="alternatives__from">from</span> <strong>{formatINR(s.min_total_inr)}</strong>
               {!s.within_budget && <span className="is-over"> · over budget</span>}
             </span>
-            <button type="button" className="btn btn--small" disabled={busy} onClick={() => searchAlternative(s)}>
+            <button
+              type="button"
+              className="btn btn--small btn--primary"
+              disabled={busy}
+              onClick={() => searchAlternative(s)}
+            >
               Search this trip
             </button>
           </li>
@@ -185,6 +185,7 @@ function OverBudget({ response }) {
   const explanation = response.explanation;
   return (
     <div className="notice" role="status">
+      <p className="notice__eyebrow">Over budget</p>
       {explanation ? (
         <>
           <p className="notice__title">{explanation.headline}.</p>
@@ -210,7 +211,9 @@ function OverBudget({ response }) {
       )}
       <Reasons reasons={response.suggestions} />
       <Alternatives maxTotal={response.cheapest_total_inr ?? response.package?.total_inr} title="Cheaper searches nearby" />
-      <EditTrip />
+      <div className="notice__actions">
+        <EditTrip />
+      </div>
     </div>
   );
 }

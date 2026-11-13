@@ -622,24 +622,75 @@
   color: var(--ink-muted);
 }
 
+/* Over-budget card: one calm surface; the cheaper searches sit inside it as a list, not a second box. */
 .notice {
   max-width: 52rem;
   margin-bottom: var(--space-4);
-  padding: var(--space-2) var(--space-3);
-  border-left: 3px solid var(--color-accent);
-  background: color-mix(in srgb, var(--color-accent) 7%, var(--color-canvas));
+  padding: var(--space-3);
+  border: 1px solid var(--ink-hair);
+  border-radius: 16px;
+  background: var(--color-canvas);
+  box-shadow: 0 1px 2px color-mix(in srgb, var(--color-ink) 6%, transparent);
 }
 
 .notice p {
   margin: 0 0 var(--space-1);
+  color: var(--ink-muted);
 }
 
-.notice__title {
-  font-weight: var(--weight-medium);
+.notice__eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--color-accent) 12%, var(--color-canvas));
+  color: var(--color-accent) !important;
+  font-size: var(--step--1);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
+.notice__eyebrow::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.notice .notice__title {
+  margin-top: var(--space-1);
+  color: var(--color-ink);
+  font-size: var(--step-1);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.notice strong { color: var(--color-ink); }
 
 .notice .results__reasons {
-  margin: var(--space-1) 0 var(--space-2);
+  margin: var(--space-1) 0 0;
+  color: var(--ink-muted);
+}
+
+.notice .alternatives {
+  margin: var(--space-3) 0 0;
+  padding: var(--space-2) 0 0;
+  border: 0;
+  border-top: 1px solid var(--ink-hair);
+  border-radius: 0;
+}
+
+.notice__actions {
+  display: flex;
+  gap: var(--space-1);
+  margin-top: var(--space-2);
+}
+.notice__actions .btn {
+  min-height: 36px;
+  padding: 0 var(--space-2);
+  font-size: var(--step--1);
 }
 
 .pkg__grid {
@@ -950,18 +1001,6 @@
   border-bottom-color: var(--color-ink);
 }
 
-.nav-actions { position: relative; }
-.nav-actions__hint {
-  position: absolute;
-  top: calc(100% + 6px);
-  right: 0;
-  max-width: 22rem;
-  margin: 0;
-  font-size: var(--step--1);
-  color: var(--color-accent);
-  text-align: right;
-}
-.nav-actions__hint:empty { display: none; }
 
 @media (max-width: 1199px) {
   .nav-actions__open {
@@ -1911,24 +1950,28 @@
   border-radius: 12px;
 }
 .alternatives h3 { margin: 0 0 var(--space-1); }
-.alternatives__lead { margin: 0 0 var(--space-2); }
-.alternatives__list { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--space-1); }
+.alternatives__list { list-style: none; margin: var(--space-1) 0 0; padding: 0; display: grid; gap: var(--space-1); }
 .alternatives__item {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto auto;
-  grid-template-areas: "kind kind kind" "label price action";
+  grid-template-areas: "kind price action" "label price action";
   align-items: center;
   gap: 2px var(--space-2);
-  padding: var(--space-1) 0;
-  border-top: 1px solid var(--ink-hair);
+  padding: 12px var(--space-2);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--color-ink) 3.5%, var(--color-canvas));
 }
 .alternatives__kind { grid-area: kind; font-size: var(--step--1); color: var(--ink-muted); }
-.alternatives__label { grid-area: label; min-width: 0; }
-.alternatives__price { grid-area: price; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.alternatives__label { grid-area: label; min-width: 0; color: var(--color-ink); font-weight: 500; }
+.alternatives__price { grid-area: price; font-variant-numeric: tabular-nums; white-space: nowrap; text-align: right; }
+.alternatives__price strong { color: var(--color-accent); font-size: var(--step-1); }
+.alternatives__from { font-size: var(--step--1); color: var(--ink-muted); }
+.alternatives__note { margin-top: var(--space-1); }
 .alternatives__item .btn { grid-area: action; }
 .alternatives__status, .alternatives__note { font-size: var(--step--1); color: var(--ink-muted); }
 @media (max-width: 599px) {
   .alternatives__item { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "kind kind" "label label" "price action"; }
+  .alternatives__price { text-align: left; }
 }
 
 /* Why no holiday was found (Phase 8A) */
