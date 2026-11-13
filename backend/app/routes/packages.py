@@ -321,6 +321,17 @@ def export_package(package_id: str):
     stored, error = _load(package_id)
     if error is not None:
         return error
+    if stored.status == "BOOKED":
+        # Confirmed exports are served from the immutable snapshot, independent of catalog changes.
+        from app.repositories.reservations import get_reservation
+        reservation = get_reservation(stored.package.booking_reference) if stored.package.booking_reference else None
+        if reservation is not None:
+            return Response(
+                content=json.dumps(reservation.trip_json, indent=2, ensure_ascii=False),
+                media_type="application/json",
+                headers={"Content-Disposition": f'attachment; filename="holiday-reservation-{reservation.reference}.json"'},
+            )
+        return JSONResponse(status_code=500, content=UNREADABLE)
     catalog = load_catalog()
     trip = to_trip_json(stored.package, catalog)
     violations = validate_trip(trip, catalog, stored.validation_mode)

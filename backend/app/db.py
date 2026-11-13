@@ -23,6 +23,7 @@ CREATE TABLE IF NOT EXISTS packages (
     version INTEGER NOT NULL DEFAULT 1,
     status TEXT NOT NULL
         CHECK (status IN ('PLANNED', 'BOOKED')),
+    catalog_fingerprint TEXT,
     validation_mode TEXT NOT NULL DEFAULT 'INITIAL',
     created_at TEXT NOT NULL,
     updated_at TEXT NOT NULL
@@ -73,3 +74,24 @@ def create_tables() -> None:
     db_path().parent.mkdir(parents=True, exist_ok=True)
     with connect() as conn:
         conn.executescript(SCHEMA)
+        # Additive migration: legacy packages retain NULL identity and must be replanned.
+        columns = {row["name"] for row in conn.execute("PRAGMA table_info(packages)")}
+        if "catalog_fingerprint" not in columns:
+            conn.execute("ALTER TABLE packages ADD COLUMN catalog_fingerprint TEXT")
+        conn.executescript("""
+        CREATE TRIGGER IF NOT EXISTS reservations_no_update
+        BEFORE UPDATE ON reservations BEGIN
+            SELECT RAISE(ABORT, 'confirmed reservations are immutable');
+        END;
+        CREATE TRIGGER IF NOT EXISTS reservations_no_delete
+        BEFORE DELETE ON reservations BEGIN
+            SELECT RAISE(ABORT, 'confirmed reservations are retained');
+        END;
+        CREATE TRIGGER IF NOT EXISTS reservations_valid_reference
+        BEFORE INSERT ON reservations
+        WHEN NEW.reference IS NULL OR length(NEW.reference) != 10 OR NEW.reference GLOB '*[^0-9]*'
+        BEGIN SELECT RAISE(ABORT, 'invalid reservation reference'); END;
+        CREATE TRIGGER IF NOT EXISTS booked_package_no_update
+        BEFORE UPDATE ON packages WHEN OLD.status = 'BOOKED'
+        BEGIN SELECT RAISE(ABORT, 'booked packages are immutable'); END;
+        """)

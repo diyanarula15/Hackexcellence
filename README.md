@@ -51,3 +51,12 @@ cd frontend && npm install && npm run dev   # UI on http://localhost:5173 (proxi
 Saved packages live in SQLite at `backend/app.db` (created on startup, git-ignored; `HOLIDAY_DB_PATH` overrides the location).
 
 Endpoints so far: `GET /api/health`, `GET /api/meta`, `POST /api/validate`, `POST /api/packages` (plan and save a package), `GET /api/packages/{id}` (saved package, never re-planned), `GET /api/packages/{id}/export` (trip JSON download), `GET /api/packages/{id}/options` (valid and invalid replacements for one item), `POST /api/packages/{id}/preview-change` (full result of one change, nothing saved), `POST /api/packages/{id}/apply-change` (recomputes, validates and saves one change atomically; 409 on an outdated version).
+
+
+Phase 6 adds simulated booking confirmation with a durable ten-digit reference:
+`POST /api/packages/{id}/confirm` (`{"base_version": 1}`),
+`GET /api/reservations/{reference}`, and `GET /api/reservations/{reference}/export`.
+Use **Confirm Holiday** on a saved package to review the final price, and **Find reservation**
+in the navigation to retrieve a confirmed itinerary. Confirmed packages cannot be edited.
+Packages saved before catalog identity tracking must be regenerated before first confirmation.
+See [the Phase 6 delivery report](docs/PHASE6.md) for transactions, migration, API contracts and checks.

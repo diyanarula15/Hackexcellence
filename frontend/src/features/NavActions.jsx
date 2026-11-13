@@ -2,12 +2,15 @@
 import { useState } from 'react';
 import { openPackage } from '../state/bookingStore.js';
 import { scrollToPlanner } from './format.js';
+import ReservationLookup from './reservations/ReservationLookup.jsx';
 
 
 export default function NavActions() {
   const [packageId, setPackageId] = useState('');
+  const [lookupOpen, setLookupOpen] = useState(false);
   return (
     <div className="nav-actions">
+      {lookupOpen && <ReservationLookup onClose={() => setLookupOpen(false)} />}
       <form
         className="nav-actions__open"
         role="search"
@@ -30,6 +33,9 @@ export default function NavActions() {
           Open
         </button>
       </form>
+      <button type="button" className="btn btn--small" onClick={() => setLookupOpen(true)}>
+        Find reservation
+      </button>
       <button type="button" className="btn btn--small btn--primary" onClick={scrollToPlanner}>
         Plan a trip
       </button>

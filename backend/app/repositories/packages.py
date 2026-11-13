@@ -19,6 +19,8 @@ from types import NoneType, UnionType
 from typing import Callable, Union, get_args, get_origin, get_type_hints
 
 from app.db import connect
+from app.catalog.load import load_catalog
+from app.lib.catalog_identity import catalog_fingerprint
 from app.engine.model import Package
 from app.rules.common import EDITED, INITIAL
 
@@ -190,10 +192,11 @@ def save_package(package: Package, *, request: dict) -> str:
     package_json = _package_json(package)
     request_json = json.dumps(request, ensure_ascii=False, default=str)
     now = _now()
+    identity = catalog_fingerprint(load_catalog())
     with connect() as conn:
         conn.execute(
             "INSERT INTO packages (id, request_json, package_json, total_inr, version, status,"
-            " validation_mode, created_at, updated_at) VALUES (?, ?, ?, ?, 1, ?, ?, ?, ?)",
+            " validation_mode, created_at, updated_at, catalog_fingerprint) VALUES (?, ?, ?, ?, 1, ?, ?, ?, ?, ?)",
             (
                 package_id,
                 request_json,
@@ -203,6 +206,7 @@ def save_package(package: Package, *, request: dict) -> str:
                 INITIAL,
                 now,
                 now,
+                identity,
             ),
         )
     log.info("saved package %s (total INR %s)", package_id, package.total)
@@ -229,7 +233,12 @@ def update_package(
     if package.trip_id != package_id:
         raise ValueError("package.trip_id must equal the id it is stored under")
     package_json = _package_json(package)
-    with connect() as conn:
+    with connect(immediate=True) as conn:
+        row = conn.execute("SELECT status FROM packages WHERE id = ?", (package_id,)).fetchone()
+        if row is not None and row["status"] != PLANNED:
+            raise PackageLocked(package_id, row["status"])
+        if package.status != PLANNED:
+            raise ValueError("only reservation confirmation may book a package")
         cur = conn.execute(
             "UPDATE packages SET package_json = ?, total_inr = ?, status = ?, validation_mode = ?,"
             " version = version + 1, updated_at = ? WHERE id = ? AND version = ?",

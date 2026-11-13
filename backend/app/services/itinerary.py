@@ -322,6 +322,7 @@ def present_package(stored, catalog=None) -> dict:
         "trip_id": p.trip_id,
         "version": stored.version,
         "status": stored.status,
+        "booking_reference": p.booking_reference,
         "validation_mode": stored.validation_mode,
         "created_at": stored.created_at,
         "updated_at": stored.updated_at,
