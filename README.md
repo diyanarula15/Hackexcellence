@@ -45,6 +45,9 @@ Read the FAQ at the end of `DATA_DICTIONARY.md` first. Then ask at the help desk
 ```
 ./setup.sh   # creates .venv and installs backend/requirements.txt
 ./start.sh   # backend on http://localhost:8000 (Swagger at /docs)
+cd frontend && npm install && npm run dev   # UI on http://localhost:5173 (proxies /api to :8000)
 ```
 
-Endpoints so far: `GET /api/health`, `GET /api/meta`.
+Saved packages live in SQLite at `backend/app.db` (created on startup, git-ignored; `HOLIDAY_DB_PATH` overrides the location).
+
+Endpoints so far: `GET /api/health`, `GET /api/meta`, `POST /api/validate`, `POST /api/packages` (plan and save a package), `GET /api/packages/{id}` (saved package, never re-planned), `GET /api/packages/{id}/export` (trip JSON download).

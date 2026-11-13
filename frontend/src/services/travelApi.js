@@ -1,67 +1,46 @@
 /**
- * services/travelApi.js — domain API stubs (stays, flights, destinations).
+ * services/travelApi.js — the holiday API. The store imports ONLY from here; components never
+ * call `fetch` directly. Response shapes are the backend's:
+ *   backend/app/routes/packages.py (envelope) · backend/app/services/itinerary.py (package view)
  *
- * UI components and the store import ONLY from this file — never call
- * `fetch` directly. Each function already has its final signature; to go
- * live, set VITE_API_BASE_URL and adjust the endpoint paths / response
- * mapping below. Until then every call resolves with mock data.
- *
- * @typedef {{ id: string, name: string, city: string, pricePerNight: number, rating: number }} Stay
- * @typedef {{ id: string, from: string, to: string, departAt: string, price: number, carrier: string }} Flight
- * @typedef {{ id: string, city: string, country: string }} Destination
+ * The backend owns all planning, pricing and validation; nothing here computes a price.
  */
 
-import { USE_MOCKS, mockResponse, request } from './apiClient.js';
-
-/** @type {Stay[]} */
-const MOCK_STAYS = [
-  { id: 'stay_1', name: 'Placeholder Hotel One', city: 'Lisbon', pricePerNight: 142, rating: 4.7 },
-  { id: 'stay_2', name: 'Placeholder Hotel Two', city: 'Lisbon', pricePerNight: 98, rating: 4.4 },
-  { id: 'stay_3', name: 'Placeholder Resort Three', city: 'Lisbon', pricePerNight: 231, rating: 4.9 },
-];
-
-/** @type {Flight[]} */
-const MOCK_FLIGHTS = [
-  { id: 'flt_1', from: 'DEL', to: 'LIS', departAt: '2027-01-12T06:40:00Z', price: 512, carrier: 'Placeholder Air' },
-  { id: 'flt_2', from: 'DEL', to: 'LIS', departAt: '2027-01-12T13:05:00Z', price: 468, carrier: 'Placeholder Air' },
-];
-
-/** @type {Destination[]} */
-const MOCK_DESTINATIONS = [
-  { id: 'dst_1', city: 'Lisbon', country: 'Portugal' },
-  { id: 'dst_2', city: 'Kyoto', country: 'Japan' },
-  { id: 'dst_3', city: 'Cape Town', country: 'South Africa' },
-];
+import { download, request } from './apiClient.js';
 
 /**
- * Search hotel / resort stays.
- * @param {{ destination: string, checkIn?: string, checkOut?: string, guests?: number }} params
- * @param {{ signal?: AbortSignal }} [options]
- * @returns {Promise<Stay[]>}
+ * Form options: departure cities, countries, date window, nights range, traveler cap.
+ * @returns {Promise<{ departure_airports: {airport: string, city: string}[],
+ *   countries: {code: string, name: string, cities: string[]}[],
+ *   allowed_dates: {first_night: string, last_departure: string},
+ *   nights: {min: number, max: number, min_per_city: number}, max_travelers: number }>}
  */
-export function searchStays(params, { signal } = {}) {
-  if (USE_MOCKS) return mockResponse(MOCK_STAYS);
-  return request('/stays/search', { query: params, signal });
+export function getMeta(options) {
+  return request('/api/meta', options);
 }
 
 /**
- * Search flights.
- * @param {{ from: string, to: string, date?: string, passengers?: number }} params
- * @param {{ signal?: AbortSignal }} [options]
- * @returns {Promise<Flight[]>}
+ * Plan and save a package from the 7 request fields.
+ * Resolves with `{ status, package, reasons, ... }` for FOUND / OVER_BUDGET (a saved package) and
+ * INFEASIBLE / SEARCH_INCOMPLETE (package: null). Rejects with an ApiError; a 422 carries
+ * `body.field_errors` (INVALID_REQUEST).
+ *
+ * @param {{ departure: string|null, country: string|null, start_date: string|null,
+ *   nights: number|string|null, adults: number|string|null, child_ages: (number|string)[],
+ *   budget: number|string|null }} trip
  */
-export function searchFlights(params, { signal } = {}) {
-  if (USE_MOCKS) return mockResponse(MOCK_FLIGHTS);
-  return request('/flights/search', { query: params, signal });
+export function createPackage(trip, options) {
+  return request('/api/packages', { method: 'POST', body: trip, ...options });
 }
 
-/**
- * Featured / autocomplete destinations.
- * @param {{ query?: string }} [params]
- * @param {{ signal?: AbortSignal }} [options]
- * @returns {Promise<Destination[]>}
- */
-export function getDestinations(params = {}, { signal } = {}) {
-  if (USE_MOCKS) return mockResponse(MOCK_DESTINATIONS, 200);
-  return request('/destinations', { query: params, signal });
+/** A saved package exactly as stored (never re-planned). 404 → ApiError with status 404. */
+export function getPackage(packageId, options) {
+  return request(`/api/packages/${encodeURIComponent(packageId)}`, options);
+}
+
+/** Download the saved package in the shared trip JSON format (built by the backend). */
+export function exportPackage(packageId) {
+  return download(`/api/packages/${encodeURIComponent(packageId)}/export`, {
+    fallbackName: 'holiday-package.json',
+  });
 }

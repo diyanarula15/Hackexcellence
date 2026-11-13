@@ -1,0 +1,67 @@
+"""SQLite persistence with the built-in sqlite3 module.
+
+One short-lived connection per operation: `connect()` opens it, turns on foreign keys, commits when
+the block succeeds, rolls back when it raises, and always closes it. All SQL is parameterized.
+
+The database file is created on backend start (`create_tables()` in the FastAPI lifespan). It holds
+user state only; the catalog files under data/catalog are never written.
+"""
+
+import os
+import sqlite3
+from contextlib import contextmanager
+from pathlib import Path
+
+from app.config import DB_PATH
+
+SCHEMA = """
+CREATE TABLE IF NOT EXISTS packages (
+    id TEXT PRIMARY KEY,
+    request_json TEXT NOT NULL,
+    package_json TEXT NOT NULL,
+    total_inr INTEGER NOT NULL,
+    version INTEGER NOT NULL DEFAULT 1,
+    status TEXT NOT NULL
+        CHECK (status IN ('PLANNED', 'BOOKED')),
+    validation_mode TEXT NOT NULL DEFAULT 'INITIAL',
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS reservations (
+    reference TEXT PRIMARY KEY,
+    package_id TEXT NOT NULL UNIQUE,
+    trip_json TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    FOREIGN KEY (package_id) REFERENCES packages(id)
+);
+"""
+
+
+def db_path() -> Path:
+    """The database file: $HOLIDAY_DB_PATH when set, else backend/app.db. Read on every call so a
+    test can point the app at a temporary file."""
+    return Path(os.environ.get("HOLIDAY_DB_PATH") or DB_PATH)
+
+
+@contextmanager
+def connect():
+    """Yield a connection inside one transaction: commit on success, roll back on error, always close."""
+    conn = sqlite3.connect(db_path(), timeout=5.0)
+    conn.row_factory = sqlite3.Row
+    try:
+        conn.execute("PRAGMA foreign_keys = ON")
+        yield conn
+        conn.commit()
+    except BaseException:
+        conn.rollback()
+        raise
+    finally:
+        conn.close()
+
+
+def create_tables() -> None:
+    """Create the database file and both tables if they do not exist. Safe to call repeatedly."""
+    db_path().parent.mkdir(parents=True, exist_ok=True)
+    with connect() as conn:
+        conn.executescript(SCHEMA)
