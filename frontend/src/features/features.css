@@ -1,11 +1,4 @@
-/**
- * features.css — the holiday planner UI: request form, package result, nav actions.
- *
- * Uses only the tokens in theme/tokens.css (three colours and their mixes, the 8pt spacing grid,
- * the type scale), and keeps the shell's frameless look: hairlines and type, no heavy cards.
- */
-
-/* ── Shared ────────────────────────────────────────────────────────────── */
+/* Shared */
 .eyebrow {
   margin: 0;
   font-size: var(--step--1);
@@ -103,7 +96,7 @@
   .spinner { animation-duration: 2400ms; }
 }
 
-/* ── Request form: lower third of the settled hero ─────────────────────── */
+/* Request form */
 .planner {
   width: 100%;
   max-width: 80rem;
@@ -535,7 +528,7 @@
   color: var(--color-accent);
 }
 
-/* ── Result section (below the opening sequence) ───────────────────────── */
+/* Results */
 .results {
   grid-column: 1 / -1;
   scroll-margin-top: var(--space-3);
@@ -739,7 +732,7 @@
   color: var(--ink-muted);
 }
 
-/* ── Day-by-day timeline ───────────────────────────────────────────────── */
+/* Day-by-day timeline */
 .pkg__main > .eyebrow {
   margin-bottom: var(--space-2);
 }
@@ -861,7 +854,7 @@
   }
 }
 
-/* ── Nav actions ───────────────────────────────────────────────────────── */
+/* Navigation actions */
 .nav-actions {
   display: flex;
   align-items: center;

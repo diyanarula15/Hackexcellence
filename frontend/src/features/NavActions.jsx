@@ -1,13 +1,9 @@
-/**
- * features/NavActions.jsx — [HACKATHON_NAV_ACTIONS_SLOT]: open a saved package by its id, and jump
- * past the opening sequence to the request form.
- */
 
 import { useState } from 'react';
 import { openPackage } from '../state/bookingStore.js';
 import { scrollToPlanner } from './format.js';
 
-/** @returns {JSX.Element} */
+
 export default function NavActions() {
   const [packageId, setPackageId] = useState('');
   return (

@@ -1,11 +1,4 @@
-/**
- * features/RequestForm.jsx — the 7-field trip request (M1), mounted in
- * [HACKATHON_PREFERENCES_BUDGET_SLOT].
- *
- * Options (departure cities, countries, date window) come from GET /api/meta. The form does not
- * validate: `noValidate` lets every value reach the backend, whose clear, field-specific messages
- * are shown next to the fields.
- */
+// Validation is handled by the backend; this form displays its field-specific errors.
 
 import { useStore } from '../state/store.js';
 import { bookingStore, generatePackage, loadMeta, setField } from '../state/bookingStore.js';

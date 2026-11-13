@@ -1,17 +1,3 @@
-/**
- * App.jsx — composition root: 3D scene (back) + 2D HUD (front).
- *
- * Layers
- *   z 0  <SceneCanvas />  fixed full-viewport WebGL scene   (src/scene)
- *   z 1  <Hud />          nav, hero, injection slots        (src/hud)
- *
- * Widgets in the HUD slots (src/features):
- *   [HACKATHON_PREFERENCES_BUDGET_SLOT]  <RequestForm />   the 7-field trip request
- *   [HACKATHON_PACKAGE_MODIFIER_SLOT]    <PackagePanel />  the package / result below the intro
- *   [HACKATHON_NAV_ACTIONS_SLOT]         <NavActions />    open a saved package, plan a trip
- *
- * State + API calls: src/state/bookingStore.js → src/services/travelApi.js → /api (FastAPI)
- */
 
 import { useEffect } from 'react';
 import SceneCanvas from './scene/SceneCanvas.jsx';
