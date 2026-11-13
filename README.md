@@ -2,79 +2,99 @@
 
 Our entry for Hackathon Problem 1 (holiday packages).
 
-You pick where you're flying from, the country, dates, how many people and a budget, and the app puts together a full trip from the catalog: flights, hotels, airport pickups/drops, trains or buses between cities, and things to do each day. The trip gets saved, so you can come back to it, and you can change bits of it later (swap the hotel, pick another flight, add or remove a place to visit etc.).
+You pick where you're flying from, the country, the first day, nights, travelers and a budget. The
+backend builds one complete, rule-checked holiday from the catalog — flights, hotels, airport
+transfers, trains/buses between cities and attractions for each day — saves it, lets you change it,
+and books it with a 10-digit reservation number.
 
-Problem statement: `problem-1-holiday-package.md`. Data notes: `DATA_DICTIONARY.md`.
+Problem statement: `problem-1-holiday-package.md` · data notes: `DATA_DICTIONARY.md` ·
+architecture: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) · demo script: [`docs/DEMO.md`](docs/DEMO.md)
 
-## Running it
+## Start the app (2 commands)
+
+Needs Python 3.11+ and Node 18+.
 
 ```
-./setup.sh      # first time only, makes .venv and installs backend deps
-./start.sh      # backend on localhost:8000 (API docs at /docs)
-cd frontend && npm install && npm run dev    # frontend on localhost:5173
+./setup.sh      # first time: makes .venv, installs backend + frontend dependencies
+./start.sh      # backend on :8000 and frontend on :5173 — open http://localhost:5173
 ```
 
-Trips are stored in SQLite (`backend/app.db`, gets created on startup). You can point it somewhere else with `HOLIDAY_DB_PATH`.
+`Ctrl+C` stops both. Ports: `BACKEND_PORT` / `FRONTEND_PORT`. Trips and reservations live in SQLite
+(`backend/app.db`, created on startup, survives restarts); `HOLIDAY_DB_PATH` moves it. API docs: <http://localhost:8000/docs>.
 
-## How it works
+## What you can do
 
-The backend does all the real work. The frontend only shows what the API sends back, it never reads the data files or calculates prices itself.
+| Feature | Where |
+|---|---|
+| **Plan a holiday** (M1–M3) — the form's options come from `destinations.json`; invalid values get a message on the field | form → **Plan trip** |
+| **Day-by-day plan** (M4) — flights (departure *and* landing, local times), transfers, check-in/out, visits | the package view |
+| **Total and budget, JSON export** (M5) | price panel → **Export JSON** |
+| **Change the package** (M6, G1, G2) — hotel, flights, transfers, add/remove attractions; every option shows the whole-trip price difference; a preview lists the knock-on repairs (e.g. a new airport bus for a new hotel area) before saving | **Change …** buttons in the timeline |
+| **Confirm and reservation summary** (M7) — unique 10-digit number, works after a backend restart, wrong number → "not found" | **Confirm Holiday**, **Find reservation** (nav) |
+| **Budget too small** (M8) — says so, shows the proven cheapest total and the shortfall, suggests a change | result panel |
+| **No trip possible** — explains why, then offers the nearest searches that *do* work (another start date, departure city or length) with their proven price, one click to search it | result panel |
+| **Flexible dates (Price Landscape)** — the proven cheapest complete holiday for every start date of a month as a 3D-style price calendar; pick a date and generate the holiday at exactly that price | **Explore flexible dates** next to the form |
+| **Delay Rescue** — "what if my flight lands 1–4 h late?": shows whether the trip still works and a safer pickup plan you can switch to; the delay itself is never saved | **Delay resilience** on the arrival flight |
+| **Search a new trip** | package header |
 
-- **Planning**: `POST /api/packages` takes the trip request, finds cities, flights, rooms, transfers and visits that actually fit together, and saves the package as version 1. If nothing fits (no seats, no rooms, over budget...) it tells you why.
-- **Rules**: every trip, new or edited, goes through the same checks (`backend/app/rules`, `backend/app/validate`). Wrong airport, room too small, transfer outside its timings, attraction closed that day, that kind of thing.
-- **Changing a trip**: from the day-by-day view you can hit Change flight / Change hotel / Change transfer / Add attraction / Remove. The flow is:
-  1. `GET /options` shows the other choices, each already checked against the rest of your trip, with the price difference for the whole trip (or why it won't work).
-  2. `POST /preview-change` shows exactly what would change before anything is saved. Sometimes other things have to move too, like a different hotel area needs a different airport bus, and those are listed.
-  3. `POST /apply-change` saves it. The server works the change out again (doesn't trust the browser) and bumps the version. If someone changed the trip in between, you get a 409 and have to reload.
+## The city rule
 
-- **Delay Rescue**: on the arrival flight you can see what happens if it lands 1–4 hours late, and switch to a safer pickup plan if needed. The delay itself is never saved.
-- **Booking**: **Confirm Holiday** books the saved trip and gives a 10-digit reference; **Find reservation** in the nav opens it again. See `docs/PHASE6.md`.
-- **Flexible dates**: **Explore flexible dates** next to the form shows the cheapest complete trip for every start date, and can plan the trip for the date you pick (at that exact price, `objective: "MINIMUM_COST"`).
+The app chooses the cities itself. It enumerates every valid city plan of the country (cities linked
+by a directed transfer, each ≥ 2 nights, nights adding up), then searches flights, rooms, transfers
+and attractions for all of them with an exact branch-and-bound search. A normal search prefers
+**about one city per three nights** (6 nights → 2 cities), then the cheapest valid package within the
+budget, and prefers an airport pickup on the landing day. If nothing fits the budget, it returns the
+proven cheapest valid package (M8). Flexible dates and "nearest trip" prices use the proven minimum.
+
+## Architecture (short)
+
+```
+frontend (React, Vite)  ──/api──▶  FastAPI routes ──▶ services ──▶ engine (planner, repair, delay scenarios)
+  only displays what the API              │                          │
+  returns; no prices or rules             ▼                          ▼
+                                SQLite (packages, versions,   rules + independent validator
+                                reservations)                  + pricing, catalog loader (data/catalog)
+```
+
+Every package — new, changed, delay-repaired or booked — is exported and re-checked by the same
+independent validator before it is saved or shown. Details: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
 
 ## API
 
 | | |
 |---|---|
-| `GET /api/health` | is it up |
-| `GET /api/meta` | values for the form (airports, countries, dates, nights) |
-| `POST /api/validate` | check a trip JSON against the rules |
-| `POST /api/packages` | plan + save a trip |
-| `GET /api/packages/{id}` | get a saved trip |
-| `GET /api/packages/{id}/export` | download the trip JSON |
-| `GET /api/packages/{id}/options?kind=...` | other choices for one part of the trip (`hotel&stay_id=`, `arrival_flight`, `return_flight`, `airport_transfer&item_id=`, `intercity_transfer&item_id=`, `attraction&date=`) |
-| `POST /api/packages/{id}/preview-change` | what a change would do, nothing saved |
-| `POST /api/packages/{id}/apply-change` | save a change |
-| `POST /api/packages/{id}/delay-scenarios` | simulate a late arrival flight (+1 to +4 h) and show if the trip still works; read-only |
-| `POST /api/packages/{id}/confirm` | book the saved trip (`{"base_version": n}`), returns a 10-digit reference; booked trips can't be edited |
-| `GET /api/reservations/{reference}` | look up a booking |
-| `GET /api/reservations/{reference}/export` | download the booked trip JSON |
-| `POST /api/date-prices` | cheapest complete trip for each start date in a month (the 7 trip fields + `range_start`, `range_end`) |
+| `GET /api/health`, `GET /api/meta` | status; form values (airports, countries, dates, nights) |
+| `POST /api/packages` | plan + save (`objective`: `WITHIN_BUDGET` default, or `MINIMUM_COST`) |
+| `GET /api/packages/{id}` · `/export` | saved trip · trip JSON (shared format, section 4 of the data dictionary) |
+| `GET /api/packages/{id}/options?kind=…` | valid replacements for one part, with price differences |
+| `POST /api/packages/{id}/preview-change` · `/apply-change` | what a change would do (nothing saved) · save it (version check, 409 if outdated) |
+| `POST /api/packages/{id}/delay-scenarios` | +1…+4 h arrival-delay simulation (read-only) |
+| `POST /api/packages/{id}/confirm` | book (`{"base_version": n}`) → 10-digit reference; booked trips are read-only |
+| `GET /api/reservations/{ref}` · `/export` | look up a booking · booked trip JSON |
+| `POST /api/date-prices` | proven cheapest holiday per start date (7 trip fields + `range_start`, `range_end`) |
+| `POST /api/trip-alternatives` | nearest one-field changes that have a holiday, with proven prices |
+| `POST /api/validate` | check any trip JSON against the rules |
 
-Example change:
-
-```json
-{ "base_version": 1, "kind": "CHANGE_HOTEL", "stay_id": "stay:Tokyo:2027-04-10:2027-04-12",
-  "hotel_id": "HTL-TYO-004", "room_id": "RM-TYO-004-B" }
-```
-
-Other kinds: `CHANGE_ARRIVAL_FLIGHT`, `CHANGE_RETURN_FLIGHT`, `CHANGE_AIRPORT_TRANSFER`, `CHANGE_INTERCITY_TRANSFER`, `ADD_ATTRACTION`, `REMOVE_ATTRACTION`.
-
-## Where things are
-
-- `backend/app/routes` – the endpoints
-- `backend/app/engine` – planner (`build.py`) and the change/repair logic (`change.py`, `dependencies.py`, `repair.py`)
-- `backend/app/rules`, `backend/app/validate` – the checks
-- `backend/app/services` – options, preview/apply, the itinerary view
-- `backend/app/repositories` – SQLite stuff
-- `frontend/src/features` – form, trip view, timeline, the change drawer
-- `frontend/src/services` – API calls
-
-## Tests
+## Checks
 
 ```
-cd backend && ../.venv/bin/python -m pytest -q
+cd backend && ../.venv/bin/python -m pytest -q          # backend tests
+cd frontend && npm test                                  # frontend tests
+python3 scripts/demo_smoke.py                            # rehearse the demo against a running backend
+.venv/bin/python scripts/check_trip_export.py trip.json  # check an exported JSON against the shared format
 ```
 
-## Rules we followed
+## Known limitations
 
-No AI/LLM calls inside the app. The frontend only talks to our backend. The app starts with the commands above.
+- **Expanded catalog.** `data/catalog` contains the supplied Japan/UAE records **plus five added
+  countries** (Thailand, Singapore, Malaysia, Indonesia, Vietnam) generated by
+  `scripts/expand_catalog.py` with the identical schema; every original record is unchanged. The
+  supplied files are kept byte-for-byte in `backups/catalog_original/`;
+  `python3 scripts/expand_catalog.py --restore` puts them back (and re-running it re-expands).
+- Not built: G3 (change the city plan of a saved trip), G4 (three packages side by side),
+  S1 (quick text request), S2 (bookings using up seats/rooms — confirmation saves a snapshot only).
+- Delay Rescue's "cannot be repaired" outcome is covered by tests but rare in this catalog.
+- The planner's "proven minimum" is exact within its timing model (earliest airport pickup after
+  landing, latest one before the return flight, train/bus departure nearest 10:00).
+
+No AI/LLM calls inside the app. The frontend only talks to our backend.

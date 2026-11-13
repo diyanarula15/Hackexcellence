@@ -43,6 +43,7 @@ from app.export.to_trip import to_trip_json
 from app.rules.common import INITIAL, Party
 from app.rules.request import check_request, resolve_country
 from app.validate.validate_trip import validate_trip
+from app.lib.money import rupees
 
 log = logging.getLogger(__name__)
 
@@ -519,6 +520,6 @@ def build_package(request, catalog, objective: str = WITHIN_BUDGET,
     if cheapest.total <= request.budget:
         return done(FOUND, cheapest)
     return done(OVER_BUDGET, cheapest,
-                [f"The cheapest valid package costs INR {cheapest.total}, which is INR "
-                 f"{cheapest.total - request.budget} over the budget of INR {request.budget}."],
+                [f"The cheapest valid package costs {rupees(cheapest.total)}, which is "
+                 f"{rupees(cheapest.total - request.budget)} over the budget of {rupees(request.budget)}."],
                 ["OVER_BUDGET"])

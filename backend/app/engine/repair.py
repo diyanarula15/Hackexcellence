@@ -35,6 +35,7 @@ from app.rules.hotels import check_hotels
 from app.rules.intercity import check_intercity
 from app.rules.transfers import check_airport_transfers
 from app.validate.validate_trip import validate_trip
+from app.lib.money import rupees
 
 USER_CHOICE, AUTOMATIC_REPAIR = "USER_CHOICE", "AUTOMATIC_REPAIR"
 REPAIR_OUT_OF_SCOPE = "REPAIR_OUT_OF_SCOPE"
@@ -394,8 +395,8 @@ def _repair(old: Package, con: PlanningConstraints, cat) -> ChangeProposal:
 
     warnings = []
     if new_pkg.total > new_pkg.budget:
-        warnings.append(f"The package now costs INR {new_pkg.total}, which is INR "
-                        f"{new_pkg.total - new_pkg.budget} over the budget of INR {new_pkg.budget}.")
+        warnings.append(f"The package now costs {rupees(new_pkg.total)}, which is "
+                        f"{rupees(new_pkg.total - new_pkg.budget)} over the budget of {rupees(new_pkg.budget)}.")
     for c in changed:
         if c.source == AUTOMATIC_REPAIR:
             warnings.append(c.reason)

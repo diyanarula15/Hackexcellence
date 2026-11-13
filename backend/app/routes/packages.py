@@ -200,12 +200,12 @@ def package_envelope(stored, catalog, planning=None) -> dict:
         over and straight_from_planner
     ):  # the planner only returns an over-budget package when it is the proven cheapest
         reasons = [
-            f"The cheapest valid package costs INR {total}, which is INR {shortfall} over the budget of INR {limit}."
+            f"The cheapest valid package costs {rupees(total)}, which is {rupees(shortfall)} over the budget of {rupees(limit)}."
         ]
         codes = ["OVER_BUDGET"]
     elif over:
         reasons = [
-            f"This package costs INR {total}, which is INR {shortfall} over the budget of INR {limit}."
+            f"This package costs {rupees(total)}, which is {rupees(shortfall)} over the budget of {rupees(limit)}."
         ]
         codes = ["OVER_BUDGET"]
     else:
