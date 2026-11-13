@@ -151,15 +151,16 @@
   align-items: center;
   gap: 7px;
   padding: 0 var(--space-2);
-  border: 1.5px solid var(--color-ink);
-  border-radius: 999px;
-  background: transparent;
+  border: 1.5px solid var(--box-border);
+  border-radius: var(--radius-box);
+  background: var(--box-fill);
+  box-shadow: var(--box-shadow);
   color: var(--color-ink);
   font: inherit;
   font-size: var(--step--1);
   font-weight: var(--weight-medium);
   cursor: pointer;
-  transition: border-color 200ms var(--ease-out), color 200ms var(--ease-out);
+  transition: border-color 200ms var(--ease-out), color 200ms var(--ease-out), box-shadow 200ms var(--ease-out);
 }
 
 .country-map__city:hover,
@@ -167,6 +168,7 @@
 .country-map__city.is-focused {
   border-color: var(--color-accent);
   color: var(--color-accent);
+  box-shadow: var(--box-shadow-hover);
 }
 
 .country-map__city:focus-visible {

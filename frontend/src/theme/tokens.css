@@ -64,8 +64,11 @@
   --radius-card: 12px; /* popovers, cards        */
 
   /* Hairline used by box buttons (ink at 25%) and their faint fill (ink at 4%). */
-  --box-border: color-mix(in srgb, var(--color-ink) 25%, transparent);
-  --box-fill: color-mix(in srgb, var(--color-ink) 4%, transparent);
+  /* Buttons and small boxes: clean canvas face (no grey), hairline edge, soft drop shadow. */
+  --box-border: color-mix(in srgb, var(--color-ink) 14%, transparent);
+  --box-fill: var(--color-canvas);
+  --box-shadow: 0 1px 2px color-mix(in srgb, var(--color-ink) 8%, transparent), 0 3px 8px color-mix(in srgb, var(--color-ink) 6%, transparent);
+  --box-shadow-hover: 0 2px 4px color-mix(in srgb, var(--color-ink) 9%, transparent), 0 6px 14px color-mix(in srgb, var(--color-ink) 9%, transparent);
 
   /* Motion */
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
