@@ -4,7 +4,9 @@ import { useStore } from '../state/store.js';
 import { exportReservation } from '../services/reservationsApi.js';
 import PlaneButton from './PlaneButton.jsx';
 import {
+  backToOptions,
   bookingStore,
+  canGoBackToOptions,
   dismissChangeNotice,
   exportCurrentPackage,
   generatePackage,
@@ -58,6 +60,18 @@ function EditTrip({ label = 'Edit the trip' }) {
   return (
     <button type="button" className="btn" onClick={scrollToPlanner}>
       {label}
+    </button>
+  );
+}
+
+/** Back to the options list this package was chosen from (only shown when there is one). */
+function BackToOptions() {
+  const canGoBack = useStore(bookingStore, canGoBackToOptions);
+  const count = useStore(bookingStore, (s) => s.optionsBack?.response?.options?.length ?? 0);
+  if (!canGoBack) return null;
+  return (
+    <button type="button" className="btn back-to-options" onClick={backToOptions}>
+      <span aria-hidden="true">←</span> Back to all {count > 1 ? `${count} ` : ''}options
     </button>
   );
 }
@@ -362,6 +376,7 @@ function PackageView({ response, receipt, onConfirmed }) {
         </p>
         <Route pkg={pkg} />
         <div className="pkg__header-actions">
+          <BackToOptions />
           <NewSearch />
         </div>
       </header>

@@ -95,6 +95,11 @@ export const bookingStore = createStore({
    * previewId: option whose details are open; selectingId: option being saved; error: message.
    */
   optionPick: { previewId: null, selectingId: null, error: null },
+  /**
+   * The options list a package was chosen from, so "Back to all options" can show it again:
+   * { response, chosen: [package ids picked from it] } | null. Cleared by a new search.
+   */
+  optionsBack: null,
 });
 
 const get = bookingStore.getState;
@@ -129,7 +134,11 @@ export function startUrlSync() {
     const packageId = packageIdFromUrl();
     const { result } = get();
     if (packageId && packageId !== result.packageId) loadPackage(packageId);
-    else if (!packageId && result.packageId) showResult(EMPTY_RESULT, false);
+    else if (!packageId && result.packageId) {
+      // browser Back from a package chosen from options returns to those options
+      if (canGoBackToOptions(get())) showResult({ status: 'OPTIONS', packageId: null, response: get().optionsBack.response }, false);
+      else showResult(EMPTY_RESULT, false);
+    }
   };
   sync();
   window.addEventListener('popstate', sync);
@@ -222,7 +231,7 @@ export async function generatePackage({ objective } = {}) {
   if (get().submit.status === 'loading') return;
   const body = { ...toRequestBody(get().form), ...(objective ? { objective } : {}) };
   const previous = get().result;
-  set({ submit: { status: 'loading', fieldErrors: {}, message: null }, optionPick: CLOSED_PICK });
+  set({ submit: { status: 'loading', fieldErrors: {}, message: null }, optionPick: CLOSED_PICK, optionsBack: null });
   showResult({ status: 'SEARCHING', request: body }); // option cards show as skeletons meanwhile
   const mine = resultSeq;
   try {
@@ -273,7 +282,12 @@ export async function choosePackageOption(optionId) {
     const response = await postSelectOption(searchId, optionId);
     if (get().result.status !== 'OPTIONS' || get().result.response?.search_id !== searchId) return;
     const packageId = response.package?.id ?? null;
-    set({ optionPick: CLOSED_PICK });
+    const back = get().optionsBack;
+    const chosen = back?.response?.search_id === searchId ? back.chosen : [];
+    set({
+      optionPick: CLOSED_PICK,
+      optionsBack: { response: result.response, chosen: packageId ? [...new Set([...chosen, packageId])] : chosen },
+    });
     writePackageIdToUrl(packageId, 'push');
     showResult({ status: response.status, packageId, response });
   } catch (error) {
@@ -334,7 +348,26 @@ export function startNewSearch() {
     submit: { status: 'idle', fieldErrors: {}, message: null },
     alternatives: { status: 'idle', data: null, error: null },
     optionPick: CLOSED_PICK,
+    optionsBack: null,
   });
+}
+
+/** True when the open package was chosen from an options list that "Back to all options" can reopen. */
+export function canGoBackToOptions(state) {
+  const back = state.optionsBack;
+  return Boolean(back && state.result.packageId && back.chosen.includes(state.result.packageId));
+}
+
+/**
+ * Show the options list the open package was chosen from again. Nothing is deleted: the chosen
+ * package stays saved, and choosing it again opens the same package (the backend reuses it).
+ */
+export function backToOptions() {
+  const back = get().optionsBack;
+  if (!back) return;
+  writePackageIdToUrl(null, 'push');
+  showResult({ status: 'OPTIONS', packageId: null, response: back.response });
+  set({ optionPick: CLOSED_PICK });
 }
 
 /** Load a saved package by id (from the URL, the "open" box, or a retry). */
