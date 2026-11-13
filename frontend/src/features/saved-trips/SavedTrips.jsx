@@ -134,10 +134,10 @@ function TripCard({ trip, onChanged, onRemoved, onOpen }) {
           />
           {error && <p className="saved-trip-form__error" role="alert">{errorText(error)}</p>}
           <div className="saved-trip-actions">
-            <button type="submit" className="saved-trip-btn saved-trip-btn--primary" disabled={busy}>
+            <button type="submit" className="btn btn--primary saved-trip-btn saved-trip-btn--primary" disabled={busy}>
               {busy ? 'Saving…' : 'Save name'}
             </button>
-            <button type="button" className="saved-trip-btn" onClick={stop} disabled={busy}>Cancel</button>
+            <button type="button" className="btn saved-trip-btn" onClick={stop} disabled={busy}>Cancel</button>
           </div>
         </form>
       )}
@@ -146,10 +146,10 @@ function TripCard({ trip, onChanged, onRemoved, onOpen }) {
         <div className="saved-card__confirm" role="group" aria-label="Confirm removal">
           <p>Remove from saved trips? The holiday itself is kept.</p>
           <div className="saved-trip-actions">
-            <button type="button" className="saved-trip-btn saved-trip-btn--danger" onClick={confirmRemove} disabled={busy}>
+            <button type="button" className="btn saved-trip-btn saved-trip-btn--danger" onClick={confirmRemove} disabled={busy}>
               {busy ? 'Removing…' : 'Remove from saved'}
             </button>
-            <button type="button" className="saved-trip-btn" onClick={stop} disabled={busy}>Cancel</button>
+            <button type="button" className="btn saved-trip-btn" onClick={stop} disabled={busy}>Cancel</button>
           </div>
         </div>
       )}
@@ -158,11 +158,11 @@ function TripCard({ trip, onChanged, onRemoved, onOpen }) {
 
       {mode === 'view' && (
         <div className="saved-trip-actions">
-          <button type="button" className="saved-trip-btn saved-trip-btn--primary" onClick={() => onOpen(id)}>
+          <button type="button" className="btn btn--primary saved-trip-btn saved-trip-btn--primary" onClick={() => onOpen(id)}>
             Open
           </button>
-          <button type="button" className="saved-trip-btn" onClick={startRename}>Rename</button>
-          <button type="button" className="saved-trip-btn" onClick={() => setMode('confirm-remove')}>
+          <button type="button" className="btn saved-trip-btn" onClick={startRename}>Rename</button>
+          <button type="button" className="btn saved-trip-btn" onClick={() => setMode('confirm-remove')}>
             Remove from saved
           </button>
         </div>
@@ -208,7 +208,7 @@ export default function SavedTrips({ onClose }) {
       <div className="saved-trips">
         <header className="saved-trips__header">
           <h2 id={titleId} className="saved-trips__title">My saved trips</h2>
-          <button type="button" className="saved-trip-btn" onClick={onClose}>Close</button>
+          <button type="button" className="btn saved-trip-btn" onClick={onClose}>Close</button>
         </header>
 
         {status === 'loading' && <p className="saved-trips__status" role="status">Loading your saved trips…</p>}
@@ -216,7 +216,7 @@ export default function SavedTrips({ onClose }) {
         {status === 'error' && (
           <div className="saved-trips__status" role="alert">
             <p>{errorText(error)}</p>
-            <button type="button" className="saved-trip-btn saved-trip-btn--primary" onClick={load}>Try again</button>
+            <button type="button" className="btn btn--primary saved-trip-btn saved-trip-btn--primary" onClick={load}>Try again</button>
           </div>
         )}
 

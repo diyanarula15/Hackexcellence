@@ -1,8 +1,8 @@
 .country-map {
   display: flex;
   flex-direction: column;
+  flex: 1 1 auto;
   width: 100%;
-  height: 100%;
   min-height: 0;
   color: var(--color-ink);
   font-family: inherit;
@@ -11,7 +11,7 @@
 .country-map__canvas {
   position: relative;
   flex: 1 1 auto;
-  min-height: min(55vh, 520px);
+  min-height: 240px;
   overflow: hidden;
 }
 
@@ -142,32 +142,36 @@
   flex: 0 0 auto;
   flex-wrap: wrap;
   gap: 6px;
-  max-height: 106px;
-  overflow-y: auto;
-  padding: 8px 2px 2px;
+  padding: 4px 0 8px;
 }
 
 .country-map__city {
   display: inline-flex;
-  min-height: 44px;
+  min-height: 32px;
   align-items: center;
   gap: 7px;
-  padding: 7px 12px;
-  border: 1px solid var(--ink-hair);
-  border-radius: 2px;
-  background: var(--color-canvas);
+  padding: 0 var(--space-2);
+  border: 1.5px solid var(--color-ink);
+  border-radius: 999px;
+  background: transparent;
   color: var(--color-ink);
   font: inherit;
-  font-size: 0.82rem;
+  font-size: var(--step--1);
+  font-weight: var(--weight-medium);
   cursor: pointer;
+  transition: border-color 200ms var(--ease-out), color 200ms var(--ease-out);
 }
 
 .country-map__city:hover,
 .country-map__city:focus-visible,
 .country-map__city.is-focused {
-  border-color: var(--color-ink);
-  outline: 2px solid var(--color-ink);
-  outline-offset: 1px;
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+
+.country-map__city:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
 }
 
 .country-map__approximate,
@@ -206,10 +210,6 @@
     min-height: min(55vh, 520px);
   }
 
-  .country-map__city-list {
-    max-height: 88px;
-  }
-
   .country-map__city {
     padding-inline: 9px;
     font-size: 0.76rem;
@@ -231,16 +231,20 @@
 @keyframes atlas-route-redraw { from { stroke-dashoffset: 14; opacity: .3; } to { stroke-dashoffset: 0; opacity: 1; } }
 @media (prefers-reduced-motion: reduce) { .atlas-marker__symbol { transition: none; } .atlas-route--draft { animation: none; } }
 
-/* A raised geographic relief over a translucent drafting surface. */
-.country-map__canvas { isolation: isolate; border-radius: 18px; cursor: ns-resize; background: radial-gradient(ellipse at 45% 40%, color-mix(in srgb, var(--color-canvas) 50%, transparent), transparent 70%); }
-.country-map__canvas::before { content: ''; position: absolute; z-index: -1; inset: 22px 12px 30px; border: 1px solid color-mix(in srgb, var(--color-canvas) 82%, transparent); border-radius: 18px; background: linear-gradient(145deg, color-mix(in srgb, var(--color-canvas) 26%, transparent), color-mix(in srgb, var(--color-canvas) 6%, transparent)); box-shadow: 0 22px 35px -26px color-mix(in srgb, var(--color-ink) 42%, transparent), inset 0 1px 0 color-mix(in srgb, var(--color-canvas) 80%, transparent); transform: perspective(1000px) rotateX(10deg); pointer-events: none; }
+/* The raised geographic relief sits straight on the canvas: no frame, so zooming never spills out of a box. */
+.country-map__canvas { isolation: isolate; cursor: ns-resize; }
+/* Soft edges: a zoomed-in map fades into the page instead of ending at a hard rectangle. */
+.country-map__canvas {
+  -webkit-mask-image: linear-gradient(to right, transparent, black 6%, black 94%, transparent), linear-gradient(to bottom, transparent, black 6%, black 94%, transparent);
+  -webkit-mask-composite: source-in;
+  mask-image: linear-gradient(to right, transparent, black 6%, black 94%, transparent), linear-gradient(to bottom, transparent, black 6%, black 94%, transparent);
+  mask-composite: intersect;
+}
 .country-map__svg { position: relative; touch-action: none; user-select: none; -webkit-user-select: none; outline: none; filter: drop-shadow(0 16px 12px color-mix(in srgb, var(--color-ink) 16%, transparent)); }
-.country-map__svg:focus-visible { outline: 1px dashed var(--ink-soft); outline-offset: -8px; border-radius: 18px; }
+.country-map__svg:focus-visible { outline: 1px dashed var(--ink-soft); outline-offset: -8px; }
 .country-map__canvas.is-dragging { cursor: ns-resize; }
 .atlas-country-relief { fill: color-mix(in srgb, var(--color-ink) 18%, var(--color-canvas)); stroke: color-mix(in srgb, var(--color-ink) 22%, var(--color-canvas)); stroke-width: 1; vector-effect: non-scaling-stroke; }
 .atlas-country-relief path:nth-child(2) { fill: color-mix(in srgb, var(--color-ink) 11%, var(--color-canvas)); }
 .atlas-country-relief path:nth-child(3) { fill: color-mix(in srgb, var(--color-ink) 6%, var(--color-canvas)); }
 .atlas-country-shape { fill: color-mix(in srgb, var(--color-canvas) 94%, var(--color-ink)); stroke: var(--ink-muted); filter: drop-shadow(0 1px 0 var(--color-canvas)); }
 .country-map__gestures { font-size: .69rem; line-height: 1.7; letter-spacing: .025em; color: var(--ink-muted); margin: 10px 0 8px; }
-.country-map__city { background: color-mix(in srgb, var(--color-canvas) 44%, transparent); border-radius: 999px; box-shadow: inset 0 1px 0 color-mix(in srgb, var(--color-canvas) 80%, transparent), 0 4px 10px -8px var(--color-ink); }
-@media (prefers-reduced-motion: reduce) { .country-map__canvas::before { transform: none; } }

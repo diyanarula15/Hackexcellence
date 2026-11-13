@@ -278,15 +278,9 @@
   font-weight: var(--weight-medium);
 }
 
-.package-options button:focus-visible,
 .package-options__link:focus-visible {
   outline: 2px solid var(--color-accent);
   outline-offset: 3px;
-}
-
-.package-options button:disabled {
-  opacity: 0.55;
-  cursor: progress;
 }
 
 .package-options__footer {
@@ -578,9 +572,5 @@
   .option-card--skeleton .option-card__bar,
   .po-dialog {
     animation: none;
-  }
-
-  .package-options button {
-    transition: none;
   }
 }

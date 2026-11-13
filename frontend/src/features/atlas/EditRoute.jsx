@@ -28,6 +28,7 @@ export default function EditRoute({ options, draft = [], focusedCity, onFocusCit
     <section className="atlas-edit-route" aria-labelledby="atlas-edit-route-title">
       <header className="atlas-edit-route__header">
         <div>
+          <p className="eyebrow">Your route</p>
           <h2 id="atlas-edit-route-title">Edit Route</h2>
           <p className="atlas-edit-route__focus" aria-live="polite">
             {focusedCity ? cityName(focusedCity, options) : 'Select a city on the map'}
@@ -58,12 +59,12 @@ export default function EditRoute({ options, draft = [], focusedCity, onFocusCit
                 <span>{name}</span>
               </button>
               <div className="atlas-edit-route__nights" aria-label={`${name} nights`}>
-                <button type="button" aria-label={`Decrease nights in ${name}`} disabled={disabled || Number(nights) <= minNights} onClick={() => setNights(index, Number(nights) - 1)}>−</button>
+                <button type="button" className="btn btn--small atlas-edit-route__step" aria-label={`Decrease nights in ${name}`} disabled={disabled || Number(nights) <= minNights} onClick={() => setNights(index, Number(nights) - 1)}>−</button>
                 <label>
                   <span className="atlas-sr-only">Nights in {name}</span>
                   <input type="number" min={minNights} step="1" value={nights ?? ''} disabled={disabled} onChange={(event) => setNights(index, event.target.value)} />
                 </label>
-                <button type="button" aria-label={`Increase nights in ${name}`} disabled={disabled} onClick={() => setNights(index, Number(nights) + 1)}>+</button>
+                <button type="button" className="btn btn--small atlas-edit-route__step" aria-label={`Increase nights in ${name}`} disabled={disabled} onClick={() => setNights(index, Number(nights) + 1)}>+</button>
               </div>
             </li>
           );

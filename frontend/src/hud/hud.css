@@ -305,14 +305,31 @@
 }
 
 /* Lower third, full width - mount the preferences / budget inputs here. */
+/* The search panel sits on the bottom edge of the viewport (no strip of scene peeking under it)
+   and grows upward into row 2 when it needs room, e.g. the wider "Choreographing…" button
+   wrapping onto its own line. The empty part of the slot lets the cursor through to the scene. */
 .slot--preferences {
   grid-column: 1 / -1;
-  grid-row: 3;
+  grid-row: 2 / 4;
   display: flex;
-  align-items: flex-start;
+  align-items: flex-end;
   justify-content: center;
-  padding: var(--space-4) var(--gutter);
+  min-height: 0;
+  padding: var(--space-4) var(--gutter) 0;
+  pointer-events: none;
   transition: opacity 600ms var(--ease-out), transform 600ms var(--ease-out);
+}
+
+.slot--preferences > * {
+  pointer-events: auto;
+}
+
+/* Phones: the stacked fields are tall, so the panel keeps to the bottom third (scrolling inside)
+   rather than covering the headline. */
+@media (max-width: 767px) {
+  .slot--preferences {
+    grid-row: 3;
+  }
 }
 
 /* Widgets in the preferences slot only exist in the settled hero state. */

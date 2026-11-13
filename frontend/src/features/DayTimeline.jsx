@@ -176,22 +176,11 @@ function DelayButton({ event }) {
 function Event({ event, day, editable, preview }) {
   const [time, title, detail] = describe(event, day, preview);
   const price = event.price_inr == null ? '' : event.price_inr === 0 ? 'Free' : formatINR(event.price_inr);
-  const photo = (event.kind === 'ATTRACTION' || event.kind === 'CHECK_IN') && event.display_details?.image_url;
+  // Photos appear only in the attraction and hotel detail drawers, not in the timeline.
   return (
-    <li className={`event event--${event.kind.toLowerCase()}${photo ? ' event--photo' : ''}`}>
+    <li className={`event event--${event.kind.toLowerCase()}`}>
       <div className="event__time">{time}</div>
       <div className="event__body">
-        {photo && (
-          <img
-            className="event__thumb"
-            src={photo}
-            alt=""
-            loading="lazy"
-            onError={(e) => {
-              e.currentTarget.style.display = 'none';
-            }}
-          />
-        )}
         <p className="event__name">
           <span className="event__tag">{TAG[event.kind] ?? event.type}</span>
           {title}

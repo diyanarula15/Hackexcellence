@@ -121,8 +121,8 @@ export default function ExplorerAtlas({ pkg, onClose, onApplied, onReload }) {
     <div className="atlas-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget && !applying.current) onClose(); }}>
       <section className="atlas-shell" role="dialog" aria-modal="true" aria-labelledby="atlas-title" data-state={state} ref={dialogRef} tabIndex={-1}>
         <header className="atlas-header">
-          <div><p className="atlas-kicker">A new perspective on your holiday</p><h2 id="atlas-title">The Explorer’s Atlas</h2><p>Redesign your route · {pkg.country} · {pkg.nights} nights</p></div>
-          <button type="button" className="atlas-close" aria-label="Close Explorer's Atlas" onClick={onClose} disabled={state === 'APPLYING'}>×</button>
+          <div><p className="atlas-kicker eyebrow">A new perspective on your holiday</p><h2 id="atlas-title">The Explorer’s Atlas</h2><p>Redesign your route · {pkg.country} · {pkg.nights} nights</p></div>
+          <button type="button" className="atlas-close" aria-label="Close Explorer's Atlas" onClick={onClose} disabled={state === 'APPLYING'}>✕</button>
         </header>
         {state === 'LOADING' && <p className="atlas-loading" role="status">Opening your atlas…</p>}
         {options && <div className="atlas-layout">
@@ -150,8 +150,8 @@ export default function ExplorerAtlas({ pkg, onClose, onApplied, onReload }) {
         <footer className="atlas-footer">
           <div><p role="status" aria-live="polite">{state === 'PREVIEW_LOADING' ? 'Checking flights, hotels, transfers and activities…' : state === 'APPLYING' ? 'Saving your new route…' : unchanged ? 'Choose a city or change its nights to begin.' : errors.length ? 'Resolve the route issues before previewing.' : 'Your saved holiday stays unchanged until you apply.'}</p></div>
           <div className="atlas-footer-actions"><button type="button" className="btn" disabled={state === 'APPLYING'} onClick={onClose}>Keep Current Trip</button>
-            {preview?.valid ? <button type="button" className="btn atlas-primary" disabled={busy || stale || (preview.status === 'OVER_BUDGET' && !acknowledged)} onClick={apply}>{state === 'APPLYING' ? 'Applying…' : 'Apply New Route'}</button>
-              : <button type="button" className="btn atlas-primary" disabled={!options || busy || Boolean(errors.length) || unchanged || stale} onClick={requestPreview}>{state === 'PREVIEW_LOADING' ? 'Building preview…' : 'Preview New Route'}</button>}
+            {preview?.valid ? <button type="button" className="btn btn--primary" disabled={busy || stale || (preview.status === 'OVER_BUDGET' && !acknowledged)} onClick={apply}>{state === 'APPLYING' ? 'Applying…' : 'Apply New Route'}</button>
+              : <button type="button" className="btn btn--primary" disabled={!options || busy || Boolean(errors.length) || unchanged || stale} onClick={requestPreview}>{state === 'PREVIEW_LOADING' ? 'Building preview…' : 'Preview New Route'}</button>}
           </div>
         </footer>
       </section>

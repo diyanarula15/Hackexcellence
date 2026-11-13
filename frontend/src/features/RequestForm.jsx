@@ -92,7 +92,7 @@ export default function RequestForm() {
       }}
     >
       <div className="planner__head">
-        <h2 className="eyebrow" id="planner-title">
+        <h2 className="planner__title" id="planner-title">
           Build my holiday
         </h2>
         <ExploreDatesButton />

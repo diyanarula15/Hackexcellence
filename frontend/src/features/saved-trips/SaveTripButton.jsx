@@ -123,10 +123,10 @@ export default function SaveTripButton({ pkg, onViewSaved }) {
           </p>
         )}
         <div className="saved-trip-actions">
-          <button type="submit" className="saved-trip-btn saved-trip-btn--primary" disabled={busy}>
+          <button type="submit" className="btn btn--primary saved-trip-btn saved-trip-btn--primary" disabled={busy}>
             {busy ? 'Saving…' : isRename ? 'Save name' : 'Save'}
           </button>
-          <button type="button" className="saved-trip-btn" onClick={close} disabled={busy}>
+          <button type="button" className="btn saved-trip-btn" onClick={close} disabled={busy}>
             Cancel
           </button>
         </div>
@@ -147,11 +147,11 @@ export default function SaveTripButton({ pkg, onViewSaved }) {
         )}
         <div className="saved-trip-actions">
           {justSaved && onViewSaved && (
-            <button type="button" className="saved-trip-btn" onClick={onViewSaved}>
+            <button type="button" className="btn saved-trip-btn" onClick={onViewSaved}>
               View saved trips
             </button>
           )}
-          <button type="button" className="saved-trip-btn" onClick={() => open('rename')}>
+          <button type="button" className="btn saved-trip-btn" onClick={() => open('rename')}>
             Rename
           </button>
         </div>
@@ -161,7 +161,7 @@ export default function SaveTripButton({ pkg, onViewSaved }) {
 
   return (
     <div className="saved-trip-state">
-      <button type="button" className="saved-trip-btn saved-trip-btn--secondary" onClick={() => open('form')}>
+      <button type="button" className="btn saved-trip-btn saved-trip-btn--secondary" onClick={() => open('form')}>
         Save trip
       </button>
       {error && (

@@ -215,56 +215,7 @@
 }
 
 /* ── buttons ──────────────────────────────────────────────────────────── */
-
-.saved-trip-btn {
-  min-height: 44px;
-  padding: 8px 14px;
-  border: 1px solid var(--ink-soft);
-  border-radius: 999px;
-  background: transparent;
-  color: var(--color-ink);
-  font: inherit;
-  font-size: var(--step--1);
-  font-weight: var(--weight-medium);
-  cursor: pointer;
-  transition: background-color 150ms var(--ease-out), color 150ms var(--ease-out);
-}
-
-.saved-trip-btn:hover:not(:disabled) {
-  background: var(--ink-hair);
-}
-
-.saved-trip-btn:focus-visible {
-  outline: 2px solid var(--color-accent);
-  outline-offset: 2px;
-}
-
-.saved-trip-btn:disabled {
-  opacity: 0.55;
-  cursor: wait;
-}
-
-/* Secondary: the "Save trip" control beside a planned holiday. Deliberately not the Confirm style. */
-.saved-trip-btn--secondary {
-  border-style: dashed;
-  color: var(--ink-muted);
-}
-
-.saved-trip-btn--primary {
-  background: var(--color-ink);
-  border-color: var(--color-ink);
-  color: var(--color-canvas);
-}
-
-.saved-trip-btn--primary:hover:not(:disabled) {
-  background: var(--color-ink);
-  opacity: 0.88;
-}
-
-.saved-trip-btn--danger {
-  border-color: var(--color-accent);
-  color: var(--color-accent);
-}
+/* Visuals come from the shared .btn in features.css; only layout lives here. */
 
 @media (max-width: 480px) {
   .saved-trips {
@@ -273,11 +224,5 @@
 
   .saved-trip-actions .saved-trip-btn {
     flex: 1 1 auto;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .saved-trip-btn {
-    transition: none;
   }
 }

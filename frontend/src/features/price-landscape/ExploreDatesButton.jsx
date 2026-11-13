@@ -55,7 +55,7 @@ export default function ExploreDatesButton() {
       <button
         type="button"
         ref={triggerRef}
-        className="pl-entry"
+        className="btn pl-entry"
         disabled={!ready}
         aria-describedby={ready ? undefined : 'pl-entry-hint'}
         onClick={() => {
