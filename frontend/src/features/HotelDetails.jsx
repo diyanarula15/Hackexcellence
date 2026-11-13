@@ -151,9 +151,9 @@ export default function HotelDetails() {
                 <h3>Check-in and check-out</h3>
                 <dl className="attraction-details__list">
                   <dt>Check-in</dt>
-                  <dd>from {h.check_in_from ?? '—'}</dd>
+                  <dd>from {h.check_in_from ?? '-'}</dd>
                   <dt>Check-out</dt>
-                  <dd>by {h.check_out_until ?? '—'}</dd>
+                  <dd>by {h.check_out_until ?? '-'}</dd>
                 </dl>
               </section>
 

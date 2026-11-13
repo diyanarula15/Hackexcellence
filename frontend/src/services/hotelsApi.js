@@ -1,4 +1,4 @@
-/** services/hotelsApi.js — read-only hotel details and the photo credits list. */
+/** services/hotelsApi.js - read-only hotel details and the photo credits list. */
 
 import { request } from './apiClient.js';
 

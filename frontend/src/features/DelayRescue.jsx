@@ -140,7 +140,7 @@ function ChangeTable({ rows, dayRef }) {
               <span className="delay-table__kind">{KIND_LABEL[row.kind] ?? row.kind}</span>
               {row.kind !== 'landing' && row.label && <span className="delay-table__name">{row.label}</span>}
             </th>
-            <td className="delay-table__before">{row.before ? when(row.before, dayRef) : '—'}</td>
+            <td className="delay-table__before">{row.before ? when(row.before, dayRef) : '-'}</td>
             <td className="delay-table__after">
               {row.state === 'removed' ? (
                 <span className="delay-table__flag">Dropped</span>

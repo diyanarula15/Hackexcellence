@@ -2030,7 +2030,7 @@
       "amount": 2900,
       "currency": "INR"
     },
-    "image": null,
+    "image": "images/attractions/ATT-BKK-007.jpg",
     "child_price": {
       "amount": 1800,
       "currency": "INR"
@@ -2214,7 +2214,7 @@
       "amount": 0,
       "currency": "INR"
     },
-    "image": null
+    "image": "images/attractions/ATT-HKT-001.jpg"
   },
   {
     "attraction_id": "ATT-HKT-002",
@@ -2276,7 +2276,7 @@
       "amount": 0,
       "currency": "INR"
     },
-    "image": null
+    "image": "images/attractions/ATT-HKT-003.jpg"
   },
   {
     "attraction_id": "ATT-HKT-004",
@@ -2304,7 +2304,7 @@
       "amount": 4800,
       "currency": "INR"
     },
-    "image": null,
+    "image": "images/attractions/ATT-HKT-004.jpg",
     "child_price": {
       "amount": 3200,
       "currency": "INR"
@@ -2337,7 +2337,7 @@
       "amount": 0,
       "currency": "INR"
     },
-    "image": null
+    "image": "images/attractions/ATT-HKT-005.jpg"
   },
   {
     "attraction_id": "ATT-HKT-006",
@@ -2489,7 +2489,7 @@
       "amount": 0,
       "currency": "INR"
     },
-    "image": null
+    "image": "images/attractions/ATT-HKT-010.jpg"
   },
   {
     "attraction_id": "ATT-HKT-011",
@@ -2517,7 +2517,7 @@
       "amount": 2800,
       "currency": "INR"
     },
-    "image": null,
+    "image": "images/attractions/ATT-HKT-011.jpg",
     "child_price": {
       "amount": 1900,
       "currency": "INR"
@@ -2612,7 +2612,7 @@
       "amount": 0,
       "currency": "INR"
     },
-    "image": null,
+    "image": "images/attractions/ATT-CNX-003.jpg",
     "closed_dates": [
       "2027-04-03",
       "2027-04-18"
@@ -2701,7 +2701,7 @@
       "amount": 0,
       "currency": "INR"
     },
-    "image": null,
+    "image": "images/attractions/ATT-CNX-006.jpg",
     "closed_dates": [
       "2027-04-02"
     ]
@@ -2827,7 +2827,7 @@
       "amount": 600,
       "currency": "INR"
     },
-    "image": null,
+    "image": "images/attractions/ATT-CNX-010.jpg",
     "child_price": {
       "amount": 300,
       "currency": "INR"
@@ -3086,7 +3086,7 @@
       "amount": 3000,
       "currency": "INR"
     },
-    "image": null,
+    "image": "images/attractions/ATT-SIN-006.jpg",
     "child_price": {
       "amount": 2200,
       "currency": "INR"
@@ -3397,7 +3397,7 @@
       "amount": 1900,
       "currency": "INR"
     },
-    "image": null,
+    "image": "images/attractions/ATT-KUL-001.jpg",
     "child_price": {
       "amount": 1100,
       "currency": "INR"
@@ -3778,7 +3778,7 @@
       "amount": 0,
       "currency": "INR"
     },
-    "image": null,
+    "image": "images/attractions/ATT-PEN-001.jpg",
     "closed_dates": [
       "2027-04-15"
     ]
@@ -3967,7 +3967,7 @@
       "amount": 0,
       "currency": "INR"
     },
-    "image": null
+    "image": "images/attractions/ATT-PEN-007.jpg"
   },
   {
     "attraction_id": "ATT-PEN-008",
@@ -4246,7 +4246,7 @@
       "amount": 1800,
       "currency": "INR"
     },
-    "image": null,
+    "image": "images/attractions/ATT-LGK-006.jpg",
     "child_price": {
       "amount": 1200,
       "currency": "INR"
@@ -4337,7 +4337,7 @@
       "amount": 0,
       "currency": "INR"
     },
-    "image": null
+    "image": "images/attractions/ATT-LGK-009.jpg"
   },
   {
     "attraction_id": "ATT-LGK-010",
@@ -4366,7 +4366,7 @@
       "amount": 190,
       "currency": "INR"
     },
-    "image": null,
+    "image": "images/attractions/ATT-LGK-010.jpg",
     "child_price": {
       "amount": 90,
       "currency": "INR"
@@ -4682,7 +4682,7 @@
       "amount": 190,
       "currency": "INR"
     },
-    "image": null,
+    "image": "images/attractions/ATT-DPS-010.jpg",
     "child_price": {
       "amount": 100,
       "currency": "INR"
@@ -4807,7 +4807,7 @@
       "amount": 60,
       "currency": "INR"
     },
-    "image": null,
+    "image": "images/attractions/ATT-JKT-003.jpg",
     "child_price": {
       "amount": 30,
       "currency": "INR"
@@ -4840,7 +4840,7 @@
       "amount": 0,
       "currency": "INR"
     },
-    "image": null,
+    "image": "images/attractions/ATT-JKT-004.jpg",
     "closed_dates": [
       "2027-04-14",
       "2027-04-15"
@@ -4873,7 +4873,7 @@
       "amount": 1100,
       "currency": "INR"
     },
-    "image": null,
+    "image": "images/attractions/ATT-JKT-005.jpg",
     "child_price": {
       "amount": 800,
       "currency": "INR"
@@ -5035,7 +5035,7 @@
       "amount": 500,
       "currency": "INR"
     },
-    "image": null,
+    "image": "images/attractions/ATT-JKT-010.jpg",
     "child_price": {
       "amount": 300,
       "currency": "INR"
@@ -5133,7 +5133,7 @@
       "amount": 190,
       "currency": "INR"
     },
-    "image": null,
+    "image": "images/attractions/ATT-JOG-003.jpg",
     "child_price": {
       "amount": 100,
       "currency": "INR"
@@ -5231,7 +5231,7 @@
       "amount": 40,
       "currency": "INR"
     },
-    "image": null,
+    "image": "images/attractions/ATT-JOG-006.jpg",
     "child_price": {
       "amount": 20,
       "currency": "INR"
@@ -5264,7 +5264,7 @@
       "amount": 2800,
       "currency": "INR"
     },
-    "image": null,
+    "image": "images/attractions/ATT-JOG-007.jpg",
     "child_price": {
       "amount": 2100,
       "currency": "INR"
@@ -5297,7 +5297,7 @@
       "amount": 560,
       "currency": "INR"
     },
-    "image": null,
+    "image": "images/attractions/ATT-JOG-008.jpg",
     "child_price": {
       "amount": 280,
       "currency": "INR"
@@ -5481,7 +5481,7 @@
       "amount": 0,
       "currency": "INR"
     },
-    "image": null,
+    "image": "images/attractions/ATT-HAN-004.jpg",
     "closed_dates": [
       "2027-04-06"
     ]
@@ -5734,7 +5734,7 @@
       "amount": 330,
       "currency": "INR"
     },
-    "image": null,
+    "image": "images/attractions/ATT-DAD-001.jpg",
     "child_price": {
       "amount": 160,
       "currency": "INR"
@@ -5953,7 +5953,7 @@
       "amount": 0,
       "currency": "INR"
     },
-    "image": null
+    "image": "images/attractions/ATT-DAD-008.jpg"
   },
   {
     "attraction_id": "ATT-DAD-009",
@@ -6327,7 +6327,7 @@
       "amount": 130,
       "currency": "INR"
     },
-    "image": null,
+    "image": "images/attractions/ATT-SGN-010.jpg",
     "child_price": {
       "amount": 60,
       "currency": "INR"
@@ -6360,6 +6360,6 @@
       "amount": 0,
       "currency": "INR"
     },
-    "image": null
+    "image": "images/attractions/ATT-SGN-011.jpg"
   }
 ]
