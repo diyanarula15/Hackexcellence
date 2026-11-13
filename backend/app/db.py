@@ -45,12 +45,20 @@ def db_path() -> Path:
 
 
 @contextmanager
-def connect():
-    """Yield a connection inside one transaction: commit on success, roll back on error, always close."""
-    conn = sqlite3.connect(db_path(), timeout=5.0)
+def connect(immediate: bool = False):
+    """Yield a connection inside one transaction: commit on success, roll back on error, always close.
+
+    `immediate=True` takes SQLite's write lock up front (BEGIN IMMEDIATE), so a read-check-write
+    sequence inside the block cannot interleave with another writer.
+    """
+    conn = sqlite3.connect(
+        db_path(), timeout=5.0, isolation_level=None if immediate else "DEFERRED"
+    )
     conn.row_factory = sqlite3.Row
     try:
         conn.execute("PRAGMA foreign_keys = ON")
+        if immediate:
+            conn.execute("BEGIN IMMEDIATE")
         yield conn
         conn.commit()
     except BaseException:

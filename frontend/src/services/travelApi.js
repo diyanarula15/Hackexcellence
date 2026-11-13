@@ -44,3 +44,24 @@ export function exportPackage(packageId) {
     fallbackName: 'holiday-package.json',
   });
 }
+
+const packagePath = (packageId, suffix) => `/api/packages/${encodeURIComponent(packageId)}/${suffix}`;
+
+/**
+ * Valid replacements for one part of a saved package.
+ * @param {string} packageId
+ * @param {{ kind: string, stay_id?: string, item_id?: string, date?: string }} target
+ */
+export function getPackageOptions(packageId, { kind, stay_id, item_id, date }, options) {
+  return request(packagePath(packageId, 'options'), { query: { kind, stay_id, item_id, date }, ...options });
+}
+
+/** Evaluate a change command without saving. Always 200 for an evaluated change, valid or not. */
+export function previewPackageChange(packageId, command, options) {
+  return request(packagePath(packageId, 'preview-change'), { method: 'POST', body: command, ...options });
+}
+
+/** Save a change. `command` carries the `preview_token` of the preview the traveler confirmed. */
+export function applyPackageChange(packageId, command, options) {
+  return request(packagePath(packageId, 'apply-change'), { method: 'POST', body: command, ...options });
+}

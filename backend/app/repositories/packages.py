@@ -16,11 +16,11 @@ import uuid
 from dataclasses import dataclass, fields, is_dataclass
 from datetime import date, datetime, timezone
 from types import NoneType, UnionType
-from typing import Union, get_args, get_origin, get_type_hints
+from typing import Callable, Union, get_args, get_origin, get_type_hints
 
 from app.db import connect
 from app.engine.model import Package
-from app.rules.common import INITIAL
+from app.rules.common import EDITED, INITIAL
 
 log = logging.getLogger(__name__)
 
@@ -36,8 +36,18 @@ class VersionConflict(Exception):
     """The package changed since the caller read it (optimistic concurrency check failed)."""
 
     def __init__(self, package_id: str, expected: int, current: int):
-        super().__init__(f"package {package_id} is at version {current}, not {expected}")
+        super().__init__(
+            f"package {package_id} is at version {current}, not {expected}"
+        )
         self.package_id, self.expected, self.current = package_id, expected, current
+
+
+class PackageLocked(Exception):
+    """The package is not PLANNED (for example BOOKED), so it can no longer be changed."""
+
+    def __init__(self, package_id: str, status: str):
+        super().__init__(f"package {package_id} is {status} and cannot be changed")
+        self.package_id, self.status = package_id, status
 
 
 class PackageIntegrityError(Exception):
@@ -65,7 +75,9 @@ def _encode(value):
         return {f.name: _encode(getattr(value, f.name)) for f in fields(value)}
     if isinstance(value, (list, tuple)):
         return [_encode(v) for v in value]
-    if isinstance(value, (date, datetime)):  # datetime first-class: isoformat keeps the time part
+    if isinstance(
+        value, (date, datetime)
+    ):  # datetime first-class: isoformat keeps the time part
         return value.isoformat()
     if value is None or isinstance(value, (str, int, float)):
         return value
@@ -90,7 +102,9 @@ def _decode(tp, value):
             raise TypeError(f"expected an object for {tp.__name__}")
         hints = get_type_hints(tp)
         kwargs = {
-            f.name: _decode(hints[f.name], value[f.name]) for f in fields(tp) if f.name in value
+            f.name: _decode(hints[f.name], value[f.name])
+            for f in fields(tp)
+            if f.name in value
         }
         return tp(**kwargs)  # a missing required field raises TypeError
     if tp is datetime:
@@ -116,14 +130,18 @@ def package_to_dict(package: Package) -> dict:
 def package_from_dict(data: dict) -> Package:
     """Inverse of package_to_dict. Raises TypeError / ValueError on a malformed document."""
     if data.get("schema_version") != SCHEMA_VERSION:
-        raise ValueError(f"unsupported package schema_version {data.get('schema_version')!r}")
+        raise ValueError(
+            f"unsupported package schema_version {data.get('schema_version')!r}"
+        )
     body = {k: v for k, v in data.items() if k != "schema_version"}
     return _decode(Package, body)
 
 
 def _package_json(package: Package) -> str:
     """Serialize fully and prove the round trip before anything touches the database."""
-    text = json.dumps(package_to_dict(package), ensure_ascii=False, separators=(",", ":"))
+    text = json.dumps(
+        package_to_dict(package), ensure_ascii=False, separators=(",", ":")
+    )
     if package_from_dict(json.loads(text)) != package:
         raise PackageIntegrityError("package does not survive serialization unchanged")
     return text
@@ -176,7 +194,16 @@ def save_package(package: Package, *, request: dict) -> str:
         conn.execute(
             "INSERT INTO packages (id, request_json, package_json, total_inr, version, status,"
             " validation_mode, created_at, updated_at) VALUES (?, ?, ?, ?, 1, ?, ?, ?, ?)",
-            (package_id, request_json, package_json, package.total, PLANNED, INITIAL, now, now),
+            (
+                package_id,
+                request_json,
+                package_json,
+                package.total,
+                PLANNED,
+                INITIAL,
+                now,
+                now,
+            ),
         )
     log.info("saved package %s (total INR %s)", package_id, package.total)
     return package_id
@@ -185,7 +212,9 @@ def save_package(package: Package, *, request: dict) -> str:
 def get_package(package_id: str) -> StoredPackage | None:
     """The stored package exactly as saved, or None when no package has this id."""
     with connect() as conn:
-        row = conn.execute("SELECT * FROM packages WHERE id = ?", (package_id,)).fetchone()
+        row = conn.execute(
+            "SELECT * FROM packages WHERE id = ?", (package_id,)
+        ).fetchone()
     return None if row is None else _row_to_stored(row)
 
 
@@ -222,3 +251,50 @@ def update_package(
                 raise PackageNotFound(package_id)
             raise VersionConflict(package_id, expected_version, row["version"])
     return expected_version + 1
+
+
+def modify_package(
+    package_id: str,
+    expected_version: int,
+    change_fn: Callable[[StoredPackage], Package],
+) -> StoredPackage:
+    """Apply `change_fn` to the stored package in ONE write transaction (BEGIN IMMEDIATE).
+
+    Raises PackageNotFound, PackageLocked (status is not PLANNED) or VersionConflict before calling
+    `change_fn`; anything `change_fn` raises rolls everything back and propagates. On success the
+    version goes up by exactly one and validation_mode becomes EDITED. Returns the saved package.
+    """
+    with connect(immediate=True) as conn:
+        row = conn.execute(
+            "SELECT * FROM packages WHERE id = ?", (package_id,)
+        ).fetchone()
+        if row is None:
+            raise PackageNotFound(package_id)
+        if row["status"] != PLANNED:
+            raise PackageLocked(package_id, row["status"])
+        if row["version"] != expected_version:
+            raise VersionConflict(package_id, expected_version, row["version"])
+        new_package = change_fn(_row_to_stored(row))
+        if new_package.trip_id != package_id:
+            raise ValueError("package.trip_id must equal the id it is stored under")
+        if new_package.status != PLANNED:
+            raise ValueError("a changed package must stay PLANNED")
+        cur = conn.execute(
+            "UPDATE packages SET package_json = ?, total_inr = ?, validation_mode = ?,"
+            " version = version + 1, updated_at = ? WHERE id = ? AND version = ? AND status = ?",
+            (
+                _package_json(new_package),
+                new_package.total,
+                EDITED,
+                _now(),
+                package_id,
+                expected_version,
+                PLANNED,
+            ),
+        )
+        if cur.rowcount != 1:
+            raise VersionConflict(package_id, expected_version, expected_version + 1)
+        saved = conn.execute(
+            "SELECT * FROM packages WHERE id = ?", (package_id,)
+        ).fetchone()
+        return _row_to_stored(saved)
