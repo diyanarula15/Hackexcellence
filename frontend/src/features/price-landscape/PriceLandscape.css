@@ -1,0 +1,361 @@
+/*
+ * PriceLandscape.css — the Price Landscape dialog and its terrain.
+ *
+ * Colours come only from tokens.css (ink / canvas / accent and their mixes), as the visual system
+ * requires. Price shade is a single ink ramp (light = cheaper, deep = dearer); the accent is
+ * reserved for selection and genuine savings, never for "expensive".
+ * Depth uses transform only (no animated width/height). Reduced motion removes tilt and movement.
+ */
+
+.pl-entry { white-space: nowrap; }
+
+.pl-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: grid;
+  place-items: center;
+  padding: var(--space-2);
+  background: color-mix(in srgb, var(--color-ink) 42%, transparent);
+  backdrop-filter: blur(3px);
+  animation: pl-fade 220ms var(--ease-out);
+}
+
+.pl-dialog {
+  width: min(1120px, 100%);
+  max-height: calc(100dvh - 2 * var(--space-2));
+  overflow: auto;
+  overscroll-behavior: contain;
+  background: var(--color-canvas);
+  color: var(--color-ink);
+  border-radius: 20px;
+  border-top: 3px solid var(--color-accent);
+  box-shadow: 0 30px 80px color-mix(in srgb, var(--color-ink) 30%, transparent);
+  padding: var(--space-3);
+  animation: pl-rise 320ms var(--ease-out);
+}
+
+.pl-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--space-2);
+  margin-bottom: var(--space-2);
+}
+.pl-title {
+  font-family: var(--font-display);
+  font-weight: var(--weight-display);
+  font-size: var(--step-3);
+  line-height: 1.1;
+  margin: 4px 0 6px;
+}
+.pl-title:focus { outline: none; }
+.pl-subtitle { color: var(--ink-muted); font-size: var(--step--1); max-width: 64ch; margin: 0; }
+
+.pl-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 300px;
+  gap: var(--space-3);
+}
+.pl-main, .pl-side { min-width: 0; }
+
+.pl-monthbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  margin-bottom: var(--space-1);
+}
+.pl-month { font-family: var(--font-display); font-size: var(--step-1); margin: 0; }
+.pl-nav {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1.5px solid var(--ink-hair);
+  background: var(--color-canvas);
+  color: var(--color-ink);
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+  transition: border-color 160ms var(--ease-out), color 160ms var(--ease-out);
+}
+.pl-nav:hover:not(:disabled), .pl-nav:focus-visible { border-color: var(--color-accent); color: var(--color-accent); }
+.pl-nav:disabled { opacity: 0.35; cursor: default; }
+
+/* ── calendar + terrain ─────────────────────────────────────────────── */
+.pl-grid { container-type: inline-size; }
+.pl-weekdays, .pl-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 8px;
+}
+.pl-weekdays {
+  font-size: var(--step--1);
+  color: var(--ink-muted);
+  text-align: center;
+  margin-bottom: 6px;
+}
+
+.pl-terrain { perspective: 1100px; perspective-origin: 50% 100%; padding: 30px 2px 10px; }
+/* tilt away from the viewer around the bottom edge: rows recede (never grow), so no overflow */
+.pl-terrain__board {
+  transform: rotateX(14deg);
+  transform-origin: 50% 100%;
+  transform-style: preserve-3d;
+  transition: transform 420ms var(--ease-out);
+}
+
+.pl-tile {
+  --shade: color-mix(in srgb, var(--color-ink) calc(8% + var(--level) * 64%), var(--color-canvas));
+  position: relative;
+  min-height: 78px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  border-radius: 12px;
+  transform: translateY(calc(var(--elev) * -1px));
+  transition: transform 420ms var(--ease-out);
+}
+.pl-tile__face {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 2px;
+  padding: 8px 7px;
+  border-radius: inherit;
+  background: var(--shade);
+  border: 1px solid color-mix(in srgb, var(--color-ink) 10%, transparent);
+  box-shadow:
+    0 calc(var(--elev) * 0.5px + 2px) calc(var(--elev) * 0.9px + 4px) color-mix(in srgb, var(--color-ink) 16%, transparent);
+  transition: box-shadow 220ms var(--ease-out), background-color 420ms var(--ease-out);
+  overflow: hidden;
+}
+.pl-tile.is-dark .pl-tile__face { color: var(--color-canvas); }
+.pl-tile__day { font-weight: var(--weight-medium); font-size: var(--step-0); }
+.pl-tile__price {
+  font-variant-numeric: tabular-nums;
+  font-size: clamp(9px, 2.15cqi, 13px); /* the full amount always fits on one line */
+  font-weight: var(--weight-medium);
+  line-height: 1.15;
+  white-space: nowrap;
+  letter-spacing: -0.01em;
+}
+.pl-tile__note { font-size: 10.5px; color: var(--ink-muted); }
+.pl-tile__badge {           /* "your date": a small ring, never over the day number */
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 9px;
+  height: 9px;
+  border-radius: 999px;
+  border: 2px solid var(--color-accent);
+  background: var(--color-canvas);
+}
+
+/* hover / focus: rise a little, deeper shadow, price stands out */
+.pl-tile:not([aria-disabled='true']):hover,
+.pl-tile:focus-visible {
+  transform: translateY(calc(var(--elev) * -1px - 5px));
+  z-index: 2;
+}
+.pl-tile:not([aria-disabled='true']):hover .pl-tile__face,
+.pl-tile:focus-visible .pl-tile__face {
+  box-shadow: 0 calc(var(--elev) * 0.6px + 10px) calc(var(--elev) * 1px + 18px) color-mix(in srgb, var(--color-ink) 24%, transparent);
+}
+.pl-tile:focus-visible { outline: none; }
+.pl-tile:focus-visible .pl-tile__face { outline: 3px solid var(--color-accent); outline-offset: 2px; }
+.pl-tile:hover .pl-tile__price, .pl-tile:focus-visible .pl-tile__price { font-weight: 700; }
+
+.pl-tile.is-selected { transform: translateY(calc(var(--elev) * -1px - 8px)); z-index: 3; }
+.pl-tile.is-selected .pl-tile__face {
+  outline: 2.5px solid var(--color-accent);
+  outline-offset: 2px;
+}
+.pl-tile.is-best:not(.is-selected) .pl-tile__face { border: 1.5px dashed var(--color-accent); }
+
+/* states: never look like a cheap date */
+.pl-tile--infeasible, .pl-tile--outside-window, .pl-tile--not-eligible, .pl-tile--error { cursor: default; }
+.pl-tile--infeasible .pl-tile__face {
+  background: repeating-linear-gradient(135deg, var(--ink-hair) 0 6px, var(--color-canvas) 6px 12px);
+  color: var(--ink-muted);
+  box-shadow: none;
+}
+.pl-tile--search-incomplete .pl-tile__face {
+  background: var(--color-canvas);
+  border: 1.5px dashed var(--ink-soft);
+  box-shadow: none;
+}
+.pl-tile--outside-window .pl-tile__face, .pl-tile--not-eligible .pl-tile__face, .pl-tile--error .pl-tile__face {
+  background: transparent;
+  border: 1px solid var(--ink-hair);
+  color: var(--ink-soft);
+  box-shadow: none;
+}
+.pl-tile--loading .pl-tile__face { background: var(--ink-hair); box-shadow: none; }
+.pl-tile__skeleton {
+  height: 10px;
+  width: 70%;
+  border-radius: 4px;
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--color-canvas) 70%, transparent), transparent);
+  background-size: 200% 100%;
+  animation: pl-shimmer 1.2s linear infinite;
+}
+.pl-pad { min-height: 78px; }
+
+/* tiles rise into place when a month's prices arrive */
+.pl-terrain__board.is-settling .pl-tile { animation: pl-settle 520ms var(--ease-out) both; }
+
+/* tooltip (hover AND keyboard focus; the same text is in aria-label for screen readers) */
+.pl-tooltip {
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 10px);
+  z-index: 5;
+  width: max-content;
+  max-width: 220px;
+  display: grid;
+  gap: 2px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: var(--color-ink);
+  color: var(--color-canvas);
+  font-size: var(--step--1);
+  text-align: left;
+  pointer-events: none;
+  opacity: 0;
+  transform: translate(-50%, 4px);
+  transition: opacity 140ms var(--ease-out), transform 140ms var(--ease-out);
+}
+.pl-tile:hover .pl-tooltip, .pl-tile:focus-visible .pl-tooltip { opacity: 1; transform: translate(-50%, 0); }
+.pl-tooltip__date { font-size: var(--step-0); }
+.pl-tooltip__label { opacity: 0.75; }
+.pl-tooltip__price { font-size: var(--step-1); font-weight: var(--weight-medium); font-variant-numeric: tabular-nums; }
+.pl-tooltip__trip { opacity: 0.75; margin-top: 4px; }
+
+.pl-status { min-height: 28px; font-size: var(--step--1); color: var(--ink-muted); }
+.pl-error { color: var(--color-accent); display: grid; gap: 6px; justify-items: start; }
+
+/* ── side panel ─────────────────────────────────────────────────────── */
+.pl-side { display: grid; gap: var(--space-2); align-content: start; }
+.pl-dialog { min-width: 0; }
+.pl-best, .pl-compare, .pl-legend, .pl-generate {
+  border: 1px solid var(--ink-hair);
+  border-radius: 14px;
+  padding: 14px 16px;
+}
+.pl-best { animation: pl-rise 360ms var(--ease-out); }
+.pl-best__date {
+  border: 0;
+  background: none;
+  padding: 0;
+  font: inherit;
+  font-family: var(--font-display);
+  font-size: var(--step-1);
+  color: var(--color-ink);
+  cursor: pointer;
+  text-align: left;
+}
+.pl-best__date:hover, .pl-best__date:focus-visible { color: var(--color-accent); }
+.pl-best__detail { margin: 6px 0 0; font-size: var(--step--1); }
+
+.pl-compare { display: grid; gap: 10px; }
+.pl-compare h3 { margin: 0; }
+.pl-compare__line { display: grid; grid-template-columns: 1fr auto; column-gap: 8px; }
+.pl-compare__label { font-size: var(--step--1); color: var(--ink-muted); grid-column: 1 / -1; }
+.pl-compare__date { font-weight: var(--weight-medium); }
+.pl-compare__price { font-variant-numeric: tabular-nums; font-weight: var(--weight-medium); }
+.pl-compare__verdict { margin: 0; display: flex; align-items: center; gap: 8px; font-size: var(--step--1); }
+.pl-compare__verdict--save {
+  color: var(--color-accent);
+  font-weight: var(--weight-medium);
+  animation: pl-reveal 420ms var(--ease-out);
+}
+.pl-plane { width: 18px; height: 18px; flex: none; animation: pl-fly 620ms var(--ease-out); }
+
+.pl-legend__ramp { display: flex; align-items: center; gap: 8px; font-size: 11.5px; font-variant-numeric: tabular-nums; }
+.pl-legend__bar {
+  flex: 1;
+  height: 10px;
+  border-radius: 999px;
+  background: linear-gradient(90deg,
+    color-mix(in srgb, var(--color-ink) 8%, var(--color-canvas)),
+    color-mix(in srgb, var(--color-ink) 72%, var(--color-canvas)));
+}
+.pl-legend__caption { margin: 6px 0 8px; font-size: 11.5px; color: var(--ink-muted); }
+.pl-legend__keys { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 6px; font-size: 11.5px; }
+.pl-legend__keys li { display: flex; align-items: center; gap: 6px; }
+.pl-key { width: 14px; height: 14px; border-radius: 4px; flex: none; }
+.pl-key--infeasible { background: repeating-linear-gradient(135deg, var(--ink-hair) 0 3px, var(--color-canvas) 3px 6px); border: 1px solid var(--ink-hair); }
+.pl-key--incomplete { border: 1.5px dashed var(--ink-soft); }
+.pl-key--outside { border: 1px solid var(--ink-hair); }
+.pl-key--reference { border: 1.5px solid currentColor; border-radius: 999px; }
+
+.pl-generate { display: grid; gap: 10px; }
+.pl-generate__note { margin: 0; font-size: 11.5px; color: var(--ink-muted); }
+.pl-generate__btn { width: 100%; justify-content: center; }
+
+/* ── responsive ─────────────────────────────────────────────────────── */
+@media (max-width: 960px) {
+  .pl-body { grid-template-columns: 1fr; }
+  .pl-side { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+  .pl-terrain__board { transform: rotateX(8deg); }
+}
+@media (max-width: 600px) {
+  .pl-overlay { padding: 0; place-items: stretch; }
+  .pl-dialog { border-radius: 0; max-height: 100dvh; padding: var(--space-2); }
+  .pl-title { font-size: var(--step-2); }
+  .pl-terrain { perspective: none; padding: 2px 0 8px; }
+  .pl-terrain__board { transform: none; }
+  .pl-dialog { width: 100%; min-width: 0; }
+  .pl-weekdays, .pl-grid { gap: 6px 4px; }
+  .pl-tile, .pl-pad { min-height: 64px; }
+  .pl-tile { transform: translateY(calc(var(--elev) * -0.12px)); }  /* depth must never cover a neighbour */
+  .pl-tile.is-selected, .pl-tile:not([aria-disabled='true']):hover, .pl-tile:focus-visible {
+    transform: translateY(calc(var(--elev) * -0.12px - 2px));
+  }
+  .pl-tile__face { padding: 5px; }
+  .pl-tile__day { font-size: 13px; }
+  .pl-tile__price { font-size: clamp(8px, 2.3cqi, 11px); letter-spacing: -0.03em; }
+  .pl-tile__badge { top: 5px; right: 5px; width: 7px; height: 7px; }
+  .pl-tooltip { display: none; } /* tap selects; the comparison panel shows the full price */
+}
+
+/* ── motion ─────────────────────────────────────────────────────────── */
+@keyframes pl-fade { from { opacity: 0; } }
+@keyframes pl-rise { from { opacity: 0; transform: translateY(12px); } }
+@keyframes pl-settle { from { transform: translateY(0); opacity: 0.4; } }
+@keyframes pl-shimmer { to { background-position: -200% 0; } }
+@keyframes pl-reveal { from { opacity: 0; transform: translateY(6px); } }
+@keyframes pl-fly { from { transform: translateX(-26px) rotate(-8deg); opacity: 0; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .pl-overlay, .pl-dialog, .pl-best, .pl-compare__verdict--save, .pl-plane,
+  .pl-terrain__board.is-settling .pl-tile, .pl-tile__skeleton { animation: none; }
+  .pl-terrain { perspective: none; }
+  .pl-terrain__board { transform: none; transition: none; }
+  .pl-tile, .pl-tile__face, .pl-tooltip, .pl-nav { transition: none; }
+  .pl-tile:not([aria-disabled='true']):hover, .pl-tile:focus-visible, .pl-tile.is-selected {
+    transform: translateY(calc(var(--elev) * -1px));
+  }
+}
+
+.pl-entry__hint {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* keep edge-column tooltips inside the dialog (pads count as grid children, so columns line up) */
+.pl-grid > :nth-child(7n + 1) .pl-tooltip { left: 0; transform: translate(0, 4px); }
+.pl-grid > :nth-child(7n + 1):hover .pl-tooltip, .pl-grid > :nth-child(7n + 1):focus-visible .pl-tooltip { transform: translate(0, 0); }
+.pl-grid > :nth-child(7n) .pl-tooltip { left: auto; right: 0; transform: translate(0, 4px); }
+.pl-grid > :nth-child(7n):hover .pl-tooltip, .pl-grid > :nth-child(7n):focus-visible .pl-tooltip { transform: translate(0, 0); }
