@@ -1,5 +1,5 @@
 /**
- * scene/utils/geometry.js — small 2D-outline → 3D helpers shared by actors.
+ * scene/utils/geometry.js - small 2D-outline → 3D helpers shared by actors.
  */
 
 import * as THREE from 'three';

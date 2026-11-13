@@ -1,5 +1,5 @@
 /**
- * scene/actors/hotelLandmark.js — `HotelLandmark`: boutique hotel sculpture.
+ * scene/actors/hotelLandmark.js - `HotelLandmark`: boutique hotel sculpture.
  *
  * Three buildings + landscaping, all merged into a handful of meshes:
  *   • a boutique hotel tower: glazed core, recessed balconies between floor
@@ -11,7 +11,7 @@
  * live in their own modules and share this plinth; the layout here keeps
  * clear of the ring road defined by PLINTH in config.js.
  *
- * Static geometry — it inherits motion from the island it is mounted on.
+ * Static geometry - it inherits motion from the island it is mounted on.
  * Local origin = centre of the island plateau, +Y up.
  */
 
@@ -21,7 +21,7 @@ import { GeoBatch } from '../utils/batch.js';
 import { createRampMaterial } from '../utils/materials.js';
 
 const box = (w, h, d) => new THREE.BoxGeometry(w, h, d);
-/** Box with softly bevelled edges — catches a highlight along every tier. */
+/** Box with softly bevelled edges - catches a highlight along every tier. */
 const bevelBox = (w, h, d, r = 0.03) => new RoundedBoxGeometry(w, h, d, 2, r);
 
 /** Lit-window positions as [bay 0–3, floor 0–8] on the two long façades. */
@@ -76,7 +76,7 @@ function addTower(b, x, z) {
     }
   }
 
-  // Glowing accent windows — warm rooms behind the balconies.
+  // Glowing accent windows - warm rooms behind the balconies.
   const bayX = (bay) => x - 0.3 + bay * 0.2;
   for (const [face, side] of [['front', 1], ['back', -1]]) {
     for (const [bay, floor] of LIT_WINDOWS[face]) {
@@ -135,7 +135,7 @@ function addPavilion(b, x, z) {
   b.add('ink', box(0.7, 0.2, 0.72), { position: [x + 0.1, 0.16, z] });
   b.add('ink', box(1.4, 0.05, 1.0), { position: [x, 0.385, z] });
 
-  // Pool deck + water plane (kept in the neutral family — accent is reserved).
+  // Pool deck + water plane (kept in the neutral family - accent is reserved).
   b.add('paper', box(1.2, 0.03, 0.66), { position: [x + 1.35, 0.015, z + 0.1] });
   b.add('stone', box(1.0, 0.03, 0.46), { position: [x + 1.35, 0.022, z + 0.1] });
 
@@ -167,7 +167,7 @@ function addTree(b, x, z, size) {
  */
 export function createHotelLandmark({ palette }) {
   const materials = {
-    // Satin plaster, glossy clear-coated glass, satin stone — studio-model finishes.
+    // Satin plaster, glossy clear-coated glass, satin stone - studio-model finishes.
     paper: new THREE.MeshPhysicalMaterial({ color: palette.paper, roughness: 0.6 }),
     ink: new THREE.MeshPhysicalMaterial({ color: palette.ink, roughness: 0.4, clearcoat: 1, clearcoatRoughness: 0.12 }),
     stone: new THREE.MeshPhysicalMaterial({ color: palette.stone, roughness: 0.45, clearcoat: 0.4 }),

@@ -1,5 +1,5 @@
 /**
- * scene/utils/materials.js — "ramp" material for controlled low-poly shading.
+ * scene/utils/materials.js - "ramp" material for controlled low-poly shading.
  *
  * Problem: a physically-lit surface as dark as the ink colour (#0F172A)
  * reflects almost nothing, so every facet renders as the same flat black.
@@ -21,10 +21,10 @@ import * as THREE from 'three';
  *   range?: [number, number],
  *   flatShading?: boolean,
  * }} options
- *   shadow / light — colours of the darkest and brightest facets.
- *   range — incoming brightness mapped to shadow (range[0]) … light (range[1]).
+ *   shadow / light - colours of the darkest and brightest facets.
+ *   range - incoming brightness mapped to shadow (range[0]) … light (range[1]).
  *           Narrow it for more contrast between facets.
- *   flatShading — true for crisp low-poly facets, false for soft forms.
+ *   flatShading - true for crisp low-poly facets, false for soft forms.
  * @returns {THREE.MeshStandardMaterial}
  */
 export function createRampMaterial({ shadow, light, range = [0.4, 1.2], flatShading = true }) {

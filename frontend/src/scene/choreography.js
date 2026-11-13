@@ -1,5 +1,5 @@
 /**
- * scene/choreography.js — scroll-choreography controller.
+ * scene/choreography.js - scroll-choreography controller.
  *
  * Turns raw page scroll into a damped 0–1 `progress` and from it derives
  * everything the opening sequence needs each frame:
@@ -9,7 +9,7 @@
  *                                 fades/scales out; wing banks away
  *   Stage 3 "hero"   (0.60–1.00)  camera settles on the Rule-of-Thirds hero
  *
- * It owns NO Three.js objects — it only outputs a plain `state` that
+ * It owns NO Three.js objects - it only outputs a plain `state` that
  * `createScene.js` applies to the camera, fog and actors. The current stage
  * is mirrored to `<html data-stage="…">` so the HUD can react in pure CSS.
  *
@@ -18,7 +18,7 @@
  * `[data-scroll-track]` element and eased with an exponential damper.
  *
  * DEBUG: open the page with `?progress=0.3` to pin the sequence at a fixed
- * progress (ignores scrolling) — handy for tuning keyframes and screenshots.
+ * progress (ignores scrolling) - handy for tuning keyframes and screenshots.
  */
 
 import * as THREE from 'three';
@@ -47,7 +47,7 @@ const ramp = (a, b, x) => {
  * Create the controller.
  *
  * @param {{ reducedMotion?: boolean }} [options]
- *   reducedMotion — skip the sequence: progress is pinned to 1 (hero).
+ *   reducedMotion - skip the sequence: progress is pinned to 1 (hero).
  * @returns {{
  *   state: ChoreographyState,
  *   setAspect: (aspect: number) => void,

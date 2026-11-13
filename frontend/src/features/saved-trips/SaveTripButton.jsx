@@ -1,5 +1,5 @@
 /**
- * features/saved-trips/SaveTripButton.jsx — bookmark a PLANNED holiday under a friendly name.
+ * features/saved-trips/SaveTripButton.jsx - bookmark a PLANNED holiday under a friendly name.
  *
  * Saving never books, re-plans or copies the package; the backend keeps only the name. A BOOKED
  * package renders nothing (it is already a confirmed reservation).

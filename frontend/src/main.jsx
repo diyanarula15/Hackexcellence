@@ -1,5 +1,5 @@
 /**
- * main.jsx — entry point. Loads design tokens FIRST (the 3D scene reads the
+ * main.jsx - entry point. Loads design tokens FIRST (the 3D scene reads the
  * colour variables from the document), then mounts <App />.
  */
 

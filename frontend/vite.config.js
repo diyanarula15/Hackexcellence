@@ -1,5 +1,5 @@
 /**
- * vite.config.js — Vite + React.
+ * vite.config.js - Vite + React.
  *
  * `/api/*` is proxied to the FastAPI backend (`./start.sh`, port 8000 unless BACKEND_PORT is set), so the browser talks to
  * one origin and the frontend never hardcodes a backend URL. 127.0.0.1 (not "localhost") because

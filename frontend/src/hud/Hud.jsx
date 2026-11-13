@@ -1,5 +1,5 @@
 /**
- * hud/Hud.jsx — the 2D interface layer, laid out on the 3×3 thirds grid.
+ * hud/Hud.jsx - the 2D interface layer, laid out on the 3×3 thirds grid.
  *
  * Structure
  *   <div.scroll-track>   tall element (280vh) that provides the scroll

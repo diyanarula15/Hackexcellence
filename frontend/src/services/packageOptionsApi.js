@@ -1,5 +1,5 @@
 /**
- * services/packageOptionsApi.js — multi-itinerary search (Phase 8B).
+ * services/packageOptionsApi.js - multi-itinerary search (Phase 8B).
  *
  * POST /api/package-options takes the same body as POST /api/packages. When a holiday is found it
  * answers { status: 'OPTIONS', search_id, options: [...] } and saves nothing; any other outcome

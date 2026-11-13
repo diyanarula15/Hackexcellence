@@ -125,7 +125,7 @@
 
 /* A wrapping flex row: every field has a basis wide enough for its label, value and
    placeholder, grows to share spare room, and wraps to a new line rather than shrinking below
-   that basis — so nothing is ever clipped, at any width. */
+   that basis - so nothing is ever clipped, at any width. */
 .planner__fields {
   display: flex;
   flex-wrap: wrap;
@@ -697,6 +697,7 @@
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
   gap: var(--space-4);
+  column-gap: var(--space-6);
   align-items: start;
 }
 

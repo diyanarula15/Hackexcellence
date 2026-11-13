@@ -1,5 +1,5 @@
 /**
- * scene/actors/island.js — sculpted floating plinth (terrain).
+ * scene/actors/island.js - sculpted floating plinth (terrain).
  *
  * Builds the main low-poly island (light plateau + faceted ink rock keel)
  * and two small satellite islets. The hotel cluster is mounted on top by
@@ -55,9 +55,9 @@ function addIsland(batch, radius, depth) {
  *
  * @param {{ palette: Record<string, THREE.Color> }} ctx
  * @returns {{ object: THREE.Group, mount: THREE.Group, update: (elapsed: number) => void }}
- *   `object` — whole terrain group (add to the stage).
- *   `mount`  — the spinning main island; add buildings to it.
- *   `update` — advances the idle spin / bob animation.
+ *   `object` - whole terrain group (add to the stage).
+ *   `mount`  - the spinning main island; add buildings to it.
+ *   `update` - advances the idle spin / bob animation.
  */
 export function createIsland({ palette }) {
   const materials = {
@@ -68,13 +68,13 @@ export function createIsland({ palette }) {
 
   const root = new THREE.Group();
 
-  // Main island — everything mounted on it spins with it.
+  // Main island - everything mounted on it spins with it.
   const mainBatch = new GeoBatch();
   addIsland(mainBatch, 3, 1.9);
   const main = mainBatch.build(materials, { castShadow: true, receiveShadow: true });
   root.add(main);
 
-  // Satellite islets — each bobs on its own phase for a "floating physics" feel.
+  // Satellite islets - each bobs on its own phase for a "floating physics" feel.
   const islets = [
     { position: [-4.3, -0.9, -2.2], radius: 0.8, depth: 0.9, phase: 1.7 },
     { position: [3.9, 1.5, -3.4], radius: 0.55, depth: 0.7, phase: 3.9 },

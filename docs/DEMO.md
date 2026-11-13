@@ -14,7 +14,7 @@ python3 scripts/demo_smoke.py      # rehearses every step below against the back
 Then open <http://localhost:5173>, scroll to the form, make sure it is empty. Use a fresh database if
 you want an empty history: `HOLIDAY_DB_PATH=/tmp/demo.db ./start.sh`.
 
-## Live demo — Menon family (4 minutes)
+## Live demo - Menon family (4 minutes)
 
 | Time | Do | Say / point at |
 |---|---|---|
@@ -30,13 +30,13 @@ you want an empty history: `HOLIDAY_DB_PATH=/tmp/demo.db ./start.sh`.
 Use **Search a new trip** in the package header to go back to the form.
 
 - **Another departure / the other country** (e.g. Delhi → United Arab Emirates, 8 Apr 2027, 4 nights,
-  2 adults + 1 child, budget 200000) — new package in seconds.
-- **Budget too small** (Menon with budget 100000) — "over budget", proven cheapest total and the
+  2 adults + 1 child, budget 200000) - new package in seconds.
+- **Budget too small** (Menon with budget 100000) - "over budget", proven cheapest total and the
   shortfall (M8).
-- **No package possible** (e.g. Bengaluru → Japan, 1 Apr 2027, 6 nights, 4 adults + children 3, 9) —
+- **No package possible** (e.g. Bengaluru → Japan, 1 Apr 2027, 6 nights, 4 adults + children 3, 9) -
   the reasons, then **Nearest trips that work** with proven prices; **Search this trip** plans one.
-- **Invalid value** (nights 2) — field message (M1).
-- **Flexible dates** — **Explore flexible dates**: cheapest complete holiday per start date; pick a
+- **Invalid value** (nights 2) - field message (M1).
+- **Flexible dates** - **Explore flexible dates**: cheapest complete holiday per start date; pick a
   date → **Generate holiday** at exactly that price.
 
 ## If something goes wrong

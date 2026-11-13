@@ -1,5 +1,5 @@
 /**
- * scene/createScene.js — the 3D world: renderer, camera, lights, loop.
+ * scene/createScene.js - the 3D world: renderer, camera, lights, loop.
  *
  * Framework-agnostic (plain Three.js). React only mounts it through
  * `SceneCanvas.jsx`; you can equally call `createScene(canvas)` from vanilla
@@ -42,8 +42,8 @@ import { createItinerary } from './actors/itinerary.js';
  *
  * @param {HTMLCanvasElement} canvas  Canvas to render into (sized by CSS).
  * @param {{ reducedMotion?: boolean, label?: HTMLElement | null }} [options]
- *   reducedMotion — skip the scroll sequence; render one static hero frame.
- *   label — element moved over the hovered actor (see SceneCanvas.jsx); its
+ *   reducedMotion - skip the scroll sequence; render one static hero frame.
+ *   label - element moved over the hovered actor (see SceneCanvas.jsx); its
  *   `[data-label-text]` child receives the text, `data-on` toggles visibility.
  * @returns {{ dispose: () => void }} Call `dispose()` on unmount.
  */

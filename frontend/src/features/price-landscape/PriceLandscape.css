@@ -1,5 +1,5 @@
 /*
- * PriceLandscape.css — the Price Landscape dialog and its terrain.
+ * PriceLandscape.css - the Price Landscape dialog and its terrain.
  *
  * Colours come only from tokens.css (ink / canvas / accent and their mixes), as the visual system
  * requires. Price shade is a single ink ramp (light = cheaper, deep = dearer); the accent is

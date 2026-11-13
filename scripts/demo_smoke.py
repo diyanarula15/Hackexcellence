@@ -406,17 +406,17 @@ def main(argv=None):
         try:
             summary, details = step(client, state)
         except Fail as f:
-            print(f"✗ {name} — {f.message}")
+            print(f"✗ {name} - {f.message}")
             if f.resp is not None:
                 print(f"    HTTP {f.resp.status}")
                 print("    body: " + f.resp.text[:EXCERPT_CHARS].replace("\n", " "))
             print(f"Rehearsal FAILED at step: {name}")
             return 1
         except Exception as e:  # a response shape this script does not expect
-            print(f"✗ {name} — unexpected {type(e).__name__}: {e}")
+            print(f"✗ {name} - unexpected {type(e).__name__}: {e}")
             print(f"Rehearsal FAILED at step: {name}")
             return 1
-        print(f"✓ {name} — {summary}")
+        print(f"✓ {name} - {summary}")
         for line in details:
             print("    " + line)
     print(f"All {len(STEPS)} steps passed.")

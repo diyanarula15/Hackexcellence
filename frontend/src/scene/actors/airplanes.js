@@ -1,5 +1,5 @@
 /**
- * scene/actors/airplanes.js — `Airplanes`: stylised airliners + accent-colour contrails.
+ * scene/actors/airplanes.js - `Airplanes`: stylised airliners + accent-colour contrails.
  *
  * Each plane flies ONE cubic Bézier curve (see FLIGHT_PATHS in config.js),
  * banks into turns, fades in/out at the ends and re-spawns after a gap.
@@ -7,7 +7,7 @@
  * Contrails are camera-facing ribbons whose vertices are re-sampled from the
  * same curve every frame (no position history needed → zero allocations,
  * frame-rate independent, perfectly smooth). Each ribbon is three vertices
- * wide — opaque spine, transparent edges — so it has soft feathered sides,
+ * wide - opaque spine, transparent edges - so it has soft feathered sides,
  * tapers to a point and fades out along its length.
  */
 
@@ -64,7 +64,7 @@ export function buildPlaneModel(materials) {
 
 /**
  * Allocate a contrail ribbon: (segments + 1) rows × 3 vertices
- * [left edge, spine, right edge]. Alpha is baked per-vertex — edges are fully
+ * [left edge, spine, right edge]. Alpha is baked per-vertex - edges are fully
  * transparent (feathering) and the spine fades from the engine to the tail.
  * Positions are rewritten each frame by `writeTrail`.
  *
@@ -144,7 +144,7 @@ export function createAirplanes({ palette, camera }) {
     return { def, curve, plane, trails, trailMaterial, fade: 0, boost: 0, flybyAt: null };
   });
 
-  // Scratch vectors — reused every frame, never allocated in the loop.
+  // Scratch vectors - reused every frame, never allocated in the loop.
   const point = new THREE.Vector3();
   const tangent = new THREE.Vector3();
   const ahead = new THREE.Vector3();

@@ -1,5 +1,5 @@
 /**
- * scene/actors/attraction.js — `Attraction`: a stylised monument arch.
+ * scene/actors/attraction.js - `Attraction`: a stylised monument arch.
  *
  * The "local landmark" part of the holiday package: a classical gateway
  * arch (two piers, round-headed opening, cornice and attic) standing on the
@@ -48,7 +48,7 @@ function buildArchBody() {
  *
  * @param {{ palette: Record<string, THREE.Color> }} ctx
  * @returns {{ object: THREE.Group, top: THREE.Vector3 }}
- *   `top` — crown of the monument in plinth-local space (the itinerary line
+ *   `top` - crown of the monument in plinth-local space (the itinerary line
  *   ends its marker there).
  */
 export function createAttraction({ palette }) {

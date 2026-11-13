@@ -1,5 +1,5 @@
 /**
- * price-landscape/PriceTile.jsx — one day of the Price Landscape.
+ * price-landscape/PriceTile.jsx - one day of the Price Landscape.
  *
  * Height (--elev) and shade (--level) encode the proven price; the exact amount is always printed
  * as text too, so nothing relies on colour or depth alone. Tiles that cannot be chosen use
@@ -36,7 +36,7 @@ function PriceTile({ iso, state, cell, level, selected, isReference, isBest, tab
   let price = null;
   if (state === FOUND) price = formatINR(cell.min_total_inr);
   else if (state === INFEASIBLE) price = 'No trip';
-  else if (state === SEARCH_INCOMPLETE) price = '—';
+  else if (state === SEARCH_INCOMPLETE) price = '-';
 
   return (
     <button

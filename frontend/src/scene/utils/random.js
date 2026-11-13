@@ -1,5 +1,5 @@
 /**
- * scene/utils/random.js — deterministic randomness.
+ * scene/utils/random.js - deterministic randomness.
  *
  * The scene must look identical on every load (the composition is designed,
  * not accidental), so actors use a seeded generator instead of Math.random.

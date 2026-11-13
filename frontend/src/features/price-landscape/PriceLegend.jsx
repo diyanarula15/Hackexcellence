@@ -1,5 +1,5 @@
 /**
- * price-landscape/PriceLegend.jsx — what height, shade and the special tiles mean.
+ * price-landscape/PriceLegend.jsx - what height, shade and the special tiles mean.
  * The low/high labels are the proven prices of the month on screen (nothing estimated).
  */
 

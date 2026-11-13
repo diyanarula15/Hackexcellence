@@ -1,5 +1,5 @@
 /**
- * hud/ScrollCue.jsx — the only Stage-1 HUD element besides the nav.
+ * hud/ScrollCue.jsx - the only Stage-1 HUD element besides the nav.
  *
  * A subtle, unboxed "Scroll to take off" prompt near the bottom-left. It is
  * visible only while `<html data-stage="cabin">` and fades out as soon as

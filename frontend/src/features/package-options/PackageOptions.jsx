@@ -1,9 +1,9 @@
 /**
- * features/package-options/PackageOptions.jsx — "pick your trip" (Phase 8B).
+ * features/package-options/PackageOptions.jsx - "pick your trip" (Phase 8B).
  *
  * After a search the traveler sees up to three complete holidays as cards. Every price, date and
  * summary is the backend's; this component only formats them. Nothing is saved until one card's
- * "Choose this trip" succeeds, and then the store opens that saved package.
+ * "Explore trip" succeeds, and then the store opens that saved package.
  */
 
 import { useEffect, useId, useRef } from 'react';
@@ -173,7 +173,7 @@ function OptionCard({ option, choosing, selecting }) {
           disabled={choosing}
           onClick={() => choosePackageOption(option.option_id)}
         >
-          Choose this trip
+          Explore trip
         </button>
       </div>
       {selecting && (
@@ -219,7 +219,7 @@ function trapTab(event, dialog) {
   }
 }
 
-/** The read-only preview of one option. Nothing here is saved until "Choose this trip". */
+/** The read-only preview of one option. Nothing here is saved until "Explore trip". */
 function PreviewDialog({ option, choosing }) {
   const titleId = useId();
   const dialogRef = useRef(null);
@@ -320,14 +320,14 @@ function PreviewDialog({ option, choosing }) {
         </div>
 
         <footer className="po-dialog__foot">
-          <p className="po-dialog__note">Nothing is saved until you choose this trip.</p>
+          <p className="po-dialog__note">Nothing is saved until you click “Explore trip”.</p>
           <button
             type="button"
             className="btn btn--primary"
             disabled={choosing}
             onClick={() => choosePackageOption(option.option_id)}
           >
-            Choose this trip
+            Explore trip
           </button>
         </footer>
       </section>

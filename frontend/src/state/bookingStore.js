@@ -1,5 +1,5 @@
 /**
- * state/bookingStore.js — holiday state + actions. Components read it with `useStore()` and call
+ * state/bookingStore.js - holiday state + actions. Components read it with `useStore()` and call
  * the actions below; only this file talks to services/travelApi.js.
  *
  * SQLite (backend) is the source of truth for a package. The browser keeps only the package id,
@@ -42,7 +42,7 @@ const EMPTY_RESULT = Object.freeze({ status: 'EMPTY', packageId: null, response:
 
 /**
  * change.status: closed | loading | options | previewing | preview | applying | error
- * change.target: { kind, stay_id?, item_id?, date?, label } — what the drawer is changing.
+ * change.target: { kind, stay_id?, item_id?, date?, label } - what the drawer is changing.
  * change.options: the options response; change.selectedKey: the chosen option; change.preview: the
  * preview response; change.command: the command that was previewed (with base_version).
  * change.notice: shown after a saved change.
@@ -78,7 +78,7 @@ export const bookingStore = createStore({
   exporting: { status: 'idle', name: null, error: null },
   change: CLOSED_CHANGE,
   delay: CLOSED_DELAY,
-  /** alternatives.status: idle | loading | ready | error — nearest searches that do have a trip */
+  /** alternatives.status: idle | loading | ready | error - nearest searches that do have a trip */
   alternatives: { status: 'idle', data: null, error: null },
   /**
    * Attractions the traveler ticked to add together (Phase 8A multi-add), in tick order:
@@ -175,7 +175,7 @@ function asNumber(text) {
   return Number.isFinite(n) ? n : s;
 }
 
-/** The request body for POST /api/packages. Converts types only — validation is the backend's. */
+/** The request body for POST /api/packages. Converts types only - validation is the backend's. */
 export function toRequestBody(form) {
   return {
     departure: form.departure || null,
@@ -394,6 +394,24 @@ export function openPackage(packageId) {
   if (!id) return;
   writePackageIdToUrl(id, 'push');
   loadPackage(id);
+}
+
+/** Install the server's atomically saved G3 edit and invalidate every old route-dependent view. */
+export function acceptCityPlan(response) {
+  const pkg = response.package;
+  if (!pkg || get().result.packageId !== pkg.id) return;
+  changeSeq += 1;
+  delaySeq += 1;
+  alternativesSeq += 1;
+  showResult({ status: response.status, packageId: pkg.id, response }, false);
+  set({
+    delay: { ...CLOSED_DELAY },
+    attractionSelection: [],
+    attractionDetails: { open: false, attraction_id: null, item_id: null, date: null },
+    panel: null,
+    change: { ...CLOSED_CHANGE, notice: `New route saved. Your holiday is now version ${pkg.version}.` },
+  });
+  writePackageIdToUrl(pkg.id, 'replace');
 }
 
 /** Retry whatever failed last: loading the open package. */

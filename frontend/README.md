@@ -1,6 +1,6 @@
-# Wanderline — travel booking UI shell
+# Wanderline - travel booking UI shell
 
-Hackathon-ready foundation for an end-to-end holiday planner. A pinned, scroll-driven Three.js opening sequence — you start **inside a plane cabin**, fly **through the window**, and settle on a **Rule-of-Thirds hero**: a floating mini-world that shows the whole package (**flights**, a boutique **hotel**, a **transfer** shuttle on a ring road, an **attraction** arch, all tied by a glowing itinerary line) over a faint line-art world map — under a frameless 2D HUD. **No forms, cards or boxes yet**: only empty, grid-aligned slots waiting for them.
+Hackathon-ready foundation for an end-to-end holiday planner. A pinned, scroll-driven Three.js opening sequence - you start **inside a plane cabin**, fly **through the window**, and settle on a **Rule-of-Thirds hero**: a floating mini-world that shows the whole package (**flights**, a boutique **hotel**, a **transfer** shuttle on a ring road, an **attraction** arch, all tied by a glowing itinerary line) over a faint line-art world map - under a frameless 2D HUD. **No forms, cards or boxes yet**: only empty, grid-aligned slots waiting for them.
 
 ```bash
 npm install
@@ -10,16 +10,16 @@ npm run build      # production bundle in dist/
 
 Dev aids:
 
-- **G** key (or `?grid`) — overlay the thirds grid and outline every injection slot.
-- `?progress=0.3` — pin the scroll sequence at a fixed progress (0–1) while tuning.
-- `?time=9` — start the animation clock N seconds in (inspect a specific flight moment).
+- **G** key (or `?grid`) - overlay the thirds grid and outline every injection slot.
+- `?progress=0.3` - pin the scroll sequence at a fixed progress (0–1) while tuning.
+- `?time=9` - start the animation clock N seconds in (inspect a specific flight moment).
 
 ## File map
 
 ```
 src/
-├─ main.jsx                 entry — loads tokens, mounts <App/>
-├─ App.jsx                  composition root — MOUNT WIDGETS HERE
+├─ main.jsx                 entry - loads tokens, mounts <App/>
+├─ App.jsx                  composition root - MOUNT WIDGETS HERE
 ├─ theme/
 │  ├─ tokens.css            ★ the 3 colours, type scale, 8pt spacing, --scroll-track
 │  └─ theme.js              reads the colours for Three.js, builds scene tints
@@ -27,19 +27,19 @@ src/
 │  ├─ Hud.jsx               scroll track + sticky 3×3 thirds grid + injection slots
 │  ├─ hud.css               grid map, stage-driven visibility, line-mask reveal
 │  ├─ NavBar.jsx  Hero.jsx  ScrollCue.jsx  Slot.jsx  GridOverlay.jsx
-├─ scene/                   3D layer (z-index 0) — framework-agnostic Three.js
+├─ scene/                   3D layer (z-index 0) - framework-agnostic Three.js
 │  ├─ SceneCanvas.jsx       React mount/unmount wrapper
 │  ├─ createScene.js        renderer, studio lights, thirds layout, rAF loop
 │  ├─ choreography.js       ★ scroll-choreography controller (progress → camera/stage state)
 │  ├─ config.js             ★ ALL tunables: stages, camera keyframes, anchors, flight paths
 │  ├─ actors/
-│  │  ├─ planeWindow.js     PlaneWindow — cabin wall, window, shade, wing + beacon
-│  │  ├─ worldMap.js        WorldMap — line-art continents, graticule, dashed route arcs
-│  │  ├─ hotelLandmark.js   HotelLandmark (stays) — tower, terrace resort, pavilion
-│  │  ├─ airplanes.js       Airplanes (flights) — Bézier flights + contrail ribbons
-│  │  ├─ transfers.js       Transfers — ring road + gliding shuttle
-│  │  ├─ attraction.js      Attraction — monument arch straddling the road
-│  │  ├─ itinerary.js       Itinerary — glowing line hotel → transfer → attraction, pins
+│  │  ├─ planeWindow.js     PlaneWindow - cabin wall, window, shade, wing + beacon
+│  │  ├─ worldMap.js        WorldMap - line-art continents, graticule, dashed route arcs
+│  │  ├─ hotelLandmark.js   HotelLandmark (stays) - tower, terrace resort, pavilion
+│  │  ├─ airplanes.js       Airplanes (flights) - Bézier flights + contrail ribbons
+│  │  ├─ transfers.js       Transfers - ring road + gliding shuttle
+│  │  ├─ attraction.js      Attraction - monument arch straddling the road
+│  │  ├─ itinerary.js       Itinerary - glowing line hotel → transfer → attraction, pins
 │  │  ├─ island.js          floating plinth        clouds.js   ambient clouds
 │  ├─ data/worldOutline.json  coastlines (Natural Earth 110m, public domain)
 │  └─ utils/                batch.js · geometry.js · materials.js · random.js
@@ -60,7 +60,7 @@ How it works: `.scroll-track` (in `Hud.jsx`) is a tall block; the HUD inside it 
 | Total scroll distance | `--scroll-track` in `theme/tokens.css` (default `280vh`; mirror it in `SCROLL.trackVh`) |
 | Scroll inertia | `SCROLL.damping` in `scene/config.js` |
 | When each stage starts/ends | `STAGES` (cabin 0–0.10 · flight 0.10–0.55 · hero 0.60–1) |
-| Camera path | `CAMERA_KEYFRAMES` — rows of `{ at, position, target }`; the camera follows a smooth spline through them. Add/move/retime rows freely, keep `at` ascending 0 → 1. The **last** row is the settled hero camera. |
+| Camera path | `CAMERA_KEYFRAMES` - rows of `{ at, position, target }`; the camera follows a smooth spline through them. Add/move/retime rows freely, keep `at` ascending 0 → 1. The **last** row is the settled hero camera. |
 | Window fade / wing bank timing | `TRANSITIONS` |
 | Where the cabin sits, window size | `CABIN` |
 | Hero focal point on screen | `COMPOSITION` (NDC; third lines at ±0.333) |
@@ -82,7 +82,7 @@ The settled hero is a 3×3 grid (`.hud` in `hud.css`). Headline owns the upper-l
 
 Do this in `src/App.jsx`. Empty slots are invisible and click-through; grep for `HACKATHON_` to find them all.
 
-- Need another region? Add a `<Slot>` in `Hud.jsx` and place it with `grid-column` / `grid-row` — avoid column 3 rows 1–2 (the 3D focal point).
+- Need another region? Add a `<Slot>` in `Hud.jsx` and place it with `grid-column` / `grid-row` - avoid column 3 rows 1–2 (the 3D focal point).
 - Use only spacing tokens (`--space-*`, multiples of 8px) and type steps (`--step-*`, 1.25 scale).
 - Modifier-grid children each take one third; use `grid-column: span 2` for wide cards.
 - To show something only in one stage, scope it with `[data-stage="hero"]` (see `.slot--preferences` in `hud.css`).
@@ -98,7 +98,7 @@ widget ──▶ action in state/bookingStore.js ──▶ services/travelApi.js
 
 - **Base URL:** copy `.env.example` to `.env.local`, set `VITE_API_BASE_URL`. While unset, every API function returns mock data (`USE_MOCKS`).
 - **Endpoints:** edit paths / response mapping in `services/travelApi.js`. Signatures are final, so UI code won't change.
-- **Auth, retries, logging:** one place — `request()` in `services/apiClient.js`.
+- **Auth, retries, logging:** one place - `request()` in `services/apiClient.js`.
 - **State:** add fields and actions to `state/bookingStore.js`. In components:
 
 ```jsx
@@ -114,12 +114,12 @@ const results = useStore(bookingStore, (s) => s.results); // { status, items, er
 Edit the first three variables in `src/theme/tokens.css`:
 
 ```css
---color-canvas: #F8FAFC; /* 60% — canvas, cabin interior */
---color-ink:    #0F172A; /* 30% — structure, trim, typography */
---color-accent: #FF5A36; /* 10% — contrails, beacon, lit windows, routes, itinerary, hovers */
+--color-canvas: #F8FAFC; /* 60% - canvas, cabin interior */
+--color-ink:    #0F172A; /* 30% - structure, trim, typography */
+--color-accent: #FF5A36; /* 10% - contrails, beacon, lit windows, routes, itinerary, hovers */
 ```
 
-That is the only place. HUD tints are `color-mix()` of these; the 3D scene reads them at boot (`theme.js → buildScenePalette`), so the cabin, map, hotel, road, arch, itinerary line, rock, fog, planes and contrails follow. (The favicon in `index.html` is a static data-URI — update by hand if you rebrand.)
+That is the only place. HUD tints are `color-mix()` of these; the 3D scene reads them at boot (`theme.js → buildScenePalette`), so the cabin, map, hotel, road, arch, itinerary line, rock, fog, planes and contrails follow. (The favicon in `index.html` is a static data-URI - update by hand if you rebrand.)
 
 ## Regenerating the world map
 

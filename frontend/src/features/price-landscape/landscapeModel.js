@@ -1,5 +1,5 @@
 /**
- * price-landscape/landscapeModel.js — pure presentation logic (no React, no fetch).
+ * price-landscape/landscapeModel.js - pure presentation logic (no React, no fetch).
  *
  * The honesty rules live here so they are easy to test:
  *   - only FOUND cells with proven_minimum have a price; nothing is ever interpolated or guessed;
@@ -134,8 +134,8 @@ export function viewState({ status, response }) {
 }
 
 const INR = new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 });
-/** 218700 → "₹2,18,700"; anything that is not a number → "—" (never "₹0"). */
-export const formatINR = (amount) => (Number.isFinite(amount) ? INR.format(amount) : '—');
+/** 218700 → "₹2,18,700"; anything that is not a number → "-" (never "₹0"). */
+export const formatINR = (amount) => (Number.isFinite(amount) ? INR.format(amount) : '-');
 
 /** Screen-reader / tooltip sentence for a tile. */
 export function describeTile(iso, state, cell) {

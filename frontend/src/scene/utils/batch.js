@@ -1,5 +1,5 @@
 /**
- * scene/utils/batch.js — tiny geometry-merging helper.
+ * scene/utils/batch.js - tiny geometry-merging helper.
  *
  * Low-poly models are built from many primitives. Rendering each primitive
  * as its own mesh wastes draw calls, so `GeoBatch` collects primitives per

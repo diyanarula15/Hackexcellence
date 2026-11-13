@@ -42,7 +42,7 @@ function collectMessages(fieldErrors) {
 /**
  * @param {{ name: string, label: string, describedBy?: string, hint?: string,
  *           children: (props: object) => JSX.Element }} props
- *   hint — optional micro-caption shown under the control (hidden while the field is invalid).
+ *   hint - optional micro-caption shown under the control (hidden while the field is invalid).
  */
 function Field({ name, label, describedBy, hint, children }) {
   const invalid = Boolean(describedBy);

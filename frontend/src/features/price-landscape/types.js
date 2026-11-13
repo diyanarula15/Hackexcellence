@@ -1,5 +1,5 @@
 /**
- * price-landscape/types.js — shapes shared by the Price Landscape (JSDoc; the app is plain JS).
+ * price-landscape/types.js - shapes shared by the Price Landscape (JSDoc; the app is plain JS).
  *
  * @typedef {'FOUND' | 'INFEASIBLE' | 'SEARCH_INCOMPLETE'} DatePriceStatus
  *

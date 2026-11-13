@@ -1,5 +1,5 @@
 /**
- * features/PlaneButton.jsx — the subtle "box" action button with a small plane on the right.
+ * features/PlaneButton.jsx - the subtle "box" action button with a small plane on the right.
  * Used for the primary "Plan trip" submit and for "Export JSON".
  *
  *   hover  → the plane nudges 4px right; plane and border tint to the accent (pure CSS)
@@ -34,13 +34,13 @@ function PlaneIcon({ className }) {
  *   className?: string,
  *   onClick?: (event: React.MouseEvent) => void,
  * }} props
- *   busy — the action is in flight (the button is disabled and shows `busyLabel`).
+ *   busy - the action is in flight (the button is disabled and shows `busyLabel`).
  * @returns {JSX.Element}
  */
 export default function PlaneButton({ label, busyLabel, busy = false, type = 'button', className = '', onClick }) {
   const iconRef = useRef(null);
   const timer = useRef(0);
-  const [swish, setSwish] = useState(null); // { key, x, y } — where the flying plane starts
+  const [swish, setSwish] = useState(null); // { key, x, y } - where the flying plane starts
   const flying = swish !== null;
   const showBusy = busy || flying;
 

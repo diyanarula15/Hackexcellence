@@ -1,5 +1,5 @@
 /**
- * services/savedTripsApi.js — HTTP calls for saved trips (bookmarks on planned packages).
+ * services/savedTripsApi.js - HTTP calls for saved trips (bookmarks on planned packages).
  *
  * Every call goes through apiClient.js (same origin, same error shape: ApiError with a readable
  * message). DELETE answers 204 with no body, so it is the one call that does not parse JSON.

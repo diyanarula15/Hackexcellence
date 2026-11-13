@@ -1,5 +1,5 @@
 /**
- * price-landscape/dateUtils.js — date-only helpers on "YYYY-MM-DD" strings.
+ * price-landscape/dateUtils.js - date-only helpers on "YYYY-MM-DD" strings.
  *
  * Calendar days never go through local-time parsing (`new Date("2027-04-12")` is UTC midnight and
  * shows as the 11th west of Greenwich). Arithmetic is done on numbers; Date.UTC is used only to

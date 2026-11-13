@@ -1,5 +1,5 @@
 /**
- * price-landscape/PriceCalendar.jsx — the month grid (Monday first) with arrow-key navigation.
+ * price-landscape/PriceCalendar.jsx - the month grid (Monday first) with arrow-key navigation.
  *
  * Roving tabindex: one tile is tabbable; arrows move by a day/week, Home/End to the week's ends,
  * PageUp/PageDown change month, Enter/Space select (handled by the button itself).

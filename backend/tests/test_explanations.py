@@ -73,7 +73,7 @@ def test_menon_under_budget_is_over_budget_with_the_proven_minimum():
     assert expl["kind"] == OVER_BUDGET
     assert expl["headline"] == f"No complete holiday fits your budget of {rupees(100_000)}"
     assert expl["summary"] == (f"The cheapest valid holiday for your dates and travelers costs "
-                               f"{rupees(minimum)} — {rupees(minimum - 100_000)} over your budget.")
+                               f"{rupees(minimum)} - {rupees(minimum - 100_000)} over your budget.")
     assert expl["reasons"] == [{
         "code": "OVER_BUDGET", "scope": "REQUEST",
         "message": (f"The cheapest valid package costs {rupees(minimum)}, which is "

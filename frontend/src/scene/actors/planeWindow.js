@@ -1,15 +1,15 @@
 /**
- * scene/actors/planeWindow.js — `PlaneWindow`: the Stage-1 airplane cabin.
+ * scene/actors/planeWindow.js - `PlaneWindow`: the Stage-1 airplane cabin.
  *
  * Two sub-groups, both positioned at CABIN.position (centre of the main
  * window on the interior wall; the camera sits at +Z, outside is -Z):
  *
- *   interior — matte off-white cabin wall with ONE rounded-rectangle window
+ *   interior - matte off-white cabin wall with ONE rounded-rectangle window
  *              opening, ink trim rings (clearcoat), window shades with a
  *              coral pull-tab, exit-hatch seams and an "EMERGENCY EXIT"
  *              instruction placard (so it unmistakably reads as an aircraft).
  *              Fades + scales out as the camera flies through.
- *   exterior — what you see THROUGH the glass: the aircraft's own wing with
+ *   exterior - what you see THROUGH the glass: the aircraft's own wing with
  *              a pulsing coral wingtip beacon, a distant banking airliner and
  *              a few near clouds. The wing banks away during Stage 2.
  *
@@ -230,7 +230,7 @@ function buildWing(materials) {
 
   const wing = b.build(materials);
   wing.position.set(0, -1.15, 0);
-  wing.rotation.x = 0.035; // slight dihedral — tip rides higher than the root
+  wing.rotation.x = 0.035; // slight dihedral - tip rides higher than the root
 
   const beacon = new THREE.Mesh(new THREE.SphereGeometry(0.07, 12, 8), materials.accent);
   const halo = new THREE.Mesh(new THREE.SphereGeometry(0.24, 16, 12), materials.halo);

@@ -7,6 +7,7 @@ from fastapi import FastAPI
 from app.catalog.load import load_catalog
 from app.db import create_tables
 from app.routes import (
+    city_plans,
     alternatives,
     attractions,
     date_prices,
@@ -45,3 +46,5 @@ app.include_router(saved_trips.router, prefix="/api")  # saved trips (bookmarks 
 app.include_router(
     package_options.router, prefix="/api"
 )  # several package options; save only the chosen one
+
+app.include_router(city_plans.router, prefix="/api")

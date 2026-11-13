@@ -357,13 +357,13 @@ describe('PackageOptions: choosing', () => {
     mocks.selectPackageOption.mockReturnValue(new Promise(() => {}));
     const { container } = render(<PackageOptions />);
 
-    fireEvent.click(screen.getAllByRole('button', { name: 'Choose this trip' })[1]);
+    fireEvent.click(screen.getAllByRole('button', { name: 'Explore trip' })[1]);
 
     expect(mocks.selectPackageOption).toHaveBeenCalledTimes(1);
     expect(mocks.selectPackageOption).toHaveBeenCalledWith('search-abc', 'opt-2');
     expect(bookingStore.getState().optionPick.selectingId).toBe('opt-2');
 
-    const chooseButtons = screen.getAllByRole('button', { name: 'Choose this trip' });
+    const chooseButtons = screen.getAllByRole('button', { name: 'Explore trip' });
     expect(chooseButtons.length).toBe(3);
     expect(chooseButtons.every((b) => b.disabled)).toBe(true);
     expect(screen.getByText('Opening your trip…')).toBeTruthy();
@@ -375,11 +375,11 @@ describe('PackageOptions: choosing', () => {
     mocks.selectPackageOption.mockRejectedValue(new Error('Could not save that trip.'));
     render(<PackageOptions />);
 
-    fireEvent.click(screen.getAllByRole('button', { name: 'Choose this trip' })[0]);
+    fireEvent.click(screen.getAllByRole('button', { name: 'Explore trip' })[0]);
 
     const alert = await screen.findByRole('alert');
     expect(alert.textContent).toContain('Could not save that trip.');
-    expect(screen.getAllByRole('button', { name: 'Choose this trip' }).every((b) => !b.disabled)).toBe(true);
+    expect(screen.getAllByRole('button', { name: 'Explore trip' }).every((b) => !b.disabled)).toBe(true);
 
     fireEvent.click(within(alert).getByRole('button', { name: 'Search again' }));
     expect(bookingStore.getState().result.status).toBe('EMPTY');

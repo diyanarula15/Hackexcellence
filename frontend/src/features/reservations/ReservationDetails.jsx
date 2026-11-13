@@ -12,7 +12,7 @@ function BookingInfo({ booking }) {
       {Object.entries(booking).map(([key, value]) => (
         <div key={key}>
           <dt>{humanize(key)}</dt>
-          <dd>{typeof value === 'object' ? JSON.stringify(value) : String(value ?? '—')}</dd>
+          <dd>{typeof value === 'object' ? JSON.stringify(value) : String(value ?? '-')}</dd>
         </div>
       ))}
     </dl>

@@ -1,5 +1,5 @@
 /**
- * scripts/build-world-map.mjs — regenerate src/scene/data/worldOutline.json.
+ * scripts/build-world-map.mjs - regenerate src/scene/data/worldOutline.json.
  *
  * Converts Natural Earth 1:110m land (public domain, via the `world-atlas`
  * package) into a compact list of coastline rings for the line-art map:

@@ -1,5 +1,5 @@
 /**
- * scene/SceneCanvas.jsx — React mount point for the 3D scene.
+ * scene/SceneCanvas.jsx - React mount point for the 3D scene.
  *
  * Renders a fixed, full-viewport <canvas> BEHIND the HUD and hands it to
  * `createScene`. All 3D logic lives in `createScene.js` + `actors/`; this
@@ -26,7 +26,7 @@ export default function SceneCanvas() {
       const scene = createScene(canvasRef.current, { reducedMotion, label: labelRef.current });
       return () => scene.dispose();
     } catch (error) {
-      console.warn('[scene] WebGL unavailable — rendering HUD only.', error);
+      console.warn('[scene] WebGL unavailable - rendering HUD only.', error);
       document.documentElement.dataset.stage = 'static'; // collapse the scroll track (hud.css)
       setFailed(true);
       return undefined;

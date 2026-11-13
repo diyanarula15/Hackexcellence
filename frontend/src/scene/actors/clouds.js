@@ -1,5 +1,5 @@
 /**
- * scene/actors/clouds.js — drifting low-poly clouds for ambient depth.
+ * scene/actors/clouds.js - drifting low-poly clouds for ambient depth.
  *
  * A few soft, high-key "puff" clusters drift left→right through a world-space box
  * behind the hotel cluster, wrapping around at the edges. Scene fog fades

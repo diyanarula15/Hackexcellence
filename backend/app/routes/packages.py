@@ -452,7 +452,10 @@ def preview_change(package_id: str, body: Annotated[Any, Body()] = None):
         return JSONResponse(status_code=422, content=e.payload())
     if command.base_version != stored.version:
         return _conflict(PREVIEW_STALE, stored.version)
-    return mods.preview(stored, command, load_catalog())
+    try:
+        return mods.preview(stored, command, load_catalog())
+    except mods.InvalidChange as e:
+        return JSONResponse(status_code=422, content=e.payload())
 
 
 @router.post("/packages/{package_id}/apply-change")
@@ -500,6 +503,8 @@ def apply_change(package_id: str, body: Annotated[Any, Body()] = None):
                 "message": "This change would now have a different result than the preview you saw. Preview it again before applying.",
             },
         )
+    except mods.InvalidChange as e:
+        return JSONResponse(status_code=422, content=e.payload())
     except mods.ChangeInvalid as e:
         return JSONResponse(
             status_code=422,

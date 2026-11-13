@@ -1,9 +1,9 @@
 /**
- * price-landscape/ExploreDatesButton.jsx — the entry point next to the request form.
+ * price-landscape/ExploreDatesButton.jsx - the entry point next to the request form.
  *
  * Uses the SAME request the form would send (bookingStore.toRequestBody); there is no second
  * traveler model. Generating for a chosen date sets the form's start date and runs the normal
- * package generation, which saves a NEW package and opens it — an existing package is never
+ * package generation, which saves a NEW package and opens it - an existing package is never
  * modified here.
  */
 

@@ -1,5 +1,5 @@
 /**
- * scene/config.js — every tunable number of the 3D scene in one place.
+ * scene/config.js - every tunable number of the 3D scene in one place.
  *
  * Tweak the scroll sequence, camera keyframes, composition, flight paths and
  * motion here; the actor modules (`actors/*.js`) contain construction logic
@@ -15,10 +15,10 @@
 
 /**
  * Scroll track.
- * `trackVh` — total scroll distance in viewport heights. Documentation of
+ * `trackVh` - total scroll distance in viewport heights. Documentation of
  *             the value that actually sizes the element: `--scroll-track`
  *             in theme/tokens.css. Change it THERE (keep this in sync).
- * `damping` — inertia of the progress interpolator (higher = snappier).
+ * `damping` - inertia of the progress interpolator (higher = snappier).
  */
 export const SCROLL = { trackVh: 280, damping: 4.5 };
 
@@ -51,20 +51,20 @@ export const CABIN = {
 /**
  * Camera keyframes. The camera follows a smooth spline through `position`
  * while looking at a spline through `target`; `at` is the scroll progress at
- * which each keyframe is reached. Add, move or retime rows freely — only
+ * which each keyframe is reached. Add, move or retime rows freely - only
  * keep `at` ascending from 0 to 1.
  *
  * The LAST keyframe is the settled hero camera; the Rule-of-Thirds anchor
  * (COMPOSITION) is computed from it.
  */
 export const CAMERA_KEYFRAMES = [
-  // Stage 1 — seated in the cabin; window framed on the right third.
+  // Stage 1 - seated in the cabin; window framed on the right third.
   { at: 0.0, position: [-0.75, 1.2, 64.0], target: [-0.75, 1.2, 40] },
   { at: 0.1, position: [-0.7, 1.2, 63.8], target: [-0.6, 1.2, 40] },
-  // Stage 2 — lean in, pass through the window opening, climb into open sky.
+  // Stage 2 - lean in, pass through the window opening, climb into open sky.
   { at: 0.3, position: [0, 1.2, 60.3], target: [0, 1.25, 34] },
   { at: 0.45, position: [0.5, 2.0, 40], target: [0.2, 1.2, 8] },
-  // Stage 3 — settle on the hero composition, then a slow final push-in.
+  // Stage 3 - settle on the hero composition, then a slow final push-in.
   { at: 0.6, position: [0, 1.3, 18.4], target: [0, 0.6, 0] },
   { at: 1.0, position: [0, 1.2, 17], target: [0, 0.6, 0] },
 ];
@@ -99,9 +99,9 @@ export const FOG = {
  * (x: -1 left … +1 right, y: -1 bottom … +1 top).
  * The vertical third lines sit at x = ±0.333, horizontal at y = ±0.333.
  *
- * `wide`  — landscape: hotel landmark rides the RIGHT vertical third, pulled
+ * `wide`  - landscape: hotel landmark rides the RIGHT vertical third, pulled
  *           toward the upper-right intersection; lower third stays empty.
- * `tall`  — portrait/mobile: landmark drops to the centre band under the title.
+ * `tall`  - portrait/mobile: landmark drops to the centre band under the title.
  */
 export const COMPOSITION = {
   wide: { x: 0.35, y: 0.14, scale: 0.8 },
@@ -112,10 +112,10 @@ export const COMPOSITION = {
  * Line-art world map backdrop (see actors/worldMap.js). Coordinates are
  * [longitude, latitude] in degrees.
  *
- * z — depth of the backdrop plane (behind the cloud field).
- * fill — fraction of the view width the 360° map spans (>1 = bleeds off).
- * contourOpacity / gridOpacity — keep these around 10% so it stays a whisper.
- * routes — dashed accent arcs: `lift` bends the arc north (× its length).
+ * z - depth of the backdrop plane (behind the cloud field).
+ * fill - fraction of the view width the 360° map spans (>1 = bleeds off).
+ * contourOpacity / gridOpacity - keep these around 10% so it stays a whisper.
+ * routes - dashed accent arcs: `lift` bends the arc north (× its length).
  */
 export const WORLD_MAP = {
   z: -32,
@@ -141,11 +141,11 @@ export const WORLD_MAP = {
  * Mini-world layout on top of the plinth (plinth-local units, origin at the
  * centre of the top face). Angles are in the XZ plane: (cos a, sin a) · r.
  *
- * tilt      — forward lean of the whole plinth
- * road      — ring road the shuttle glides on (transfers.js)
- * shuttle   — speed in rad/s (negative reverses direction)
- * archAngle — where the monument arch straddles the road (attraction.js)
- * itinerary — glowing line: starts at `hotel` [x, z], joins the road at
+ * tilt      - forward lean of the whole plinth
+ * road      - ring road the shuttle glides on (transfers.js)
+ * shuttle   - speed in rad/s (negative reverses direction)
+ * archAngle - where the monument arch straddles the road (attraction.js)
+ * itinerary - glowing line: starts at `hotel` [x, z], joins the road at
  *             `joinAngle`, follows it to the arch; `transferAngle` places
  *             the mid-route stop marker (itinerary.js)
  */
@@ -170,7 +170,7 @@ export const ISLAND = {
 };
 
 /**
- * Flight paths — each is ONE cubic Bézier (P0, C1, C2, P3) expressed relative
+ * Flight paths - each is ONE cubic Bézier (P0, C1, C2, P3) expressed relative
  * to the hotel landmark, so the arcs keep framing the right-third focal point
  * at any viewport size. Start/end points sit off-screen or deep in fog.
  *
@@ -179,7 +179,7 @@ export const ISLAND = {
  */
 export const FLIGHT_PATHS = [
   {
-    // Descends from the top edge toward the right foreground — routed to
+    // Descends from the top edge toward the right foreground - routed to
     // stay clear of the headline block on the left.
     points: [[-8, 9.5, -16], [-2.5, 7.4, -8], [3, 3.9, 2.5], [11, 2.2, 5]],
     duration: 20, gap: 3, offset: 6, scale: 0.66, showArc: false,
@@ -199,7 +199,7 @@ export const FLIGHT_PATHS = [
 /**
  * Fly-by played by one airliner when the "Plan trip" button is pressed:
  * it rolls into a bank and surges ahead along its curve, then levels out.
- * seconds — length · bank — peak extra roll (rad) · surge — peak extra speed (× normal)
+ * seconds - length · bank - peak extra roll (rad) · surge - peak extra speed (× normal)
  */
 export const FLYBY = { seconds: 1.8, bank: 0.75, surge: 1.6 };
 

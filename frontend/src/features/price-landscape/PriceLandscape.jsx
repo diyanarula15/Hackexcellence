@@ -1,11 +1,11 @@
 /**
- * price-landscape/PriceLandscape.jsx — "Explore flexible dates": a calendar of PROVEN cheapest
+ * price-landscape/PriceLandscape.jsx - "Explore flexible dates": a calendar of PROVEN cheapest
  * complete-holiday prices per start date (Phase 7A, POST /api/date-prices), drawn as a gentle
  * price terrain, with a comparison against the traveler's original date and a way to generate a
  * new holiday for a chosen date.
  *
  * Nothing here computes a holiday price. Tiles show only what the backend proved; incomplete or
- * impossible dates show no price. Choosing a date never changes a saved package — it starts a new
+ * impossible dates show no price. Choosing a date never changes a saved package - it starts a new
  * generation through `onGenerate` (the normal package flow).
  */
 
@@ -31,7 +31,7 @@ function tripLineOf(trip, countryName) {
   const kids = Array.isArray(trip.child_ages) ? trip.child_ages.length : 0;
   const parts = [`${trip.nights} nights · ${countryName ?? trip.country}`,
     `${trip.adults} ${Number(trip.adults) === 1 ? 'adult' : 'adults'}${kids ? ` · ${kids} ${kids === 1 ? 'child' : 'children'}` : ''}`];
-  return parts.join(' — ');
+  return parts.join(' - ');
 }
 
 /** "2027-04-12" → "12 Apr" */
@@ -137,7 +137,7 @@ export default function PriceLandscape({ trip, window: travelWindow, countryName
             <p className="eyebrow">Price landscape</p>
             <h2 className="pl-title" id="pl-title" tabIndex={-1} ref={headingRef}>Explore flexible dates</h2>
             <p className="pl-subtitle" id="pl-subtitle">
-              The cheapest complete holiday for each start date — flights, hotels, transfers and attractions,
+              The cheapest complete holiday for each start date - flights, hotels, transfers and attractions,
               proven by the planner. {tripLine}.
             </p>
           </div>
@@ -208,7 +208,7 @@ export default function PriceLandscape({ trip, window: travelWindow, countryName
                   </>
                 ) : (
                   <>
-                    <p>No proven trip this month — try the next month.</p>
+                    <p>No proven trip this month - try the next month.</p>
                     {!atLast && (
                       <button type="button" className="btn btn--small" onClick={() => stepMonth(1)}>
                         Show {formatMonth(addMonths(monthKey, 1))}

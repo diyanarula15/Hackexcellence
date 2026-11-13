@@ -1,5 +1,5 @@
 /**
- * scene/actors/transfers.js — `Transfers`: ring road + gliding shuttle.
+ * scene/actors/transfers.js - `Transfers`: ring road + gliding shuttle.
  *
  * The "ground transfer" part of the holiday package:
  *   • a clean, flat ring road circling the plinth just inside its rim

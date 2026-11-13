@@ -1,5 +1,5 @@
 /**
- * hud/Hero.jsx — unboxed hero copy floating over the 3D scene.
+ * hud/Hero.jsx - unboxed hero copy floating over the 3D scene.
  *
  * Anchored at the UPPER-LEFT thirds intersection (left vertical third,
  * centred on the upper horizontal third line), which keeps the entire
@@ -7,20 +7,20 @@
  *
  * Reveal: every line sits in an overflow-hidden mask and slides up when the
  * scroll sequence reaches Stage 3 (`<html data-stage="hero">`, set by
- * scene/choreography.js). Pure CSS — see `.mask` in hud.css.
- * Copy is placeholder — edit the constants below.
+ * scene/choreography.js). Pure CSS - see `.mask` in hud.css.
+ * Copy is placeholder - edit the constants below.
  */
 
 const EYEBROW = 'Flights · Stays · Transfers · Landmarks';
 /** One entry per masked headline line. */
 const TITLE_LINES = ['Complete journeys,', 'effortlessly', 'choreographed'];
 const TAGLINE =
-  'Flights, stays, transfers, and local landmarks—tailored to your budget and pace in one seamless plan.';
+  'Flights, stays, transfers, and local landmarks-tailored to your budget and pace in one seamless plan.';
 
 /**
  * A single line-mask: the child slides up from behind its own clip box.
  * @param {{ index: number, children: React.ReactNode }} props
- *   index — stagger order (each step delays the slide by 90ms).
+ *   index - stagger order (each step delays the slide by 90ms).
  * @returns {JSX.Element}
  */
 function Mask({ index, children }) {

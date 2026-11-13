@@ -1,5 +1,5 @@
 /**
- * price-landscape/PriceTerrain.jsx — the 3D stage for the calendar.
+ * price-landscape/PriceTerrain.jsx - the 3D stage for the calendar.
  *
  * Pure CSS: a perspective container and a gently tilted board; each tile is lifted with
  * transform: translateY (see PriceLandscape.css). The tilt shrinks on tablets, disappears on

@@ -60,7 +60,7 @@ def _over_budget(result, request) -> dict:
         "kind": OVER_BUDGET,
         "headline": f"No complete holiday fits your budget of {rupees(budget)}",
         "summary": (f"The cheapest valid holiday for your dates and travelers costs {rupees(cheapest)} "
-                    f"— {rupees(over)} over your budget."),
+                    f"- {rupees(over)} over your budget."),
         "reasons": [{"code": "OVER_BUDGET", "scope": REQUEST,
                      "message": f"The cheapest valid package costs {rupees(cheapest)}, which is "
                                 f"{rupees(over)} over the budget of {rupees(budget)}."}],

@@ -1,5 +1,5 @@
 /**
- * services/travelApi.js — the holiday API. The store imports ONLY from here; components never
+ * services/travelApi.js - the holiday API. The store imports ONLY from here; components never
  * call `fetch` directly. Response shapes are the backend's:
  *   backend/app/routes/packages.py (envelope) · backend/app/services/itinerary.py (package view)
  *

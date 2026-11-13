@@ -1,5 +1,5 @@
 /**
- * services/datePricesApi.js — client for the Phase 7A Price Landscape endpoint.
+ * services/datePricesApi.js - client for the Phase 7A Price Landscape endpoint.
  *
  *   POST /api/date-prices   (backend/app/routes/date_prices.py on feature/phase7a-price-calendar)
  *

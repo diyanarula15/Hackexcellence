@@ -1,5 +1,5 @@
 /**
- * state/store.js — 40-line, dependency-free state container.
+ * state/store.js - 40-line, dependency-free state container.
  *
  * Enough for a hackathon (subscribe / select / update); API-compatible in
  * spirit with Zustand, so swapping it in later is a small change confined
@@ -39,7 +39,7 @@ export function createStore(initialState) {
 /**
  * React hook: subscribe a component to a slice of a store.
  * The selector must return a stable reference (a primitive or an object that
- * already lives in state) — do not build new objects inside it.
+ * already lives in state) - do not build new objects inside it.
  *
  * @template T, S
  * @param {ReturnType<typeof createStore<T>>} store

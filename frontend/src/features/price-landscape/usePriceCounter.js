@@ -1,5 +1,5 @@
 /**
- * price-landscape/usePriceCounter.js — animate between two PROVEN prices.
+ * price-landscape/usePriceCounter.js - animate between two PROVEN prices.
  *
  * Only ever tweens from one real price to another real price. When the target is null (no proven
  * price) it returns null at once: an unverified price is never "counted up" into a fake value.

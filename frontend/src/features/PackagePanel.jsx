@@ -1,5 +1,5 @@
 
-import { Fragment, useEffect, useRef, useState } from 'react';
+import { Fragment, Suspense, lazy, useEffect, useRef, useState } from 'react';
 import { useStore } from '../state/store.js';
 import { exportReservation } from '../services/reservationsApi.js';
 import PlaneButton from './PlaneButton.jsx';
@@ -7,6 +7,7 @@ import {
   backToOptions,
   bookingStore,
   canGoBackToOptions,
+  acceptCityPlan,
   dismissChangeNotice,
   exportCurrentPackage,
   generatePackage,
@@ -27,6 +28,7 @@ import PackageOptions from './package-options/PackageOptions.jsx';
 import ConfirmHoliday from './reservations/ConfirmHoliday.jsx';
 import BookingConfirmation from './reservations/BookingConfirmation.jsx';
 import { formatDate, formatINR, formatTravelers, humanize, plural, scrollToPlanner } from './format.js';
+const ExplorerAtlas = lazy(() => import('./atlas/ExplorerAtlas.jsx'));
 const PRICE_ROWS = [
   ['flights', 'Flights'],
   ['hotels', 'Hotels'],
@@ -344,6 +346,7 @@ function ChangeNotice() {
 function PackageView({ response, receipt, onConfirmed }) {
   const pkg = response.package;
   const [reviewOpen, setReviewOpen] = useState(false);
+  const [atlasOpen, setAtlasOpen] = useState(false);
   const [exportingReservation, setExportingReservation] = useState(false);
   const [exportError, setExportError] = useState('');
   const reference = pkg.booking_reference ?? receipt?.reference;
@@ -366,6 +369,10 @@ function PackageView({ response, receipt, onConfirmed }) {
       <DelayRescue />
       <AttractionDetails />
       <HotelDetails />
+      {atlasOpen && <Suspense fallback={<p role="status">Opening your atlas…</p>}><ExplorerAtlas key={`${pkg.id}:${pkg.version}`} pkg={pkg}
+        onClose={() => setAtlasOpen(false)}
+        onReload={() => { setAtlasOpen(false); openPackage(pkg.id); }}
+        onApplied={(updated) => { acceptCityPlan(updated); setAtlasOpen(false); }} /></Suspense>}
       {reviewOpen && <ConfirmHoliday pkg={pkg} onClose={() => setReviewOpen(false)} onConfirmed={onConfirmed} />}
       <header className="pkg__header">
         <p className="eyebrow">Your holiday package</p>
@@ -384,6 +391,7 @@ function PackageView({ response, receipt, onConfirmed }) {
         <Route pkg={pkg} />
         <div className="pkg__header-actions">
           <BackToOptions />
+          {pkg.status === 'PLANNED' && <button type="button" className="btn" onClick={() => setAtlasOpen(true)}>Explore &amp; Change Cities</button>}
           <NewSearch />
         </div>
       </header>

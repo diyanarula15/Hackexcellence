@@ -1,5 +1,5 @@
 /**
- * hud/GridOverlay.jsx — developer aid: Rule-of-Thirds + slot outlines.
+ * hud/GridOverlay.jsx - developer aid: Rule-of-Thirds + slot outlines.
  *
  * Press "G" (or open the page with `?grid`) to toggle. Shows the 3×3
  * compositional grid and outlines every injection slot so new widgets can be

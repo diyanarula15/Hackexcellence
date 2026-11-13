@@ -17,7 +17,7 @@ Phase 7A (`POST /api/date-prices`), drawn as a gently tilted terrain of tiles.
 
 ## Rules the UI follows
 - A price is shown only for `status === "FOUND"` **and** `proven_minimum === true`. Anything else shows
-  "No trip" (INFEASIBLE) or "—" / "Not verified" (SEARCH_INCOMPLETE). No interpolation, no zeros.
+  "No trip" (INFEASIBLE) or "-" / "Not verified" (SEARCH_INCOMPLETE). No interpolation, no zeros.
 - Height and shade are normalised over the proven prices of the month on screen; the exact INR amount is
   always printed as text.
 - Savings appear only when the original date and the selected date are both proven minima.
@@ -26,11 +26,11 @@ Phase 7A (`POST /api/date-prices`), drawn as a gently tilted terrain of tiles.
 - Only dates the backend lists (eligible start dates) are selectable; INFEASIBLE ones are not.
 
 ## Integration status / required follow-ups
-1. **Backend endpoint** — `POST /api/date-prices` lives on `feature/phase7a-price-calendar`. Until that
+1. **Backend endpoint** - `POST /api/date-prices` lives on `feature/phase7a-price-calendar`. Until that
    branch is merged, the dialog shows the error state with Retry (it never falls back to mock data).
-2. **Exact-minimum generation** — Generate sends `objective: "MINIMUM_COST"`
+2. **Exact-minimum generation** - Generate sends `objective: "MINIMUM_COST"`
    (`generatePackage({ objective })` in `state/bookingStore.js`, accepted by `POST /api/packages` in
    `backend/app/routes/packages.py`; default stays `WITHIN_BUDGET`). The generated package is therefore the
    proven cheapest holiday for the chosen date and its total equals the calendar price
    (`EXACT_MINIMUM_GENERATION = true`). Those two shared files must be merged together with this branch.
-3. **Mounting** — one line in `features/RequestForm.jsx` renders `<ExploreDatesButton />` (separate commit).
+3. **Mounting** - one line in `features/RequestForm.jsx` renders `<ExploreDatesButton />` (separate commit).

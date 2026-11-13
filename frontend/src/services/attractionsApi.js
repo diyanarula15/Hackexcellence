@@ -1,4 +1,4 @@
-/** services/attractionsApi.js — read-only attraction details for the detail drawer. */
+/** services/attractionsApi.js - read-only attraction details for the detail drawer. */
 
 import { request } from './apiClient.js';
 

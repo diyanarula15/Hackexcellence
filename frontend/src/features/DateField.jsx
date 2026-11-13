@@ -1,9 +1,9 @@
 /**
- * features/DateField.jsx — the "First day" control: a field-styled trigger that opens a small
+ * features/DateField.jsx - the "First day" control: a field-styled trigger that opens a small
  * calendar popover, so a date is picked with one click instead of typed.
  *
  * The value is an ISO date string ("2027-03-14") or "". Days outside [min, max] are disabled.
- * The popover is portalled to <body> and placed above or below the trigger — whichever has room —
+ * The popover is portalled to <body> and placed above or below the trigger - whichever has room -
  * and kept inside the viewport. Escape, an outside click or scrolling closes it.
  */
 

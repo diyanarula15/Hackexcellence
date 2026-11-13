@@ -1,5 +1,5 @@
 /**
- * hud.css — 2D interface layer (nav, hero, injection slots).
+ * hud.css - 2D interface layer (nav, hero, injection slots).
  *
  * LAYOUT MODEL
  *   `.scroll-track` is a tall block (height = --scroll-track, 280vh) whose
@@ -7,7 +7,7 @@
  *   `.hud` inside it is `position: sticky`, so it stays pinned to the
  *   viewport for the whole sequence, then scrolls away with the track.
  *
- *   `.hud` is a full-bleed 3×3 CSS grid covering exactly one viewport — the
+ *   `.hud` is a full-bleed 3×3 CSS grid covering exactly one viewport - the
  *   Rule-of-Thirds grid. Place things with grid-column / grid-row:
  *
  * STAGE-DRIVEN VISIBILITY
@@ -304,7 +304,7 @@
   pointer-events: none;
 }
 
-/* Lower third, full width — mount the preferences / budget inputs here. */
+/* Lower third, full width - mount the preferences / budget inputs here. */
 .slot--preferences {
   grid-column: 1 / -1;
   grid-row: 3;
@@ -323,7 +323,7 @@
   pointer-events: none;
 }
 
-/* Right below the scroll canvas — the package / itinerary modifier flows
+/* Right below the scroll canvas - the package / itinerary modifier flows
    in a 3-column grid matching the thirds. */
 .slot--modifier {
   position: relative;

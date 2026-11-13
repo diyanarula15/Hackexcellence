@@ -299,9 +299,9 @@ describe('viewState', () => {
 
 describe('formatINR', () => {
   it('returns an em dash for non-numbers, never ₹0', () => {
-    expect(formatINR(null)).toBe('—');
-    expect(formatINR(undefined)).toBe('—');
-    expect(formatINR(NaN)).toBe('—');
+    expect(formatINR(null)).toBe('-');
+    expect(formatINR(undefined)).toBe('-');
+    expect(formatINR(NaN)).toBe('-');
     expect(formatINR(null)).not.toBe('₹0');
   });
 

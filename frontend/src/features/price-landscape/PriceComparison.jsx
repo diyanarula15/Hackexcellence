@@ -1,5 +1,5 @@
 /**
- * price-landscape/PriceComparison.jsx — selected date vs the traveler's original date.
+ * price-landscape/PriceComparison.jsx - selected date vs the traveler's original date.
  * A difference is shown only when BOTH are proven minima for the same trip.
  */
 
@@ -15,7 +15,7 @@ function PriceLine({ label, date, cell, loading, animate }) {
   else if (isProven(cell)) text = formatINR(value);
   else if (cell?.status === 'INFEASIBLE') text = 'No valid trip';
   else if (cell) text = 'Not verified';
-  else text = '—';
+  else text = '-';
   return (
     <div className="pl-compare__line">
       <span className="pl-compare__label">{label}</span>

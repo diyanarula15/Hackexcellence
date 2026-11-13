@@ -50,6 +50,31 @@ class PreviewOutdated(Exception):
     """The recomputed change differs from the preview the client saw."""
 
 
+class InvalidCityPlan(InvalidChange):
+    def payload(self):
+        body = super().payload()
+        return {**body, "status": "INVALID_CITY_PLAN", "error": "INVALID_CITY_PLAN",
+                "message": "The selected city plan is not valid."}
+
+
+def _propose(stored, command, catalog):
+    if command.kind == "CHANGE_CITY_PLAN":
+        from app.services.city_plans import propose_city_plan
+        return propose_city_plan(stored, command, catalog)
+    return propose_change(stored.package, command, catalog)
+
+
+def _target(command):
+    return "city-plan" if command.kind == "CHANGE_CITY_PLAN" else target_item_id(command)
+
+
+def _route_metadata(proposal):
+    if not hasattr(proposal, "city_changes"):
+        return {}
+    return {"status": proposal.status, "search_complete": proposal.search_complete,
+            "city_changes": proposal.city_changes, "preserved_items": proposal.preserved_items}
+
+
 class ChangeInvalid(Exception):
     def __init__(self, message: str, violations: list[dict]):
         super().__init__(message)
@@ -125,13 +150,14 @@ def _views(items, catalog) -> list[dict]:
 
 def preview(stored, command, catalog) -> dict:
     """The full, never-saved result of `command` on the stored package (valid or not)."""
-    proposal = propose_change(stored.package, command, catalog)
-    target = target_item_id(command)
+    proposal = _propose(stored, command, catalog)
+    target = _target(command)
     base = {
         "package_id": stored.id,
         "base_version": command.base_version,
         "kind": command.kind,
         "target_item_id": target,
+        **_route_metadata(proposal),
     }
     budget = stored.package.budget
     violations = [violation_view(v, catalog) for v in proposal.violations]
@@ -183,6 +209,8 @@ def preview(stored, command, catalog) -> dict:
 
 
 def _rechecked(package, command) -> list[str]:
+    if command.kind == "CHANGE_CITY_PLAN":
+        return ["city sequence", "night allocation", "flights", "hotels", "transfers", "attractions", "pricing"]
     impact = dependency_impact(package, command)
     return list(impact.recheck) if impact is not None else []
 
@@ -204,7 +232,9 @@ def apply(package_id: str, command, token: str | None, catalog):
     outcome: dict = {}
 
     def change_fn(stored):
-        proposal = propose_change(stored.package, command, catalog)
+        if command.kind == "CHANGE_CITY_PLAN" and not token:
+            raise PreviewOutdated()
+        proposal = _propose(stored, command, catalog)
         if not proposal.valid or proposal.proposed_package is None:
             raise ChangeInvalid(
                 headline(proposal.violations, catalog),
@@ -221,7 +251,7 @@ def apply(package_id: str, command, token: str | None, catalog):
     proposal = outcome["proposal"]
     change = {
         "kind": command.kind,
-        "target_item_id": target_item_id(command),
+        "target_item_id": _target(command),
         "previous_version": command.base_version,
         "version": saved.version,
         "old_total_inr": proposal.old_total,
@@ -230,6 +260,7 @@ def apply(package_id: str, command, token: str | None, catalog):
         "changed_items": _views(proposal.changed_items, catalog),
         "automatic_repairs": _views(proposal.automatic_repairs, catalog),
         "warnings": list(proposal.warnings),
+        **_route_metadata(proposal),
     }
     return saved, change
 

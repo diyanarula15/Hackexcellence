@@ -1,5 +1,5 @@
 /**
- * scene/actors/worldMap.js — `WorldMap`: line-art world map backdrop.
+ * scene/actors/worldMap.js - `WorldMap`: line-art world map backdrop.
  *
  * A flat, very faint drawing far behind the hero scene:
  *   • continent contours (thin ink lines)
@@ -12,7 +12,7 @@
  * the camera leaves the cabin (it must not be visible through the window).
  *
  * Coastline data: `data/worldOutline.json` (Natural Earth 110m, public
- * domain) — regenerate with `node scripts/build-world-map.mjs`.
+ * domain) - regenerate with `node scripts/build-world-map.mjs`.
  * Projection: plain equirectangular (x = longitude, y = latitude), in
  * degrees; the group is then scaled to fill the view (see `layout`).
  * All tunables: WORLD_MAP in config.js.

@@ -1,5 +1,5 @@
 /**
- * PriceLandscape.jsx — component tests with an injected fake fetcher. Nothing here touches the
+ * PriceLandscape.jsx - component tests with an injected fake fetcher. Nothing here touches the
  * network: every response is built in this file in the shape of the POST /api/date-prices contract.
  */
 
@@ -191,7 +191,7 @@ describe('tile states and prices', () => {
     renderDialog();
 
     const incomplete = await waitForState('2027-04-14', 'SEARCH_INCOMPLETE');
-    expect(within(incomplete).getByText('—')).toBeTruthy();
+    expect(within(incomplete).getByText('-')).toBeTruthy();
     expect(within(incomplete).getByText('Not verified')).toBeTruthy();
     expect(incomplete.textContent).not.toContain('₹');
   });
@@ -200,7 +200,7 @@ describe('tile states and prices', () => {
     renderDialog();
 
     const unproven = await waitForState('2027-04-16', 'SEARCH_INCOMPLETE');
-    expect(within(unproven).getByText('—')).toBeTruthy();
+    expect(within(unproven).getByText('-')).toBeTruthy();
     expect(within(unproven).getByText('Not verified')).toBeTruthy();
     expect(unproven.textContent).not.toContain('₹');
   });
@@ -452,7 +452,7 @@ describe('no complete trip on an INFEASIBLE date', () => {
     const { user } = renderDialog({ fetcher, window: WIDE_WINDOW, trip: { ...TRIP, start_date: '2027-04-13' } });
 
     await user.click(await waitForState('2027-04-13', 'INFEASIBLE'));
-    expect(await screen.findByText('No proven trip this month — try the next month.')).toBeTruthy();
+    expect(await screen.findByText('No proven trip this month - try the next month.')).toBeTruthy();
 
     await user.click(screen.getByRole('button', { name: 'Show May 2027' }));
     expect(await screen.findByRole('heading', { level: 3, name: 'May 2027' })).toBeTruthy();

@@ -1,5 +1,5 @@
 /**
- * hud/Slot.jsx — a named, grid-aligned injection point.
+ * hud/Slot.jsx - a named, grid-aligned injection point.
  *
  * Slots are empty wrappers reserved for hackathon widgets. An empty slot is
  * invisible and click-through; pass children to fill it. Each slot carries a
@@ -9,8 +9,8 @@
 
 /**
  * @param {{ name: string, className?: string, children?: React.ReactNode }} props
- *   name — slot identifier, e.g. `HACKATHON_PREFERENCES_BUDGET_SLOT`.
- *   className — positioning class from hud.css (e.g. `slot--preferences`).
+ *   name - slot identifier, e.g. `HACKATHON_PREFERENCES_BUDGET_SLOT`.
+ *   className - positioning class from hud.css (e.g. `slot--preferences`).
  * @returns {JSX.Element}
  */
 export default function Slot({ name, className = '', children }) {

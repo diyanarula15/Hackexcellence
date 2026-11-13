@@ -66,7 +66,7 @@ const BUDGET_TIERS = [
 ];
 
 /**
- * A rough, client-side read of what the entered budget tends to buy — a hint only; the backend
+ * A rough, client-side read of what the entered budget tends to buy - a hint only; the backend
  * decides the real package. Uses the party size and nights when filled in (else 2 adults, 5 nights).
  * @param {{ budget: string, nights: string, adults: string, child_ages: string }} form
  * @returns {string}

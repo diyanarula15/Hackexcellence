@@ -1,5 +1,5 @@
 /**
- * price-landscape/useMonthPrices.js — loads one month of proven prices, safely.
+ * price-landscape/useMonthPrices.js - loads one month of proven prices, safely.
  *
  * - One request per (trip, month); finished months are kept for the life of the dialog, so going
  *   back is instant (the backend caches too).

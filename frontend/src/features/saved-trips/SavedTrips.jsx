@@ -1,5 +1,5 @@
 /**
- * features/saved-trips/SavedTrips.jsx — "My saved trips": a modal listing the bookmarks.
+ * features/saved-trips/SavedTrips.jsx - "My saved trips": a modal listing the bookmarks.
  *
  * Open reopens the holiday (bookingStore.openPackage). Rename and Remove change only the bookmark;
  * Remove says so, because the holiday itself is kept.

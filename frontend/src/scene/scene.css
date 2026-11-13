@@ -1,5 +1,5 @@
 /**
- * scene.css — the 3D canvas is a fixed layer behind everything (z-index 0).
+ * scene.css - the 3D canvas is a fixed layer behind everything (z-index 0).
  * HUD layers sit above it (see hud.css).
  */
 

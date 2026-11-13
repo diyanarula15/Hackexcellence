@@ -1,5 +1,5 @@
 /**
- * scene/actors/itinerary.js — `Itinerary`: the glowing trip line.
+ * scene/actors/itinerary.js - `Itinerary`: the glowing trip line.
  *
  * A delicate accent line drawn on the plinth that ties the package
  * together: it leaves the hotel, joins the ring road (the transfer) and

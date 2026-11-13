@@ -1,5 +1,5 @@
 /**
- * services/apiClient.js — the ONE place that talks HTTP.
+ * services/apiClient.js - the ONE place that talks HTTP.
  *
  * Paths are `/api/...` on the page's own origin; Vite proxies them to the FastAPI backend (see
  * vite.config.js). Set `VITE_API_BASE_URL` only to call a backend on another origin.

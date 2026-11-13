@@ -1,5 +1,5 @@
 /**
- * hud/NavBar.jsx — frameless top navigation.
+ * hud/NavBar.jsx - frameless top navigation.
  *
  * Brand placeholder (left) + three placeholder links (right). No background,
  * border or shadow: it floats directly over the 3D scene. A tiny accent dot
@@ -29,7 +29,7 @@ function BrandMark() {
 /**
  * Top navigation bar.
  * @param {{ actions?: React.ReactNode }} props
- *   actions — optional widgets (sign-in button, currency picker…) mounted in
+ *   actions - optional widgets (sign-in button, currency picker…) mounted in
  *   the [HACKATHON_NAV_ACTIONS_SLOT] to the right of the links.
  * @returns {JSX.Element}
  */
@@ -46,7 +46,7 @@ export default function NavBar({ actions }) {
   return (
     <header className="nav">
       {/* Brand logo placeholder */}
-      <a className="nav__brand" href="/" aria-label="Wanderline — home">
+      <a className="nav__brand" href="/" aria-label="Wanderline - home">
         <BrandMark />
         <span className="nav__wordmark">Wanderline</span>
       </a>
@@ -69,7 +69,7 @@ export default function NavBar({ actions }) {
           </ul>
         </nav>}
 
-        {/* [HACKATHON_NAV_ACTIONS_SLOT] — sign-in / profile / currency */}
+        {/* [HACKATHON_NAV_ACTIONS_SLOT] - sign-in / profile / currency */}
         <Slot name="HACKATHON_NAV_ACTIONS_SLOT" className="slot--nav-actions">
           {actions}
         </Slot>

@@ -81,9 +81,10 @@ REMOVE_ATTRACTION = "REMOVE_ATTRACTION"
 ARRIVAL_DELAY = "ARRIVAL_DELAY"   # Phase 5B: a HYPOTHETICAL later landing of the arrival flight
 ADD_ATTRACTIONS = "ADD_ATTRACTIONS"        # one preview and one atomic apply for 1..8 additions
 REMOVE_ATTRACTIONS = "REMOVE_ATTRACTIONS"  # one preview and one atomic apply for 1..10 removals
+CHANGE_CITY_PLAN = "CHANGE_CITY_PLAN"
 CHANGE_KINDS = (CHANGE_ARRIVAL_FLIGHT, CHANGE_RETURN_FLIGHT, CHANGE_HOTEL, CHANGE_AIRPORT_TRANSFER,
                 CHANGE_INTERCITY_TRANSFER, ADD_ATTRACTION, REMOVE_ATTRACTION, ARRIVAL_DELAY,
-                ADD_ATTRACTIONS, REMOVE_ATTRACTIONS)
+                ADD_ATTRACTIONS, REMOVE_ATTRACTIONS, CHANGE_CITY_PLAN)
 DELAY_MINUTES = (60, 120, 180, 240)
 MAX_BATCH_ADDITIONS = 8
 MAX_BATCH_REMOVALS = 10
@@ -117,6 +118,18 @@ CalendarDay = Annotated[date, BeforeValidator(_calendar_day)]
 class _Change(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
     base_version: StrictInt = Field(ge=1)   # the package version the traveler is looking at
+
+
+class CityPlanStop(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+    # The catalog identifies cities by their exact name, not by a separate numeric ID.
+    city_id: Id
+    nights: StrictInt = Field(ge=1)
+
+
+class ChangeCityPlan(_Change):
+    kind: Literal["CHANGE_CITY_PLAN"]
+    city_plan: list[CityPlanStop] = Field(min_length=1, max_length=20)
 
 
 class ChangeArrivalFlight(_Change):
@@ -209,7 +222,7 @@ class ArrivalDelay(_Change):
 ChangeCommand = Annotated[
     ChangeArrivalFlight | ChangeReturnFlight | ChangeHotel | ChangeAirportTransfer
     | ChangeIntercityTransfer | AddAttraction | RemoveAttraction | AddAttractions
-    | RemoveAttractions | ArrivalDelay,
+    | RemoveAttractions | ArrivalDelay | ChangeCityPlan,
     Field(discriminator="kind"),
 ]
 CHANGE_COMMAND = TypeAdapter(ChangeCommand)
