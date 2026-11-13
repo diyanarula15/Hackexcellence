@@ -5,6 +5,7 @@ import { bookingStore, generatePackage, loadMeta, setField } from '../state/book
 import { budgetHint } from './format.js';
 import PlaneButton from './PlaneButton.jsx';
 import DateField from './DateField.jsx';
+import ExploreDatesButton from './price-landscape/ExploreDatesButton.jsx';
 
 const FIELD_ORDER = ['departure', 'country', 'start_date', 'nights', 'adults', 'child_ages', 'budget'];
 
@@ -94,6 +95,7 @@ export default function RequestForm() {
         <h2 className="eyebrow" id="planner-title">
           Build my holiday
         </h2>
+        <ExploreDatesButton />
         {meta.status === 'error' && (
           <p className="planner__meta-error" role="alert">
             Could not load cities and countries.{' '}
