@@ -21,11 +21,11 @@ import PriceLegend from './PriceLegend.jsx';
 import './PriceLandscape.css';
 
 /**
- * Package creation (POST /api/packages) plans WITHIN_BUDGET today, so a generated holiday is not
- * guaranteed to equal the proven minimum shown here. Flip to true once that endpoint accepts
- * `objective: "MINIMUM_COST"` (see the integration note in features/price-landscape/README.md).
+ * True when generation sends `objective: "MINIMUM_COST"` to POST /api/packages, so the new holiday
+ * is the proven cheapest one for that date and its total equals the price shown here. Requires the
+ * backend's objective support (routes/packages.py) and bookingStore.generatePackage({ objective }).
  */
-export const EXACT_MINIMUM_GENERATION = false;
+export const EXACT_MINIMUM_GENERATION = true;
 
 function tripLineOf(trip, countryName) {
   const kids = Array.isArray(trip.child_ages) ? trip.child_ages.length : 0;
@@ -190,6 +190,9 @@ export default function PriceLandscape({ trip, window: travelWindow, countryName
               <p className="pl-generate__note">
                 Creates a new holiday starting {selected ? formatLongDate(selected) : 'on the chosen date'}.
                 Your saved holidays are not changed.
+                {exactGeneration && isProven(selectedCell) && (
+                  <> It is planned at this date's proven minimum, {formatINR(selectedCell.min_total_inr)}.</>
+                )}
                 {!exactGeneration && isProven(selectedCell) && (
                   <> The planner keeps to your budget rules, so the new package can cost more than the proven
                     minimum shown here.</>

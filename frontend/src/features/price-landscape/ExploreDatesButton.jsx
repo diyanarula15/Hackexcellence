@@ -30,7 +30,7 @@ export default function ExploreDatesButton() {
 
   async function generateFor(date) {
     setField('start_date', date);
-    await generatePackage();
+    await generatePackage({ objective: 'MINIMUM_COST' }); // matches the proven minimum shown
     const { submit } = bookingStore.getState();
     if (submit.status === 'invalid' || submit.status === 'error') {
       throw new Error(submit.message ?? 'The holiday could not be generated.');

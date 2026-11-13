@@ -28,13 +28,9 @@ Phase 7A (`POST /api/date-prices`), drawn as a gently tilted terrain of tiles.
 ## Integration status / required follow-ups
 1. **Backend endpoint** — `POST /api/date-prices` lives on `feature/phase7a-price-calendar`. Until that
    branch is merged, the dialog shows the error state with Retry (it never falls back to mock data).
-2. **Exact-minimum generation** — `POST /api/packages` currently plans with `WITHIN_BUDGET`, so a package
-   generated for a date may cost more than that date's proven minimum. The UI says so. To guarantee the
-   displayed price, the backend needs (small, in `backend/app/routes/packages.py`):
-   ```python
-   objective = MINIMUM_COST if body.get("objective") == "MINIMUM_COST" else WITHIN_BUDGET
-   result = build_package(trip, catalog, objective)
-   ```
-   and the store's `generatePackage` must pass `objective: "MINIMUM_COST"` when called from here. Then set
-   `EXACT_MINIMUM_GENERATION = true` in `PriceLandscape.jsx`.
+2. **Exact-minimum generation** — Generate sends `objective: "MINIMUM_COST"`
+   (`generatePackage({ objective })` in `state/bookingStore.js`, accepted by `POST /api/packages` in
+   `backend/app/routes/packages.py`; default stays `WITHIN_BUDGET`). The generated package is therefore the
+   proven cheapest holiday for the chosen date and its total equals the calendar price
+   (`EXACT_MINIMUM_GENERATION = true`). Those two shared files must be merged together with this branch.
 3. **Mounting** — one line in `features/RequestForm.jsx` renders `<ExploreDatesButton />` (separate commit).
