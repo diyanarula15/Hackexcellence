@@ -106,5 +106,173 @@
     "serves_cities": [
       "Abu Dhabi"
     ]
+  },
+  {
+    "code": "BKK",
+    "name": "Suvarnabhumi Airport",
+    "city": "Bangkok",
+    "country": "TH",
+    "timezone": "Asia/Bangkok",
+    "lat": 13.69,
+    "lng": 100.7501,
+    "serves_cities": [
+      "Bangkok"
+    ]
+  },
+  {
+    "code": "DMK",
+    "name": "Don Mueang International Airport",
+    "city": "Bangkok",
+    "country": "TH",
+    "timezone": "Asia/Bangkok",
+    "lat": 13.9126,
+    "lng": 100.6067,
+    "serves_cities": [
+      "Bangkok"
+    ]
+  },
+  {
+    "code": "HKT",
+    "name": "Phuket International Airport",
+    "city": "Phuket",
+    "country": "TH",
+    "timezone": "Asia/Bangkok",
+    "lat": 8.1132,
+    "lng": 98.3169,
+    "serves_cities": [
+      "Phuket"
+    ]
+  },
+  {
+    "code": "CNX",
+    "name": "Chiang Mai International Airport",
+    "city": "Chiang Mai",
+    "country": "TH",
+    "timezone": "Asia/Bangkok",
+    "lat": 18.7668,
+    "lng": 98.9626,
+    "serves_cities": [
+      "Chiang Mai"
+    ]
+  },
+  {
+    "code": "SIN",
+    "name": "Singapore Changi Airport",
+    "city": "Singapore",
+    "country": "SG",
+    "timezone": "Asia/Singapore",
+    "lat": 1.3644,
+    "lng": 103.9915,
+    "serves_cities": [
+      "Singapore"
+    ]
+  },
+  {
+    "code": "KUL",
+    "name": "Kuala Lumpur International Airport",
+    "city": "Kuala Lumpur",
+    "country": "MY",
+    "timezone": "Asia/Kuala_Lumpur",
+    "lat": 2.7456,
+    "lng": 101.7099,
+    "serves_cities": [
+      "Kuala Lumpur"
+    ]
+  },
+  {
+    "code": "PEN",
+    "name": "Penang International Airport",
+    "city": "Penang",
+    "country": "MY",
+    "timezone": "Asia/Kuala_Lumpur",
+    "lat": 5.2971,
+    "lng": 100.2767,
+    "serves_cities": [
+      "Penang"
+    ]
+  },
+  {
+    "code": "LGK",
+    "name": "Langkawi International Airport",
+    "city": "Langkawi",
+    "country": "MY",
+    "timezone": "Asia/Kuala_Lumpur",
+    "lat": 6.3297,
+    "lng": 99.7287,
+    "serves_cities": [
+      "Langkawi"
+    ]
+  },
+  {
+    "code": "DPS",
+    "name": "Ngurah Rai International Airport",
+    "city": "Bali",
+    "country": "ID",
+    "timezone": "Asia/Makassar",
+    "lat": -8.7482,
+    "lng": 115.1675,
+    "serves_cities": [
+      "Bali"
+    ]
+  },
+  {
+    "code": "CGK",
+    "name": "Soekarno-Hatta International Airport",
+    "city": "Jakarta",
+    "country": "ID",
+    "timezone": "Asia/Jakarta",
+    "lat": -6.1256,
+    "lng": 106.6559,
+    "serves_cities": [
+      "Jakarta"
+    ]
+  },
+  {
+    "code": "YIA",
+    "name": "Yogyakarta International Airport",
+    "city": "Yogyakarta",
+    "country": "ID",
+    "timezone": "Asia/Jakarta",
+    "lat": -7.9,
+    "lng": 110.0569,
+    "serves_cities": [
+      "Yogyakarta"
+    ]
+  },
+  {
+    "code": "HAN",
+    "name": "Noi Bai International Airport",
+    "city": "Hanoi",
+    "country": "VN",
+    "timezone": "Asia/Ho_Chi_Minh",
+    "lat": 21.2212,
+    "lng": 105.8072,
+    "serves_cities": [
+      "Hanoi"
+    ]
+  },
+  {
+    "code": "DAD",
+    "name": "Da Nang International Airport",
+    "city": "Da Nang",
+    "country": "VN",
+    "timezone": "Asia/Ho_Chi_Minh",
+    "lat": 16.0439,
+    "lng": 108.1994,
+    "serves_cities": [
+      "Da Nang"
+    ]
+  },
+  {
+    "code": "SGN",
+    "name": "Tan Son Nhat International Airport",
+    "city": "Ho Chi Minh City",
+    "country": "VN",
+    "timezone": "Asia/Ho_Chi_Minh",
+    "lat": 10.8188,
+    "lng": 106.6519,
+    "serves_cities": [
+      "Ho Chi Minh City"
+    ]
   }
 ]

@@ -125,6 +125,225 @@
           ]
         }
       ]
+    },
+    {
+      "code": "TH",
+      "name": "Thailand",
+      "timezone": "Asia/Bangkok",
+      "cities": [
+        {
+          "name": "Bangkok",
+          "airports": [
+            "BKK",
+            "DMK"
+          ]
+        },
+        {
+          "name": "Phuket",
+          "airports": [
+            "HKT"
+          ]
+        },
+        {
+          "name": "Chiang Mai",
+          "airports": [
+            "CNX"
+          ]
+        }
+      ],
+      "links": [
+        {
+          "from_city": "Bangkok",
+          "to_city": "Chiang Mai",
+          "transfer_ids": [
+            "TR-BKK-CNX-TRN",
+            "TR-BKK-CNX-BUS"
+          ]
+        },
+        {
+          "from_city": "Chiang Mai",
+          "to_city": "Bangkok",
+          "transfer_ids": [
+            "TR-CNX-BKK-TRN",
+            "TR-CNX-BKK-BUS"
+          ]
+        },
+        {
+          "from_city": "Bangkok",
+          "to_city": "Phuket",
+          "transfer_ids": [
+            "TR-BKK-HKT-BUS"
+          ]
+        },
+        {
+          "from_city": "Phuket",
+          "to_city": "Bangkok",
+          "transfer_ids": [
+            "TR-HKT-BKK-BUS"
+          ]
+        }
+      ]
+    },
+    {
+      "code": "SG",
+      "name": "Singapore",
+      "timezone": "Asia/Singapore",
+      "cities": [
+        {
+          "name": "Singapore",
+          "airports": [
+            "SIN"
+          ]
+        }
+      ],
+      "links": []
+    },
+    {
+      "code": "MY",
+      "name": "Malaysia",
+      "timezone": "Asia/Kuala_Lumpur",
+      "cities": [
+        {
+          "name": "Kuala Lumpur",
+          "airports": [
+            "KUL"
+          ]
+        },
+        {
+          "name": "Penang",
+          "airports": [
+            "PEN"
+          ]
+        },
+        {
+          "name": "Langkawi",
+          "airports": [
+            "LGK"
+          ]
+        }
+      ],
+      "links": [
+        {
+          "from_city": "Kuala Lumpur",
+          "to_city": "Penang",
+          "transfer_ids": [
+            "TR-KUL-PEN-TRN",
+            "TR-KUL-PEN-BUS",
+            "TR-KUL-PEN-TAXI"
+          ]
+        },
+        {
+          "from_city": "Penang",
+          "to_city": "Kuala Lumpur",
+          "transfer_ids": [
+            "TR-PEN-KUL-TRN",
+            "TR-PEN-KUL-BUS",
+            "TR-PEN-KUL-TAXI"
+          ]
+        }
+      ]
+    },
+    {
+      "code": "ID",
+      "name": "Indonesia",
+      "timezone": "Asia/Jakarta",
+      "cities": [
+        {
+          "name": "Bali",
+          "airports": [
+            "DPS"
+          ]
+        },
+        {
+          "name": "Jakarta",
+          "airports": [
+            "CGK"
+          ]
+        },
+        {
+          "name": "Yogyakarta",
+          "airports": [
+            "YIA"
+          ]
+        }
+      ],
+      "links": [
+        {
+          "from_city": "Jakarta",
+          "to_city": "Yogyakarta",
+          "transfer_ids": [
+            "TR-JKT-JOG-TRN",
+            "TR-JKT-JOG-BUS"
+          ]
+        },
+        {
+          "from_city": "Yogyakarta",
+          "to_city": "Jakarta",
+          "transfer_ids": [
+            "TR-JOG-JKT-TRN",
+            "TR-JOG-JKT-BUS"
+          ]
+        }
+      ]
+    },
+    {
+      "code": "VN",
+      "name": "Vietnam",
+      "timezone": "Asia/Ho_Chi_Minh",
+      "cities": [
+        {
+          "name": "Hanoi",
+          "airports": [
+            "HAN"
+          ]
+        },
+        {
+          "name": "Da Nang",
+          "airports": [
+            "DAD"
+          ]
+        },
+        {
+          "name": "Ho Chi Minh City",
+          "airports": [
+            "SGN"
+          ]
+        }
+      ],
+      "links": [
+        {
+          "from_city": "Hanoi",
+          "to_city": "Da Nang",
+          "transfer_ids": [
+            "TR-HAN-DAD-TRN",
+            "TR-HAN-DAD-BUS"
+          ]
+        },
+        {
+          "from_city": "Da Nang",
+          "to_city": "Hanoi",
+          "transfer_ids": [
+            "TR-DAD-HAN-TRN",
+            "TR-DAD-HAN-BUS"
+          ]
+        },
+        {
+          "from_city": "Da Nang",
+          "to_city": "Ho Chi Minh City",
+          "transfer_ids": [
+            "TR-DAD-SGN-TRN",
+            "TR-DAD-SGN-BUS"
+          ]
+        },
+        {
+          "from_city": "Ho Chi Minh City",
+          "to_city": "Da Nang",
+          "transfer_ids": [
+            "TR-SGN-DAD-TRN",
+            "TR-SGN-DAD-BUS"
+          ]
+        }
+      ]
     }
   ],
   "rules": {

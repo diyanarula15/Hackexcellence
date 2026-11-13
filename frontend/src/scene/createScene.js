@@ -13,6 +13,10 @@
  *      apply its state to the camera, fog and actors.
  *   3. Keep the Rule-of-Thirds hero framing at every viewport size (`layout`).
  *   4. Damped cursor parallax: tilts the cabin view, orbits the hotel.
+ *   5. Hover labels: pointing at an airliner, the hotel, the shuttle or the
+ *      monument reveals a small DOM label ("Flights", "Stays", …) above it.
+ *   6. `scene:flyby` window event (sent by the "Plan trip" button) → one
+ *      airliner banks past.
  *
  * To add a new 3D element: write `actors/yourThing.js` exporting
  * `createYourThing(ctx) → { object, update?(elapsed, delta, state) }`, then
@@ -37,11 +41,13 @@ import { createItinerary } from './actors/itinerary.js';
  * Create and start the animated scene on a canvas.
  *
  * @param {HTMLCanvasElement} canvas  Canvas to render into (sized by CSS).
- * @param {{ reducedMotion?: boolean }} [options]
+ * @param {{ reducedMotion?: boolean, label?: HTMLElement | null }} [options]
  *   reducedMotion — skip the scroll sequence; render one static hero frame.
+ *   label — element moved over the hovered actor (see SceneCanvas.jsx); its
+ *   `[data-label-text]` child receives the text, `data-on` toggles visibility.
  * @returns {{ dispose: () => void }} Call `dispose()` on unmount.
  */
-export function createScene(canvas, { reducedMotion = false } = {}) {
+export function createScene(canvas, { reducedMotion = false, label = null } = {}) {
   const palette = buildScenePalette(readTheme());
   const choreography = createChoreography({ reducedMotion });
 
@@ -88,6 +94,24 @@ export function createScene(canvas, { reducedMotion = false } = {}) {
   const transfers = createTransfers(ctx); // ring road + shuttle
   const attraction = createAttraction(ctx); // monument arch
   const itinerary = createItinerary(ctx, { attractionTop: attraction.top });
+
+  // ── Hover labels ───────────────────────────────────────────────────────
+  // Each target keeps a bounding box in its object's local space (measured
+  // now, while the objects are still un-mounted and un-animated).
+  /** @param {THREE.Object3D} object */
+  const localBounds = (object) => {
+    object.updateMatrixWorld(true);
+    return new THREE.Box3().setFromObject(object).applyMatrix4(object.matrixWorld.clone().invert());
+  };
+  const stayBounds = localBounds(hotel.object);
+  stayBounds.min.x = stayBounds.min.z = -1.75; // the buildings, not the rim trees
+  stayBounds.max.x = stayBounds.max.z = 1.75;
+  const hoverTargets = [
+    ...airplanes.planes.map((plane) => ({ text: 'Flights', object: plane, bounds: localBounds(plane) })),
+    { text: 'Stays', object: hotel.object, bounds: stayBounds },
+    { text: 'Transfers', object: transfers.shuttle, bounds: localBounds(transfers.shuttle) },
+    { text: 'Attractions', object: attraction.object, bounds: localBounds(attraction.object) },
+  ];
 
   // The whole holiday package rides (and spins with) the plinth:
   // hotel + transfers + attraction, tied together by the itinerary line.
@@ -145,10 +169,73 @@ export function createScene(canvas, { reducedMotion = false } = {}) {
   const pointer = new THREE.Vector2(); // -1…1, target
   const eased = new THREE.Vector2(); // damped value actually applied
 
+  const cursor = { x: 0, y: 0, overScene: false }; // px; false while over interactive UI
+
   /** @param {PointerEvent} event */
   function onPointerMove(event) {
     pointer.set((event.clientX / window.innerWidth) * 2 - 1, (event.clientY / window.innerHeight) * 2 - 1);
+    cursor.x = event.clientX;
+    cursor.y = event.clientY;
+    cursor.overScene = !event.target.closest?.('a, button, input, select, textarea, form, .slot--modifier');
   }
+
+  function onPointerOut() {
+    cursor.overScene = false;
+  }
+
+  const labelText = label?.querySelector('[data-label-text]');
+  const corner = new THREE.Vector3();
+  let labelled = null;
+
+  /**
+   * Find the hover target under the cursor (smallest on-screen box wins, so
+   * the shuttle and the arch beat the hotel behind them) and move the label
+   * to the top-centre of its box. Boxes are projected fresh every frame, so
+   * the label follows moving actors.
+   */
+  function updateHoverLabel(stage) {
+    if (!label) return;
+    const width = canvas.clientWidth;
+    const height = canvas.clientHeight;
+    let best = null;
+    let bestArea = Infinity;
+
+    if (stage === 'hero' && cursor.overScene) {
+      for (const target of hoverTargets) {
+        if (!target.object.visible) continue;
+        const { min, max } = target.bounds;
+        let left = Infinity, right = -Infinity, top = Infinity, bottom = -Infinity, behind = false;
+        for (let i = 0; i < 8; i++) {
+          corner.set(i & 1 ? max.x : min.x, i & 2 ? max.y : min.y, i & 4 ? max.z : min.z);
+          corner.applyMatrix4(target.object.matrixWorld).project(camera);
+          if (corner.z > 1) behind = true;
+          const x = (corner.x * 0.5 + 0.5) * width;
+          const y = (-corner.y * 0.5 + 0.5) * height;
+          left = Math.min(left, x); right = Math.max(right, x);
+          top = Math.min(top, y); bottom = Math.max(bottom, y);
+        }
+        if (behind || right - left < 8) continue; // behind the camera, or still fading in
+        const pad = 10;
+        if (cursor.x < left - pad || cursor.x > right + pad || cursor.y < top - pad || cursor.y > bottom + pad) continue;
+        const area = (right - left) * (bottom - top);
+        if (area < bestArea) {
+          bestArea = area;
+          best = { target, x: (left + right) / 2, y: top };
+        }
+      }
+    }
+
+    if (best) {
+      if (labelled !== best.target) labelText.textContent = best.target.text;
+      label.style.transform = `translate3d(${best.x.toFixed(1)}px, ${best.y.toFixed(1)}px, 0)`;
+      label.dataset.on = '';
+    } else if (labelled) {
+      delete label.dataset.on;
+    }
+    labelled = best?.target ?? null;
+  }
+
+  const onFlyby = () => airplanes.flyby();
 
   /**
    * Apply the scroll choreography + parallax, update actors, draw one frame.
@@ -176,6 +263,7 @@ export function createScene(canvas, { reducedMotion = false } = {}) {
 
     for (const actor of animated) actor.update(elapsed, delta, state);
     renderer.render(scene, camera);
+    updateHoverLabel(state.stage); // after render → world matrices are current
   }
 
   // ── Animation loop ─────────────────────────────────────────────────────
@@ -198,6 +286,8 @@ export function createScene(canvas, { reducedMotion = false } = {}) {
 
   if (!reducedMotion) {
     window.addEventListener('pointermove', onPointerMove, { passive: true });
+    document.documentElement.addEventListener('pointerleave', onPointerOut);
+    window.addEventListener('scene:flyby', onFlyby);
     tick();
   }
 
@@ -206,6 +296,8 @@ export function createScene(canvas, { reducedMotion = false } = {}) {
     cancelAnimationFrame(frameId);
     resizeObserver.disconnect();
     window.removeEventListener('pointermove', onPointerMove);
+    document.documentElement.removeEventListener('pointerleave', onPointerOut);
+    window.removeEventListener('scene:flyby', onFlyby);
     scene.traverse((node) => {
       node.geometry?.dispose();
       const materials = Array.isArray(node.material) ? node.material : [node.material];

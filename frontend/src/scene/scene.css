@@ -11,3 +11,44 @@
   width: 100%;
   height: 100%;
 }
+
+/* Hover label for the 3D actors ("Flights", "Stays", "Transfers", "Attractions").
+   The outer element is moved by createScene.js to the top-centre of the hovered
+   actor; the tag sits just above that point and fades / lifts in. Frameless. */
+.scene-label {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.scene-label__tag {
+  position: absolute;
+  left: 0;
+  bottom: var(--space-1);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.6875rem;
+  font-weight: var(--weight-medium);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--color-ink);
+  opacity: 0;
+  transform: translate(-50%, 6px);
+  transition: opacity 280ms var(--ease-out), transform 280ms var(--ease-out);
+}
+
+.scene-label[data-on] .scene-label__tag {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
+.scene-label__dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--color-accent);
+}

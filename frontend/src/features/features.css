@@ -108,7 +108,7 @@
   width: 100%;
   max-width: 80rem;
   max-height: 100%;
-  overflow-y: auto;
+  overflow: hidden auto;
   padding: var(--space-2) var(--space-3);
   border-top: 2px solid var(--color-accent);
   background: color-mix(in srgb, var(--color-canvas) 90%, transparent);
@@ -130,40 +130,48 @@
   color: var(--color-accent);
 }
 
+/* A wrapping flex row: every field has a basis wide enough for its label, value and
+   placeholder, grows to share spare room, and wraps to a new line rather than shrinking below
+   that basis — so nothing is ever clipped, at any width. */
 .planner__fields {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: var(--space-2) var(--space-3);
-  align-items: end;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--space-3) 20px;
 }
 
-@media (min-width: 1200px) {
-  .planner__fields {
-    grid-template-columns: 1.3fr 1.1fr 1.15fr 0.6fr 0.6fr 1.1fr 0.95fr auto;
-  }
+.field--departure  { flex: 1.3 1 168px; }
+.field--country    { flex: 1.1 1 136px; }
+.field--start_date { flex: 1.1 1 150px; }
+.field--nights     { flex: 0.5 1 76px; }
+.field--adults     { flex: 0.5 1 76px; }
+.field--child_ages { flex: 1.2 1 168px; }
+.field--budget     { flex: 1 1 168px; }
+
+.planner__submit {
+  flex: none;
+  margin-left: auto;
 }
 
-@media (max-width: 767px) {
-  .planner__fields {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
+/* Phones: let "To" and "First day" share a line (their values still fit). */
+@media (max-width: 479px) {
+  .field--country    { flex-basis: 118px; }
+  .field--start_date { flex-basis: 132px; }
 }
 
 .field {
   display: flex;
   flex-direction: column;
   gap: 2px;
-  min-width: 0;
+  overflow: visible;
 }
 
 .field__label {
-  overflow: hidden;
   font-size: var(--step--1);
   font-weight: var(--weight-medium);
   letter-spacing: 0.08em;
   text-transform: uppercase;
   white-space: nowrap;
-  text-overflow: ellipsis;
   color: var(--ink-muted);
 }
 
@@ -195,6 +203,310 @@
 
 .field__control[aria-invalid="true"] {
   border-bottom-color: var(--color-accent);
+}
+
+/* Micro-caption under a control. Absolutely placed so the field keeps its height and every
+   control in the row stays on one baseline; it sits in the gap above the status line. */
+.field {
+  position: relative;
+}
+
+.field__hint {
+  position: absolute;
+  top: calc(100% + 3px);
+  left: 2px;
+  margin: 0;
+  font-size: 0.6875rem;
+  line-height: 1.2;
+  white-space: nowrap;
+  color: var(--ink-muted);
+}
+
+/* ── Box button ("Plan trip", "Export JSON") ───────────────────────────── */
+/* A quiet architectural box: faint ink tint, hairline ink border, legible label, small plane. */
+.box-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 12px 22px;
+  border: 1.5px solid color-mix(in srgb, var(--color-ink) 25%, transparent);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--color-ink) 4%, transparent);
+  color: var(--color-ink);
+  font: inherit;
+  font-size: 0.9375rem; /* 15px */
+  font-weight: 600;
+  line-height: 1.3;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: border-color 240ms var(--ease-out), background-color 240ms var(--ease-out), transform 160ms var(--ease-out);
+}
+
+.box-btn:hover:not(:disabled),
+.box-btn:focus-visible {
+  border-color: var(--color-accent);
+}
+
+.box-btn:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+.box-btn:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.box-btn:disabled {
+  cursor: progress;
+}
+
+/* Label morph: each label is a one-column grid animating 0fr ↔ 1fr, so the button's width
+   glides between the idle and busy labels while the texts cross-fade. */
+.box-btn__labels {
+  display: inline-flex;
+}
+
+.box-btn__label {
+  display: grid;
+  grid-template-columns: 0fr;
+  opacity: 0;
+  transition: grid-template-columns 480ms var(--ease-out), opacity 240ms var(--ease-out);
+}
+
+.box-btn__label > span {
+  min-width: 0;
+  overflow: hidden;
+}
+
+.box-btn__label--on {
+  grid-template-columns: 1fr;
+  opacity: 1;
+  transition-delay: 0ms, 140ms;
+}
+
+.box-btn__icon {
+  display: inline-flex;
+  transition: transform 320ms var(--ease-out), opacity 320ms var(--ease-out), color 240ms var(--ease-out);
+}
+
+.box-btn__plane {
+  width: 18px;
+  height: 18px;
+}
+
+.box-btn:hover:not(:disabled) .box-btn__icon,
+.box-btn:focus-visible .box-btn__icon {
+  color: var(--color-accent);
+  transform: translateX(4px);
+}
+
+/* While the detached copy is swishing away the button's own plane is hidden just left of its
+   seat; when the class drops it slides back in. */
+.box-btn.box-btn--flying .box-btn__icon {
+  opacity: 0;
+  transform: translateX(-10px);
+  transition: none;
+}
+
+/* Swish: the detached plane (portalled to <body>) accelerates 110px to the right and fades,
+   trailing a contrail that stretches out behind it and fades too. */
+.swish {
+  position: fixed;
+  z-index: 20;
+  width: 0;
+  height: 0;
+  color: var(--color-accent);
+  pointer-events: none;
+  animation: swish-life 750ms linear both;
+}
+
+.swish__plane {
+  position: absolute;
+  left: -9px;
+  top: -9px;
+  width: 18px;
+  height: 18px;
+  animation: swish-fly 700ms cubic-bezier(0.45, 0, 0.8, 0.5) both;
+}
+
+.swish__contrail {
+  position: absolute;
+  left: -6px;
+  top: -1px;
+  width: 108px;
+  height: 2px;
+  border-radius: 2px;
+  background: linear-gradient(to right, transparent, currentColor);
+  transform-origin: left;
+  animation: swish-contrail 700ms cubic-bezier(0.45, 0, 0.8, 0.5) both;
+}
+
+@keyframes swish-life {
+  to { visibility: hidden; }
+}
+
+@keyframes swish-fly {
+  from { transform: translateX(0); opacity: 1; }
+  65% { opacity: 1; }
+  to { transform: translateX(110px); opacity: 0; }
+}
+
+@keyframes swish-contrail {
+  from { transform: scaleX(0); opacity: 0.9; }
+  60% { opacity: 0.8; }
+  to { transform: scaleX(1); opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .box-btn,
+  .box-btn__label,
+  .box-btn__icon {
+    transition-duration: 1ms;
+    transition-delay: 0ms;
+  }
+}
+
+/* ── "First day" trigger + calendar popover ────────────────────────────── */
+.date-field {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-1);
+  text-align: left;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.date-field--empty > span {
+  color: var(--ink-soft);
+}
+
+.date-field__icon {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  color: var(--ink-muted);
+  transition: color 200ms var(--ease-out);
+}
+
+.date-field:hover .date-field__icon,
+.date-field[aria-expanded="true"] .date-field__icon {
+  color: var(--color-accent);
+}
+
+.date-field:focus-visible,
+.date-field[aria-expanded="true"] {
+  outline: none;
+  border-bottom-color: var(--color-ink);
+}
+
+.calendar {
+  position: fixed;
+  z-index: 30;
+  width: 288px;
+  padding: var(--space-2);
+  border: 1px solid var(--ink-hair);
+  border-radius: 12px;
+  background: var(--color-canvas);
+  color: var(--color-ink);
+  box-shadow: 0 16px 40px color-mix(in srgb, var(--color-ink) 14%, transparent);
+  animation: calendar-in 200ms var(--ease-out);
+}
+
+@keyframes calendar-in {
+  from { opacity: 0; transform: translateY(4px); }
+}
+
+.calendar__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-1);
+}
+
+.calendar__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--step-0);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.calendar__nav,
+.calendar__day {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 1.5px solid transparent;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--color-ink);
+  font: inherit;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: background-color 160ms var(--ease-out), border-color 160ms var(--ease-out), color 160ms var(--ease-out);
+}
+
+.calendar__nav {
+  font-size: var(--step-0);
+  font-weight: var(--weight-medium);
+}
+
+.calendar__nav:hover:not(:disabled),
+.calendar__nav:focus-visible {
+  color: var(--color-accent);
+  outline: none;
+}
+
+.calendar__grid {
+  display: grid;
+  grid-template-columns: repeat(7, 36px);
+  justify-content: space-between;
+  row-gap: 2px;
+}
+
+.calendar__weekday {
+  display: grid;
+  place-items: center;
+  height: 28px;
+  font-size: 0.6875rem;
+  font-weight: var(--weight-medium);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+.calendar__day:hover:not(:disabled),
+.calendar__day:focus-visible {
+  background: color-mix(in srgb, var(--color-ink) 7%, transparent);
+  outline: none;
+}
+
+/* Today: accent ring. Selected: solid accent circle. */
+.calendar__day--today {
+  border-color: var(--color-accent);
+}
+
+.calendar__day--selected,
+.calendar__day--selected:hover:not(:disabled),
+.calendar__day--selected:focus-visible {
+  border-color: var(--color-accent);
+  background: var(--color-accent);
+  color: var(--color-canvas);
+  font-weight: 600;
+}
+
+.calendar__nav:disabled,
+.calendar__day:disabled {
+  color: var(--ink-hair);
+  cursor: default;
+}
+
+.calendar__day--today:disabled {
+  color: var(--ink-soft);
 }
 
 .planner__status {

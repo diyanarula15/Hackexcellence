@@ -9,6 +9,9 @@
 
 import { useStore } from '../state/store.js';
 import { bookingStore, generatePackage, loadMeta, setField } from '../state/bookingStore.js';
+import { budgetHint } from './format.js';
+import PlaneButton from './PlaneButton.jsx';
+import DateField from './DateField.jsx';
 
 const FIELD_ORDER = ['departure', 'country', 'start_date', 'nights', 'adults', 'child_ages', 'budget'];
 
@@ -43,13 +46,14 @@ function collectMessages(fieldErrors) {
 }
 
 /**
- * @param {{ name: string, label: string, describedBy?: string,
+ * @param {{ name: string, label: string, describedBy?: string, hint?: string,
  *           children: (props: object) => JSX.Element }} props
+ *   hint — optional micro-caption shown under the control (hidden while the field is invalid).
  */
-function Field({ name, label, describedBy, children }) {
+function Field({ name, label, describedBy, hint, children }) {
   const invalid = Boolean(describedBy);
   return (
-    <div className={`field${invalid ? ' field--invalid' : ''}`}>
+    <div className={`field field--${name}${invalid ? ' field--invalid' : ''}`}>
       <label className="field__label" htmlFor={`trip-${name}`}>
         {label}
       </label>
@@ -58,8 +62,13 @@ function Field({ name, label, describedBy, children }) {
         name,
         className: 'field__control',
         'aria-invalid': invalid,
-        'aria-describedby': describedBy,
+        'aria-describedby': describedBy ?? (hint ? `trip-${name}-hint` : undefined),
       })}
+      {hint && !invalid && (
+        <p className="field__hint" id={`trip-${name}-hint`}>
+          {hint}
+        </p>
+      )}
     </div>
   );
 }
@@ -135,10 +144,10 @@ export default function RequestForm() {
 
         <Field name="start_date" label="First day" describedBy={describedBy.start_date}>
           {(props) => (
-            <input
+            <DateField
               {...props}
-              {...bind('start_date')}
-              type="date"
+              value={form.start_date}
+              onChange={(value) => setField('start_date', value)}
               min={options?.allowed_dates.first_night}
               max={options?.allowed_dates.last_departure}
             />
@@ -164,17 +173,26 @@ export default function RequestForm() {
         </Field>
 
         <Field name="child_ages" label="Children's ages" describedBy={describedBy.child_ages}>
-          {(props) => <input {...props} {...bind('child_ages')} type="text" placeholder="e.g. 6, 9 · blank if none" />}
+          {(props) => <input {...props} {...bind('child_ages')} type="text" placeholder="Optional (e.g. 6, 9)" />}
         </Field>
 
-        <Field name="budget" label="Budget (₹)" describedBy={describedBy.budget}>
+        <Field
+          name="budget"
+          label="Budget (₹)"
+          describedBy={describedBy.budget}
+          hint={submit.status === 'invalid' ? undefined : budgetHint(form)}
+        >
           {(props) => <input {...props} {...bind('budget')} type="text" inputMode="numeric" placeholder="3,50,000" />}
         </Field>
 
-        <button type="submit" className="btn btn--primary planner__submit" disabled={loading}>
-          {loading && <span className="spinner" aria-hidden="true" />}
-          {loading ? 'Building…' : 'Build my holiday'}
-        </button>
+        <PlaneButton
+          type="submit"
+          className="planner__submit"
+          label="Plan trip"
+          busyLabel="Choreographing…"
+          busy={loading}
+          onClick={() => window.dispatchEvent(new CustomEvent('scene:flyby'))}
+        />
       </div>
 
       <div className="planner__status" aria-live="polite">

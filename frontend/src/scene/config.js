@@ -129,6 +129,7 @@ export const WORLD_MAP = {
   routeOpacity: 0.6,
   routeSeconds: 9, // time for the travelling dot to fly one route
   dotRadius: 1.0, // degrees
+  pulse: { glow: 4, tail: 0.2, opacity: 0.45 }, // halo size (× dotRadius), comet tail (fraction of route), strength
   routes: [
     { from: [-74.0, 40.7], to: [-0.1, 51.5], lift: 0.22 }, // New York → London
     { from: [-0.1, 51.5], to: [55.3, 25.2], lift: 0.2 }, // London → Dubai
@@ -194,6 +195,13 @@ export const FLIGHT_PATHS = [
     duration: 23, gap: 8, offset: 0, scale: 0.48, showArc: false,
   },
 ];
+
+/**
+ * Fly-by played by one airliner when the "Plan trip" button is pressed:
+ * it rolls into a bank and surges ahead along its curve, then levels out.
+ * seconds — length · bank — peak extra roll (rad) · surge — peak extra speed (× normal)
+ */
+export const FLYBY = { seconds: 1.8, bank: 0.75, surge: 1.6 };
 
 /**
  * Contrail ribbon. `span` = fraction of the curve the trail covers;

@@ -98,6 +98,7 @@
 }
 
 .nav__links {
+  position: relative;
   display: flex;
   gap: var(--space-4);
   margin: 0;
@@ -115,29 +116,39 @@
   transition: color 240ms var(--ease-out);
 }
 
-/* Accent micro-state: underline grows from the left on hover/focus. */
-.nav__link::after {
-  content: "";
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  height: 2px;
-  background: var(--color-accent);
-  transform: scaleX(0);
-  transform-origin: left;
-  transition: transform 320ms var(--ease-out);
-}
-
 .nav__link:hover,
 .nav__link:focus-visible {
   color: var(--color-ink);
   outline: none;
 }
 
-.nav__link:hover::after,
-.nav__link:focus-visible::after {
-  transform: scaleX(1);
+/* Accent micro-state: one tiny dot glides beneath the hovered / focused link. */
+.nav__dot {
+  position: absolute;
+  left: -2.5px;
+  bottom: -2px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--color-accent);
+  opacity: 0;
+  transform: translateX(var(--dot-x, 0)) scale(0.4);
+  transition: opacity 240ms var(--ease-out);
+  pointer-events: none;
+}
+
+.nav__dot--on {
+  opacity: 1;
+  transform: translateX(var(--dot-x, 0)) scale(1);
+  transition: opacity 240ms var(--ease-out), transform 240ms var(--ease-out);
+}
+
+.nav__dot--on.nav__dot--glide {
+  transition: opacity 240ms var(--ease-out), transform 520ms var(--ease-out);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nav__dot { transition-duration: 1ms !important; }
 }
 
 /* ── Hero (unboxed, anchored on the LEFT vertical third) ───────────────── */

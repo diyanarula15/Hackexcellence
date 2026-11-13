@@ -17,12 +17,13 @@ import './scene.css';
  */
 export default function SceneCanvas() {
   const canvasRef = useRef(null);
+  const labelRef = useRef(null);
   const [failed, setFailed] = useState(false);
 
   useEffect(() => {
     const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     try {
-      const scene = createScene(canvasRef.current, { reducedMotion });
+      const scene = createScene(canvasRef.current, { reducedMotion, label: labelRef.current });
       return () => scene.dispose();
     } catch (error) {
       console.warn('[scene] WebGL unavailable — rendering HUD only.', error);
@@ -33,5 +34,16 @@ export default function SceneCanvas() {
   }, []);
 
   if (failed) return null;
-  return <canvas ref={canvasRef} className="scene-canvas" aria-hidden="true" />;
+  return (
+    <>
+      <canvas ref={canvasRef} className="scene-canvas" aria-hidden="true" />
+      {/* Frameless hover label; createScene.js positions it over the hovered 3D actor. */}
+      <div ref={labelRef} className="scene-label" aria-hidden="true">
+        <span className="scene-label__tag">
+          <span className="scene-label__dot" />
+          <span data-label-text />
+        </span>
+      </div>
+    </>
+  );
 }

@@ -4,8 +4,8 @@
  * A flat, very faint drawing far behind the hero scene:
  *   • continent contours (thin ink lines)
  *   • latitude / longitude graticule (even fainter)
- *   • a few curved, dashed accent route arcs with endpoint dots and a small
- *     dot travelling along each route
+ *   • a few curved, dashed accent route arcs with endpoint dots and a soft
+ *     glowing pulse (halo + short comet tail) travelling gently along each
  *
  * It ignores fog and never writes depth, so it reads as a printed backdrop:
  * clouds, planes and the plinth always sit in front of it. It fades in as
@@ -63,6 +63,48 @@ function buildGraticule() {
   return new THREE.BufferGeometry().setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
 }
 
+/** Points in each pulse's comet tail. */
+const TAIL_POINTS = 20;
+
+/**
+ * Soft radial alpha mask for the pulse halo (white; the material tints it
+ * with the accent colour, so no colour is hard-coded here).
+ * @returns {THREE.CanvasTexture}
+ */
+function buildGlowTexture() {
+  const size = 64;
+  const canvas = document.createElement('canvas');
+  canvas.width = canvas.height = size;
+  const context = canvas.getContext('2d');
+  const gradient = context.createRadialGradient(size / 2, size / 2, 0, size / 2, size / 2, size / 2);
+  gradient.addColorStop(0, 'rgba(255,255,255,1)');
+  gradient.addColorStop(0.3, 'rgba(255,255,255,0.45)');
+  gradient.addColorStop(1, 'rgba(255,255,255,0)');
+  context.fillStyle = gradient;
+  context.fillRect(0, 0, size, size);
+  return new THREE.CanvasTexture(canvas);
+}
+
+/**
+ * Comet-tail line: TAIL_POINTS vertices, alpha baked from 0 (tail end) to 1
+ * (head). Positions are rewritten every frame.
+ * @param {THREE.Material} material
+ * @returns {THREE.Line}
+ */
+function createTail(material) {
+  const colors = new Float32Array(TAIL_POINTS * 4);
+  for (let i = 0; i < TAIL_POINTS; i++) colors.set([1, 1, 1, (i / (TAIL_POINTS - 1)) ** 2], i * 4);
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute(
+    'position',
+    new THREE.BufferAttribute(new Float32Array(TAIL_POINTS * 3), 3).setUsage(THREE.DynamicDrawUsage),
+  );
+  geometry.setAttribute('color', new THREE.BufferAttribute(colors, 4));
+  const tail = new THREE.Line(geometry, material);
+  tail.frustumCulled = false;
+  return tail;
+}
+
 /**
  * Create the map backdrop.
  *
@@ -91,6 +133,8 @@ export function createWorldMap({ palette }) {
 
   // ── Route arcs ─────────────────────────────────────────────────────────
   const dotGeometry = new THREE.CircleGeometry(1, 20);
+  const glowGeometry = new THREE.PlaneGeometry(2, 2);
+  const glowTexture = buildGlowTexture();
   const routes = WORLD_MAP.routes.map((route, index) => {
     const from = new THREE.Vector3(route.from[0], route.from[1] - WORLD_MAP.latCenter, 0);
     const to = new THREE.Vector3(route.to[0], route.to[1] - WORLD_MAP.latCenter, 0);
@@ -110,14 +154,22 @@ export function createWorldMap({ palette }) {
       group.add(dot);
     }
 
-    const traveller = new THREE.Mesh(dotGeometry, dotMaterial);
+    // Travelling pulse: bright core dot + soft halo + short fading tail. Each
+    // route gets its own materials so its pulse can fade at the route ends.
+    const glowMaterial = backdrop(THREE.MeshBasicMaterial, { color: palette.accent, map: glowTexture });
+    const tailMaterial = backdrop(THREE.LineBasicMaterial, { color: palette.accent, vertexColors: true });
+    const coreMaterial = backdrop(THREE.MeshBasicMaterial, { color: palette.accent });
+    const traveller = new THREE.Mesh(dotGeometry, coreMaterial);
     traveller.scale.setScalar(WORLD_MAP.dotRadius * 0.7);
-    group.add(traveller);
+    const glow = new THREE.Mesh(glowGeometry, glowMaterial);
+    const tail = createTail(tailMaterial);
+    group.add(tail, glow, traveller);
 
-    return { curve, traveller, phase: index / WORLD_MAP.routes.length };
+    return { curve, traveller, glow, tail, glowMaterial, tailMaterial, coreMaterial, phase: index / WORLD_MAP.routes.length };
   });
 
   const direction = new THREE.Vector3();
+  const sample = new THREE.Vector3();
 
   /**
    * Scale + place the map so it fills the hero view at any aspect ratio.
@@ -153,10 +205,28 @@ export function createWorldMap({ palette }) {
     routeMaterial.opacity = WORLD_MAP.routeOpacity * reveal;
     dotMaterial.opacity = WORLD_MAP.routeOpacity * reveal;
 
+    const { pulse } = WORLD_MAP;
     for (const route of routes) {
-      const t = (elapsed / WORLD_MAP.routeSeconds + route.phase) % 1;
+      const raw = (elapsed / WORLD_MAP.routeSeconds + route.phase) % 1;
+      const t = smoothstep(0, 1, raw); // eases out of one city and into the next
+      const envelope = Math.sin(Math.PI * raw) ** 0.5 * reveal; // fades at both ends
+      const breathe = 1 + 0.14 * Math.sin(elapsed * 2.2 + route.phase * 6.28);
+
       route.curve.getPoint(t, route.traveller.position);
-      route.traveller.position.z = 0.01;
+      route.traveller.position.z = 0.03;
+      route.glow.position.copy(route.traveller.position).setZ(0.02);
+      route.glow.scale.setScalar(WORLD_MAP.dotRadius * pulse.glow * breathe);
+
+      const positions = route.tail.geometry.attributes.position;
+      for (let i = 0; i < TAIL_POINTS; i++) {
+        route.curve.getPoint(Math.max(0, t - (1 - i / (TAIL_POINTS - 1)) * pulse.tail), sample);
+        positions.setXYZ(i, sample.x, sample.y, 0.015);
+      }
+      positions.needsUpdate = true;
+
+      route.coreMaterial.opacity = envelope;
+      route.glowMaterial.opacity = pulse.opacity * envelope * (0.8 + 0.2 * breathe);
+      route.tailMaterial.opacity = envelope;
     }
   }
 

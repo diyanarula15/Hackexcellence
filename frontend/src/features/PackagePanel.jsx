@@ -8,6 +8,7 @@
 
 import { Fragment, useEffect, useRef, useState } from 'react';
 import { useStore } from '../state/store.js';
+import PlaneButton from './PlaneButton.jsx';
 import { bookingStore, exportCurrentPackage, generatePackage, retryResult } from '../state/bookingStore.js';
 import DayTimeline from './DayTimeline.jsx';
 import { formatDate, formatINR, formatTravelers, humanize, plural, scrollToPlanner } from './format.js';
@@ -147,9 +148,7 @@ function ExportButton() {
   const busy = exporting.status === 'loading';
   return (
     <div className="export">
-      <button type="button" className="btn btn--primary" onClick={exportCurrentPackage} disabled={busy}>
-        {busy ? 'Preparing…' : 'Export JSON'}
-      </button>
+      <PlaneButton label="Export JSON" busyLabel="Preparing…" busy={busy} onClick={exportCurrentPackage} />
       <p className="export__status" aria-live="polite">
         {exporting.status === 'done' && `Downloaded ${exporting.name}`}
         {exporting.status === 'error' && <span className="is-over">{exporting.error}</span>}

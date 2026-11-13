@@ -1412,5 +1412,2923 @@
     "from_city": "Abu Dhabi",
     "to_city": "Dubai",
     "door_to_door": true
+  },
+  {
+    "transfer_id": "TR-BKK-SUK-TAXI",
+    "type": "AIRPORT_TAXI",
+    "name": "Suvarnabhumi airport taxi to Sukhumvit",
+    "airport": "BKK",
+    "city": "Bangkok",
+    "area": "Sukhumvit",
+    "from_point": "BKK",
+    "to_point": "Sukhumvit area hotels",
+    "max_passengers": 4,
+    "service_from": "05:00",
+    "service_until": "24:00",
+    "duration_minutes": 75,
+    "pricing": "PER_VEHICLE",
+    "price": {
+      "amount": 2203,
+      "currency": "INR"
+    }
+  },
+  {
+    "transfer_id": "TR-BKK-SUK-VAN",
+    "type": "AIRPORT_VAN",
+    "name": "Suvarnabhumi private van to Sukhumvit",
+    "airport": "BKK",
+    "city": "Bangkok",
+    "area": "Sukhumvit",
+    "from_point": "BKK",
+    "to_point": "Sukhumvit area hotels",
+    "max_passengers": 8,
+    "service_from": "00:00",
+    "service_until": "24:00",
+    "duration_minutes": 79,
+    "pricing": "PER_VEHICLE",
+    "price": {
+      "amount": 3116,
+      "currency": "INR"
+    }
+  },
+  {
+    "transfer_id": "TR-BKK-SIL-TAXI",
+    "type": "AIRPORT_TAXI",
+    "name": "Suvarnabhumi airport taxi to Silom",
+    "airport": "BKK",
+    "city": "Bangkok",
+    "area": "Silom",
+    "from_point": "BKK",
+    "to_point": "Silom area hotels",
+    "max_passengers": 4,
+    "service_from": "00:00",
+    "service_until": "24:00",
+    "duration_minutes": 77,
+    "pricing": "PER_VEHICLE",
+    "price": {
+      "amount": 2206,
+      "currency": "INR"
+    }
+  },
+  {
+    "transfer_id": "TR-BKK-RIV-TAXI",
+    "type": "AIRPORT_TAXI",
+    "name": "Suvarnabhumi airport taxi to Riverside",
+    "airport": "BKK",
+    "city": "Bangkok",
+    "area": "Riverside",
+    "from_point": "BKK",
+    "to_point": "Riverside area hotels",
+    "max_passengers": 4,
+    "service_from": "00:00",
+    "service_until": "24:00",
+    "duration_minutes": 74,
+    "pricing": "PER_VEHICLE",
+    "price": {
+      "amount": 2158,
+      "currency": "INR"
+    }
+  },
+  {
+    "transfer_id": "TR-BKK-SIA-TAXI",
+    "type": "AIRPORT_TAXI",
+    "name": "Suvarnabhumi airport taxi to Siam",
+    "airport": "BKK",
+    "city": "Bangkok",
+    "area": "Siam",
+    "from_point": "BKK",
+    "to_point": "Siam area hotels",
+    "max_passengers": 4,
+    "service_from": "07:00",
+    "service_until": "21:30",
+    "duration_minutes": 57,
+    "pricing": "PER_VEHICLE",
+    "price": {
+      "amount": 1370,
+      "currency": "INR"
+    }
+  },
+  {
+    "transfer_id": "TR-BKK-KHA-BUS",
+    "type": "AIRPORT_BUS",
+    "name": "Suvarnabhumi airport shuttle bus to Khao San",
+    "airport": "BKK",
+    "city": "Bangkok",
+    "area": "Khao San",
+    "from_point": "BKK",
+    "to_point": "Khao San area hotels",
+    "max_passengers": 99,
+    "service_from": "07:00",
+    "service_until": "20:00",
+    "duration_minutes": 105,
+    "pricing": "PER_PERSON",
+    "price": {
+      "amount": 676,
+      "currency": "INR"
+    },
+    "child_price": {
+      "amount": 338,
+      "currency": "INR"
+    }
+  },
+  {
+    "transfer_id": "TR-BKK-BKK-BUS",
+    "type": "AIRPORT_BUS",
+    "name": "Suvarnabhumi airport bus to Bangkok city centre",
+    "airport": "BKK",
+    "city": "Bangkok",
+    "area": null,
+    "from_point": "BKK",
+    "to_point": "Bangkok city centre",
+    "max_passengers": 99,
+    "service_from": "05:30",
+    "service_until": "22:30",
+    "duration_minutes": 84,
+    "pricing": "PER_PERSON",
+    "price": {
+      "amount": 734,
+      "currency": "INR"
+    },
+    "child_price": {
+      "amount": 367,
+      "currency": "INR"
+    }
+  },
+  {
+    "transfer_id": "TR-DMK-SUK-TAXI",
+    "type": "AIRPORT_TAXI",
+    "name": "Don Mueang airport taxi to Sukhumvit",
+    "airport": "DMK",
+    "city": "Bangkok",
+    "area": "Sukhumvit",
+    "from_point": "DMK",
+    "to_point": "Sukhumvit area hotels",
+    "max_passengers": 4,
+    "service_from": "06:00",
+    "service_until": "23:00",
+    "duration_minutes": 46,
+    "pricing": "PER_VEHICLE",
+    "price": {
+      "amount": 1360,
+      "currency": "INR"
+    }
+  },
+  {
+    "transfer_id": "TR-DMK-SIL-TAXI",
+    "type": "AIRPORT_TAXI",
+    "name": "Don Mueang airport taxi to Silom",
+    "airport": "DMK",
+    "city": "Bangkok",
+    "area": "Silom",
+    "from_point": "DMK",
+    "to_point": "Silom area hotels",
+    "max_passengers": 4,
+    "service_from": "00:00",
+    "service_until": "24:00",
+    "duration_minutes": 51,
+    "pricing": "PER_VEHICLE",
+    "price": {
+      "amount": 1387,
+      "currency": "INR"
+    }
+  },
+  {
+    "transfer_id": "TR-DMK-RIV-TAXI",
+    "type": "AIRPORT_TAXI",
+    "name": "Don Mueang airport taxi to Riverside",
+    "airport": "DMK",
+    "city": "Bangkok",
+    "area": "Riverside",
+    "from_point": "DMK",
+    "to_point": "Riverside area hotels",
+    "max_passengers": 4,
+    "service_from": "00:00",
+    "service_until": "24:00",
+    "duration_minutes": 55,
+    "pricing": "PER_VEHICLE",
+    "price": {
+      "amount": 1567,
+      "currency": "INR"
+    }
+  },
+  {
+    "transfer_id": "TR-DMK-RIV-BUS",
+    "type": "AIRPORT_BUS",
+    "name": "Don Mueang airport shuttle bus to Riverside",
+    "airport": "DMK",
+    "city": "Bangkok",
+    "area": "Riverside",
+    "from_point": "DMK",
+    "to_point": "Riverside area hotels",
+    "max_passengers": 99,
+    "service_from": "06:30",
+    "service_until": "21:30",
+    "duration_minutes": 66,
+    "pricing": "PER_PERSON",
+    "price": {
+      "amount": 545,
+      "currency": "INR"
+    },
+    "child_price": {
+      "amount": 272,
+      "currency": "INR"
+    }
+  },
+  {
+    "transfer_id": "TR-DMK-RIV-VAN",
+    "type": "AIRPORT_VAN",
+    "name": "Don Mueang private van to Riverside",
+    "airport": "DMK",
+    "city": "Bangkok",
+    "area": "Riverside",
+    "from_point": "DMK",
+    "to_point": "Riverside area hotels",
+    "max_passengers": 8,
+    "service_from": "00:00",
+    "service_until": "24:00",
+    "duration_minutes": 59,
+    "pricing": "PER_VEHICLE",
+    "price": {
+      "amount": 2042,
+      "currency": "INR"
+    }
+  },
+  {
+    "transfer_id": "TR-DMK-SIA-TAXI",
+    "type": "AIRPORT_TAXI",
+    "name": "Don Mueang airport taxi to Siam",
+    "airport": "DMK",
+    "city": "Bangkok",
+    "area": "Siam",
+    "from_point": "DMK",
+    "to_point": "Siam area hotels",
+    "max_passengers": 4,
+    "service_from": "06:00",
+    "service_until": "23:00",
+    "duration_minutes": 66,
+    "pricing": "PER_VEHICLE",
+    "price": {
+      "amount": 1856,
+      "currency": "INR"
+    }
+  },
+  {
+    "transfer_id": "TR-DMK-KHA-VAN",
+    "type": "AIRPORT_VAN",
+    "name": "Don Mueang private van to Khao San",
+    "airport": "DMK",
+    "city": "Bangkok",
+    "area": "Khao San",
+    "from_point": "DMK",
+    "to_point": "Khao San area hotels",
+    "max_passengers": 8,
+    "service_from": "05:30",
+    "service_until": "22:30",
+    "duration_minutes": 57,
+    "pricing": "PER_VEHICLE",
+    "price": {
+      "amount": 2187,
+      "currency": "INR"
+    }
+  },
+  {
+    "transfer_id": "TR-BKK-CITY-TAXI",
+    "type": "CITY_TAXI",
+    "name": "Bangkok city taxi, hotel to main station",
+    "airport": null,
+    "city": "Bangkok",
+    "area": null,
+    "from_point": "Bangkok hotels",
+    "to_point": "Bangkok main station",
+    "max_passengers": 4,
+    "service_from": "05:00",
+    "service_until": "24:00",
+    "duration_minutes": 25,
+    "pricing": "PER_VEHICLE",
+    "price": {
+      "amount": 1500,
+      "currency": "INR"
+    }
+  },
+  {
+    "transfer_id": "TR-HKT-PAT-TAXI",
+    "type": "AIRPORT_TAXI",
+    "name": "Phuket airport airport taxi to Patong",
+    "airport": "HKT",
+    "city": "Phuket",
+    "area": "Patong",
+    "from_point": "HKT",
+    "to_point": "Patong area hotels",
+    "max_passengers": 4,
+    "service_from": "00:00",
+    "service_until": "24:00",
+    "duration_minutes": 73,
+    "pricing": "PER_VEHICLE",
+    "price": {
+      "amount": 2693,
+      "currency": "INR"
+    }
+  },
+  {
+    "transfer_id": "TR-HKT-PAT-VAN",
+    "type": "AIRPORT_VAN",
+    "name": "Phuket airport private van to Patong",
+    "airport": "HKT",
+    "city": "Phuket",
+    "area": "Patong",
+    "from_point": "HKT",
+    "to_point": "Patong area hotels",
+    "max_passengers": 8,
+    "service_from": "00:00",
+    "service_until": "24:00",
+    "duration_minutes": 74,
+    "pricing": "PER_VEHICLE",
+    "price": {
+      "amount": 4105,
+      "currency": "INR"
+    }
+  },
+  {
+    "transfer_id": "TR-HKT-KAT-VAN",
+    "type": "AIRPORT_VAN",
+    "name": "Phuket airport private van to Kata",
+    "airport": "HKT",
+    "city": "Phuket",
+    "area": "Kata",
+    "from_point": "HKT",
+    "to_point": "Kata area hotels",
+    "max_passengers": 8,
+    "service_from": "00:00",
+    "service_until": "24:00",
+    "duration_minutes": 68,
+    "pricing": "PER_VEHICLE",
+    "price": {
+      "amount": 3334,
+      "currency": "INR"
+    }
+  },
+  {
+    "transfer_id": "TR-HKT-KAR-BUS",
+    "type": "AIRPORT_BUS",
+    "name": "Phuket airport airport shuttle bus to Karon",
+    "airport": "HKT",
+    "city": "Phuket",
+    "area": "Karon",
+    "from_point": "HKT",
+    "to_point": "Karon area hotels",
+    "max_passengers": 99,
+    "service_from": "07:00",
+    "service_until": "20:00",
+    "duration_minutes": 89,
+    "pricing": "PER_PERSON",
+    "price": {
+      "amount": 915,
+      "currency": "INR"
+    },
+    "child_price": {
+      "amount": 457,
+      "currency": "INR"
+    }
+  },
+  {
+    "transfer_id": "TR-HKT-PHU-TAXI",
+    "type": "AIRPORT_TAXI",
+    "name": "Phuket airport airport taxi to Phuket Town",
+    "airport": "HKT",
+    "city": "Phuket",
+    "area": "Phuket Town",
+    "from_point": "HKT",
+    "to_point": "Phuket Town area hotels",
+    "max_passengers": 4,
+    "service_from": "05:00",
+    "service_until": "24:00",
+    "duration_minutes": 69,
+    "pricing": "PER_VEHICLE",
+    "price": {
+      "amount": 2461,
+      "currency": "INR"
+    }
+  },
+  {
+    "transfer_id": "TR-HKT-CITY-TAXI",
+    "type": "CITY_TAXI",
+    "name": "Phuket city taxi, hotel to main station",
+    "airport": null,
+    "city": "Phuket",
+    "area": null,
+    "from_point": "Phuket hotels",
+    "to_point": "Phuket main station",
+    "max_passengers": 4,
+    "service_from": "05:00",
+    "service_until": "24:00",
+    "duration_minutes": 25,
+    "pricing": "PER_VEHICLE",
+    "price": {
+      "amount": 1710,
+      "currency": "INR"
+    }
+  },
+  {
+    "transfer_id": "TR-CNX-OLD-TAXI",
+    "type": "AIRPORT_TAXI",
+    "name": "Chiang Mai airport airport taxi to Old City",
+    "airport": "CNX",
+    "city": "Chiang Mai",
+    "area": "Old City",
+    "from_point": "CNX",
+    "to_point": "Old City area hotels",
+    "max_passengers": 4,
+    "service_from": "06:00",
+    "service_until": "23:00",
+    "duration_minutes": 41,
+    "pricing": "PER_VEHICLE",
+    "price": {
+      "amount": 977,
+      "currency": "INR"
+    }
+  },
+  {
+    "transfer_id": "TR-CNX-NIM-TAXI",
+    "type": "AIRPORT_TAXI",
+    "name": "Chiang Mai airport airport taxi to Nimman",
+    "airport": "CNX",
+    "city": "Chiang Mai",
+    "area": "Nimman",
+    "from_point": "CNX",
+    "to_point": "Nimman area hotels",
+    "max_passengers": 4,
+    "service_from": "07:00",
+    "service_until": "21:30",
+    "duration_minutes": 41,
+    "pricing": "PER_VEHICLE",
+    "price": {
+      "amount": 1145,
+      "currency": "INR"
+    }
+  },
+  {
+    "transfer_id": "TR-CNX-NIM-VAN",
+    "type": "AIRPORT_VAN",
+    "name": "Chiang Mai airport private van to Nimman",
+    "airport": "CNX",
+    "city": "Chiang Mai",
+    "area": "Nimman",
+    "from_point": "CNX",
+    "to_point": "Nimman area hotels",
+    "max_passengers": 8,
+    "service_from": "06:00",
+    "service_until": "23:30",
+    "duration_minutes": 48,
+    "pricing": "PER_VEHICLE",
+    "price": {
+      "amount": 1678,
+      "currency": "INR"
+    }
+  },
+  {
+    "transfer_id": "TR-CNX-RIV-TAXI",
+    "type": "AIRPORT_TAXI",
+    "name": "Chiang Mai airport airport taxi to Riverside",
+    "airport": "CNX",
+    "city": "Chiang Mai",
+    "area": "Riverside",
+    "from_point": "CNX",
+    "to_point": "Riverside area hotels",
+    "max_passengers": 4,
+    "service_from": "06:00",
+    "service_until": "23:00",
+    "duration_minutes": 21,
+    "pricing": "PER_VEHICLE",
+    "price": {
+      "amount": 604,
+      "currency": "INR"
+    }
+  },
+  {
+    "transfer_id": "TR-CNX-RIV-BUS",
+    "type": "AIRPORT_BUS",
+    "name": "Chiang Mai airport airport shuttle bus to Riverside",
+    "airport": "CNX",
+    "city": "Chiang Mai",
+    "area": "Riverside",
+    "from_point": "CNX",
+    "to_point": "Riverside area hotels",
+    "max_passengers": 99,
+    "service_from": "06:30",
+    "service_until": "21:30",
+    "duration_minutes": 57,
+    "pricing": "PER_PERSON",
+    "price": {
+      "amount": 212,
+      "currency": "INR"
+    },
+    "child_price": {
+      "amount": 106,
+      "currency": "INR"
+    }
+  },
+  {
+    "transfer_id": "TR-CNX-RIV-VAN",
+    "type": "AIRPORT_VAN",
+    "name": "Chiang Mai airport private van to Riverside",
+    "airport": "CNX",
+    "city": "Chiang Mai",
+    "area": "Riverside",
+    "from_point": "CNX",
+    "to_point": "Riverside area hotels",
+    "max_passengers": 8,
+    "service_from": "00:00",
+    "service_until": "24:00",
+    "duration_minutes": 26,
+    "pricing": "PER_VEHICLE",
+    "price": {
+      "amount": 912,
+      "currency": "INR"
+    }
+  },
+  {
+    "transfer_id": "TR-CNX-CNX-BUS",
+    "type": "AIRPORT_BUS",
+    "name": "Chiang Mai airport airport bus to Chiang Mai city centre",
+    "airport": "CNX",
+    "city": "Chiang Mai",
+    "area": null,
+    "from_point": "CNX",
+    "to_point": "Chiang Mai city centre",
+    "max_passengers": 99,
+    "service_from": "06:00",
+    "service_until": "22:30",
+    "duration_minutes": 50,
+    "pricing": "PER_PERSON",
+    "price": {
+      "amount": 218,
+      "currency": "INR"
+    },
+    "child_price": {
+      "amount": 109,
+      "currency": "INR"
+    }
+  },
+  {
+    "transfer_id": "TR-CNX-CITY-TAXI",
+    "type": "CITY_TAXI",
+    "name": "Chiang Mai city taxi, hotel to main station",
+    "airport": null,
+    "city": "Chiang Mai",
+    "area": null,
+    "from_point": "Chiang Mai hotels",
+    "to_point": "Chiang Mai main station",
+    "max_passengers": 4,
+    "service_from": "05:00",
+    "service_until": "24:00",
+    "duration_minutes": 25,
+    "pricing": "PER_VEHICLE",
+    "price": {
+      "amount": 1299,
+      "currency": "INR"
+    }
+  },
+  {
+    "transfer_id": "TR-SIN-MAR-TAXI",
+    "type": "AIRPORT_TAXI",
+    "name": "Changi airport taxi to Marina Bay",
+    "airport": "SIN",
+    "city": "Singapore",
+    "area": "Marina Bay",
+    "from_point": "SIN",
+    "to_point": "Marina Bay area hotels",
+    "max_passengers": 4,
+    "service_from": "00:00",
+    "service_until": "24:00",
+    "duration_minutes": 30,
+    "pricing": "PER_VEHICLE",
+    "price": {
+      "amount": 975,
+      "currency": "INR"
+    }
+  },
+  {
+    "transfer_id": "TR-SIN-ORC-TAXI",
+    "type": "AIRPORT_TAXI",
+    "name": "Changi airport taxi to Orchard",
+    "airport": "SIN",
+    "city": "Singapore",
+    "area": "Orchard",
+    "from_point": "SIN",
+    "to_point": "Orchard area hotels",
+    "max_passengers": 4,
+    "service_from": "05:00",
+    "service_until": "24:00",
+    "duration_minutes": 38,
+    "pricing": "PER_VEHICLE",
+    "price": {
+      "amount": 1290,
+      "currency": "INR"
+    }
+  },
+  {
+    "transfer_id": "TR-SIN-ORC-BUS",
+    "type": "AIRPORT_BUS",
+    "name": "Changi airport shuttle bus to Orchard",
+    "airport": "SIN",
+    "city": "Singapore",
+    "area": "Orchard",
+    "from_point": "SIN",
+    "to_point": "Orchard area hotels",
+    "max_passengers": 99,
+    "service_from": "06:00",
+    "service_until": "22:00",
+    "duration_minutes": 72,
+    "pricing": "PER_PERSON",
+    "price": {
+      "amount": 610,
+      "currency": "INR"
+    },
+    "child_price": {
+      "amount": 305,
+      "currency": "INR"
+    }
+  },
+  {
+    "transfer_id": "TR-SIN-ORC-VAN",
+    "type": "AIRPORT_VAN",
+    "name": "Changi private van to Orchard",
+    "airport": "SIN",
+    "city": "Singapore",
+    "area": "Orchard",
+    "from_point": "SIN",
+    "to_point": "Orchard area hotels",
+    "max_passengers": 8,
+    "service_from": "06:00",
+    "service_until": "23:30",
+    "duration_minutes": 44,
+    "pricing": "PER_VEHICLE",
+    "price": {
+      "amount": 2415,
+      "currency": "INR"
+    }
+  },
+  {
+    "transfer_id": "TR-SIN-SEN-TAXI",
+    "type": "AIRPORT_TAXI",
+    "name": "Changi airport taxi to Sentosa",
+    "airport": "SIN",
+    "city": "Singapore",
+    "area": "Sentosa",
+    "from_point": "SIN",
+    "to_point": "Sentosa area hotels",
+    "max_passengers": 4,
+    "service_from": "06:00",
+    "service_until": "23:00",
+    "duration_minutes": 46,
+    "pricing": "PER_VEHICLE",
+    "price": {
+      "amount": 1619,
+      "currency": "INR"
+    }
+  },
+  {
+    "transfer_id": "TR-SIN-SEN-VAN",
+    "type": "AIRPORT_VAN",
+    "name": "Changi private van to Sentosa",
+    "airport": "SIN",
+    "city": "Singapore",
+    "area": "Sentosa",
+    "from_point": "SIN",
+    "to_point": "Sentosa area hotels",
+    "max_passengers": 8,
+    "service_from": "00:00",
+    "service_until": "24:00",
+    "duration_minutes": 51,
+    "pricing": "PER_VEHICLE",
+    "price": {
+      "amount": 2343,
+      "currency": "INR"
+    }
+  },
+  {
+    "transfer_id": "TR-SIN-CHI-TAXI",
+    "type": "AIRPORT_TAXI",
+    "name": "Changi airport taxi to Chinatown",
+    "airport": "SIN",
+    "city": "Singapore",
+    "area": "Chinatown",
+    "from_point": "SIN",
+    "to_point": "Chinatown area hotels",
+    "max_passengers": 4,
+    "service_from": "06:00",
+    "service_until": "23:00",
+    "duration_minutes": 41,
+    "pricing": "PER_VEHICLE",
+    "price": {
+      "amount": 1382,
+      "currency": "INR"
+    }
+  },
+  {
+    "transfer_id": "TR-SIN-CHI-BUS",
+    "type": "AIRPORT_BUS",
+    "name": "Changi airport shuttle bus to Chinatown",
+    "airport": "SIN",
+    "city": "Singapore",
+    "area": "Chinatown",
+    "from_point": "SIN",
+    "to_point": "Chinatown area hotels",
+    "max_passengers": 99,
+    "service_from": "06:00",
+    "service_until": "22:00",
+    "duration_minutes": 72,
+    "pricing": "PER_PERSON",
+    "price": {
+      "amount": 625,
+      "currency": "INR"
+    },
+    "child_price": {
+      "amount": 312,
+      "currency": "INR"
+    }
+  },
+  {
+    "transfer_id": "TR-SIN-CHI-VAN",
+    "type": "AIRPORT_VAN",
+    "name": "Changi private van to Chinatown",
+    "airport": "SIN",
+    "city": "Singapore",
+    "area": "Chinatown",
+    "from_point": "SIN",
+    "to_point": "Chinatown area hotels",
+    "max_passengers": 8,
+    "service_from": "00:00",
+    "service_until": "24:00",
+    "duration_minutes": 42,
+    "pricing": "PER_VEHICLE",
+    "price": {
+      "amount": 2071,
+      "currency": "INR"
+    }
+  },
+  {
+    "transfer_id": "TR-SIN-LIT-VAN",
+    "type": "AIRPORT_VAN",
+    "name": "Changi private van to Little India",
+    "airport": "SIN",
+    "city": "Singapore",
+    "area": "Little India",
+    "from_point": "SIN",
+    "to_point": "Little India area hotels",
+    "max_passengers": 8,
+    "service_from": "00:00",
+    "service_until": "24:00",
+    "duration_minutes": 52,
+    "pricing": "PER_VEHICLE",
+    "price": {
+      "amount": 3115,
+      "currency": "INR"
+    }
+  },
+  {
+    "transfer_id": "TR-SIN-CITY-TAXI",
+    "type": "CITY_TAXI",
+    "name": "Singapore city taxi, hotel to main station",
+    "airport": null,
+    "city": "Singapore",
+    "area": null,
+    "from_point": "Singapore hotels",
+    "to_point": "Singapore main station",
+    "max_passengers": 4,
+    "service_from": "05:00",
+    "service_until": "24:00",
+    "duration_minutes": 25,
+    "pricing": "PER_VEHICLE",
+    "price": {
+      "amount": 1897,
+      "currency": "INR"
+    }
+  },
+  {
+    "transfer_id": "TR-KUL-KLC-TAXI",
+    "type": "AIRPORT_TAXI",
+    "name": "KLIA airport taxi to KLCC",
+    "airport": "KUL",
+    "city": "Kuala Lumpur",
+    "area": "KLCC",
+    "from_point": "KUL",
+    "to_point": "KLCC area hotels",
+    "max_passengers": 4,
+    "service_from": "07:00",
+    "service_until": "21:30",
+    "duration_minutes": 56,
+    "pricing": "PER_VEHICLE",
+    "price": {
+      "amount": 1766,
+      "currency": "INR"
+    }
+  },
+  {
+    "transfer_id": "TR-KUL-KLC-BUS",
+    "type": "AIRPORT_BUS",
+    "name": "KLIA airport shuttle bus to KLCC",
+    "airport": "KUL",
+    "city": "Kuala Lumpur",
+    "area": "KLCC",
+    "from_point": "KUL",
+    "to_point": "KLCC area hotels",
+    "max_passengers": 99,
+    "service_from": "06:00",
+    "service_until": "22:00",
+    "duration_minutes": 90,
+    "pricing": "PER_PERSON",
+    "price": {
+      "amount": 619,
+      "currency": "INR"
+    },
+    "child_price": {
+      "amount": 309,
+      "currency": "INR"
+    }
+  },
+  {
+    "transfer_id": "TR-KUL-BUK-TAXI",
+    "type": "AIRPORT_TAXI",
+    "name": "KLIA airport taxi to Bukit Bintang",
+    "airport": "KUL",
+    "city": "Kuala Lumpur",
+    "area": "Bukit Bintang",
+    "from_point": "KUL",
+    "to_point": "Bukit Bintang area hotels",
+    "max_passengers": 4,
+    "service_from": "06:00",
+    "service_until": "23:00",
+    "duration_minutes": 55,
+    "pricing": "PER_VEHICLE",
+    "price": {
+      "amount": 1492,
+      "currency": "INR"
+    }
+  },
+  {
+    "transfer_id": "TR-KUL-BUK-VAN",
+    "type": "AIRPORT_VAN",
+    "name": "KLIA private van to Bukit Bintang",
+    "airport": "KUL",
+    "city": "Kuala Lumpur",
+    "area": "Bukit Bintang",
+    "from_point": "KUL",
+    "to_point": "Bukit Bintang area hotels",
+    "max_passengers": 8,
+    "service_from": "05:30",
+    "service_until": "22:30",
+    "duration_minutes": 59,
+    "pricing": "PER_VEHICLE",
+    "price": {
+      "amount": 2167,
+      "currency": "INR"
+    }
+  },
+  {
+    "transfer_id": "TR-KUL-BAN-TAXI",
+    "type": "AIRPORT_TAXI",
+    "name": "KLIA airport taxi to Bangsar",
+    "airport": "KUL",
+    "city": "Kuala Lumpur",
+    "area": "Bangsar",
+    "from_point": "KUL",
+    "to_point": "Bangsar area hotels",
+    "max_passengers": 4,
+    "service_from": "05:00",
+    "service_until": "24:00",
+    "duration_minutes": 57,
+    "pricing": "PER_VEHICLE",
+    "price": {
+      "amount": 1737,
+      "currency": "INR"
+    }
+  },
+  {
+    "transfer_id": "TR-KUL-PET-BUS",
+    "type": "AIRPORT_BUS",
+    "name": "KLIA airport shuttle bus to Petaling Street",
+    "airport": "KUL",
+    "city": "Kuala Lumpur",
+    "area": "Petaling Street",
+    "from_point": "KUL",
+    "to_point": "Petaling Street area hotels",
+    "max_passengers": 99,
+    "service_from": "07:00",
+    "service_until": "20:00",
+    "duration_minutes": 91,
+    "pricing": "PER_PERSON",
+    "price": {
+      "amount": 694,
+      "currency": "INR"
+    },
+    "child_price": {
+      "amount": 347,
+      "currency": "INR"
+    }
+  },
+  {
+    "transfer_id": "TR-KUL-PET-VAN",
+    "type": "AIRPORT_VAN",
+    "name": "KLIA private van to Petaling Street",
+    "airport": "KUL",
+    "city": "Kuala Lumpur",
+    "area": "Petaling Street",
+    "from_point": "KUL",
+    "to_point": "Petaling Street area hotels",
+    "max_passengers": 8,
+    "service_from": "00:00",
+    "service_until": "24:00",
+    "duration_minutes": 69,
+    "pricing": "PER_VEHICLE",
+    "price": {
+      "amount": 2763,
+      "currency": "INR"
+    }
+  },
+  {
+    "transfer_id": "TR-KUL-KUL-BUS",
+    "type": "AIRPORT_BUS",
+    "name": "KLIA airport bus to Kuala Lumpur city centre",
+    "airport": "KUL",
+    "city": "Kuala Lumpur",
+    "area": null,
+    "from_point": "KUL",
+    "to_point": "Kuala Lumpur city centre",
+    "max_passengers": 99,
+    "service_from": "05:30",
+    "service_until": "23:30",
+    "duration_minutes": 72,
+    "pricing": "PER_PERSON",
+    "price": {
+      "amount": 606,
+      "currency": "INR"
+    },
+    "child_price": {
+      "amount": 303,
+      "currency": "INR"
+    }
+  },
+  {
+    "transfer_id": "TR-KUL-CITY-TAXI",
+    "type": "CITY_TAXI",
+    "name": "Kuala Lumpur city taxi, hotel to main station",
+    "airport": null,
+    "city": "Kuala Lumpur",
+    "area": null,
+    "from_point": "Kuala Lumpur hotels",
+    "to_point": "Kuala Lumpur main station",
+    "max_passengers": 4,
+    "service_from": "05:00",
+    "service_until": "24:00",
+    "duration_minutes": 25,
+    "pricing": "PER_VEHICLE",
+    "price": {
+      "amount": 1423,
+      "currency": "INR"
+    }
+  },
+  {
+    "transfer_id": "TR-PEN-GEO-TAXI",
+    "type": "AIRPORT_TAXI",
+    "name": "Penang airport airport taxi to George Town",
+    "airport": "PEN",
+    "city": "Penang",
+    "area": "George Town",
+    "from_point": "PEN",
+    "to_point": "George Town area hotels",
+    "max_passengers": 4,
+    "service_from": "00:00",
+    "service_until": "24:00",
+    "duration_minutes": 48,
+    "pricing": "PER_VEHICLE",
+    "price": {
+      "amount": 1437,
+      "currency": "INR"
+    }
+  },
+  {
+    "transfer_id": "TR-PEN-BAT-TAXI",
+    "type": "AIRPORT_TAXI",
+    "name": "Penang airport airport taxi to Batu Ferringhi",
+    "airport": "PEN",
+    "city": "Penang",
+    "area": "Batu Ferringhi",
+    "from_point": "PEN",
+    "to_point": "Batu Ferringhi area hotels",
+    "max_passengers": 4,
+    "service_from": "05:00",
+    "service_until": "24:00",
+    "duration_minutes": 31,
+    "pricing": "PER_VEHICLE",
+    "price": {
+      "amount": 791,
+      "currency": "INR"
+    }
+  },
+  {
+    "transfer_id": "TR-PEN-BAT-BUS",
+    "type": "AIRPORT_BUS",
+    "name": "Penang airport airport shuttle bus to Batu Ferringhi",
+    "airport": "PEN",
+    "city": "Penang",
+    "area": "Batu Ferringhi",
+    "from_point": "PEN",
+    "to_point": "Batu Ferringhi area hotels",
+    "max_passengers": 99,
+    "service_from": "06:00",
+    "service_until": "22:00",
+    "duration_minutes": 58,
+    "pricing": "PER_PERSON",
+    "price": {
+      "amount": 358,
+      "currency": "INR"
+    },
+    "child_price": {
+      "amount": 179,
+      "currency": "INR"
+    }
+  },
+  {
+    "transfer_id": "TR-PEN-GUR-TAXI",
+    "type": "AIRPORT_TAXI",
+    "name": "Penang airport airport taxi to Gurney",
+    "airport": "PEN",
+    "city": "Penang",
+    "area": "Gurney",
+    "from_point": "PEN",
+    "to_point": "Gurney area hotels",
+    "max_passengers": 4,
+    "service_from": "00:00",
+    "service_until": "24:00",
+    "duration_minutes": 25,
+    "pricing": "PER_VEHICLE",
+    "price": {
+      "amount": 621,
+      "currency": "INR"
+    }
+  },
+  {
+    "transfer_id": "TR-PEN-CITY-TAXI",
+    "type": "CITY_TAXI",
+    "name": "Penang city taxi, hotel to main station",
+    "airport": null,
+    "city": "Penang",
+    "area": null,
+    "from_point": "Penang hotels",
+    "to_point": "Penang main station",
+    "max_passengers": 4,
+    "service_from": "05:00",
+    "service_until": "24:00",
+    "duration_minutes": 25,
+    "pricing": "PER_VEHICLE",
+    "price": {
+      "amount": 1382,
+      "currency": "INR"
+    }
+  },
+  {
+    "transfer_id": "TR-LGK-PAN-TAXI",
+    "type": "AIRPORT_TAXI",
+    "name": "Langkawi airport airport taxi to Pantai Cenang",
+    "airport": "LGK",
+    "city": "Langkawi",
+    "area": "Pantai Cenang",
+    "from_point": "LGK",
+    "to_point": "Pantai Cenang area hotels",
+    "max_passengers": 4,
+    "service_from": "07:00",
+    "service_until": "21:30",
+    "duration_minutes": 35,
+    "pricing": "PER_VEHICLE",
+    "price": {
+      "amount": 1025,
+      "currency": "INR"
+    }
+  },
+  {
+    "transfer_id": "TR-LGK-KUA-TAXI",
+    "type": "AIRPORT_TAXI",
+    "name": "Langkawi airport airport taxi to Kuah",
+    "airport": "LGK",
+    "city": "Langkawi",
+    "area": "Kuah",
+    "from_point": "LGK",
+    "to_point": "Kuah area hotels",
+    "max_passengers": 4,
+    "service_from": "05:00",
+    "service_until": "24:00",
+    "duration_minutes": 38,
+    "pricing": "PER_VEHICLE",
+    "price": {
+      "amount": 1251,
+      "currency": "INR"
+    }
+  },
+  {
+    "transfer_id": "TR-LGK-KUA-BUS",
+    "type": "AIRPORT_BUS",
+    "name": "Langkawi airport airport shuttle bus to Kuah",
+    "airport": "LGK",
+    "city": "Langkawi",
+    "area": "Kuah",
+    "from_point": "LGK",
+    "to_point": "Kuah area hotels",
+    "max_passengers": 99,
+    "service_from": "05:30",
+    "service_until": "23:00",
+    "duration_minutes": 55,
+    "pricing": "PER_PERSON",
+    "price": {
+      "amount": 356,
+      "currency": "INR"
+    },
+    "child_price": {
+      "amount": 178,
+      "currency": "INR"
+    }
+  },
+  {
+    "transfer_id": "TR-LGK-KUA-VAN",
+    "type": "AIRPORT_VAN",
+    "name": "Langkawi airport private van to Kuah",
+    "airport": "LGK",
+    "city": "Langkawi",
+    "area": "Kuah",
+    "from_point": "LGK",
+    "to_point": "Kuah area hotels",
+    "max_passengers": 8,
+    "service_from": "05:30",
+    "service_until": "22:30",
+    "duration_minutes": 48,
+    "pricing": "PER_VEHICLE",
+    "price": {
+      "amount": 1689,
+      "currency": "INR"
+    }
+  },
+  {
+    "transfer_id": "TR-LGK-PAN2-BUS",
+    "type": "AIRPORT_BUS",
+    "name": "Langkawi airport airport shuttle bus to Pantai Tengah",
+    "airport": "LGK",
+    "city": "Langkawi",
+    "area": "Pantai Tengah",
+    "from_point": "LGK",
+    "to_point": "Pantai Tengah area hotels",
+    "max_passengers": 99,
+    "service_from": "06:30",
+    "service_until": "21:30",
+    "duration_minutes": 45,
+    "pricing": "PER_PERSON",
+    "price": {
+      "amount": 291,
+      "currency": "INR"
+    },
+    "child_price": {
+      "amount": 145,
+      "currency": "INR"
+    }
+  },
+  {
+    "transfer_id": "TR-LGK-CITY-TAXI",
+    "type": "CITY_TAXI",
+    "name": "Langkawi city taxi, hotel to main station",
+    "airport": null,
+    "city": "Langkawi",
+    "area": null,
+    "from_point": "Langkawi hotels",
+    "to_point": "Langkawi main station",
+    "max_passengers": 4,
+    "service_from": "05:00",
+    "service_until": "24:00",
+    "duration_minutes": 25,
+    "pricing": "PER_VEHICLE",
+    "price": {
+      "amount": 1500,
+      "currency": "INR"
+    }
+  },
+  {
+    "transfer_id": "TR-DPS-SEM-TAXI",
+    "type": "AIRPORT_TAXI",
+    "name": "Ngurah Rai airport taxi to Seminyak",
+    "airport": "DPS",
+    "city": "Bali",
+    "area": "Seminyak",
+    "from_point": "DPS",
+    "to_point": "Seminyak area hotels",
+    "max_passengers": 4,
+    "service_from": "06:00",
+    "service_until": "23:00",
+    "duration_minutes": 44,
+    "pricing": "PER_VEHICLE",
+    "price": {
+      "amount": 1267,
+      "currency": "INR"
+    }
+  },
+  {
+    "transfer_id": "TR-DPS-SEM-BUS",
+    "type": "AIRPORT_BUS",
+    "name": "Ngurah Rai airport shuttle bus to Seminyak",
+    "airport": "DPS",
+    "city": "Bali",
+    "area": "Seminyak",
+    "from_point": "DPS",
+    "to_point": "Seminyak area hotels",
+    "max_passengers": 99,
+    "service_from": "05:30",
+    "service_until": "23:00",
+    "duration_minutes": 54,
+    "pricing": "PER_PERSON",
+    "price": {
+      "amount": 512,
+      "currency": "INR"
+    },
+    "child_price": {
+      "amount": 256,
+      "currency": "INR"
+    }
+  },
+  {
+    "transfer_id": "TR-DPS-UBU-TAXI",
+    "type": "AIRPORT_TAXI",
+    "name": "Ngurah Rai airport taxi to Ubud",
+    "airport": "DPS",
+    "city": "Bali",
+    "area": "Ubud",
+    "from_point": "DPS",
+    "to_point": "Ubud area hotels",
+    "max_passengers": 4,
+    "service_from": "05:00",
+    "service_until": "24:00",
+    "duration_minutes": 58,
+    "pricing": "PER_VEHICLE",
+    "price": {
+      "amount": 1768,
+      "currency": "INR"
+    }
+  },
+  {
+    "transfer_id": "TR-DPS-UBU-BUS",
+    "type": "AIRPORT_BUS",
+    "name": "Ngurah Rai airport shuttle bus to Ubud",
+    "airport": "DPS",
+    "city": "Bali",
+    "area": "Ubud",
+    "from_point": "DPS",
+    "to_point": "Ubud area hotels",
+    "max_passengers": 99,
+    "service_from": "05:30",
+    "service_until": "23:00",
+    "duration_minutes": 69,
+    "pricing": "PER_PERSON",
+    "price": {
+      "amount": 656,
+      "currency": "INR"
+    },
+    "child_price": {
+      "amount": 328,
+      "currency": "INR"
+    }
+  },
+  {
+    "transfer_id": "TR-DPS-KUT-TAXI",
+    "type": "AIRPORT_TAXI",
+    "name": "Ngurah Rai airport taxi to Kuta",
+    "airport": "DPS",
+    "city": "Bali",
+    "area": "Kuta",
+    "from_point": "DPS",
+    "to_point": "Kuta area hotels",
+    "max_passengers": 4,
+    "service_from": "05:00",
+    "service_until": "24:00",
+    "duration_minutes": 41,
+    "pricing": "PER_VEHICLE",
+    "price": {
+      "amount": 1362,
+      "currency": "INR"
+    }
+  },
+  {
+    "transfer_id": "TR-DPS-KUT-BUS",
+    "type": "AIRPORT_BUS",
+    "name": "Ngurah Rai airport shuttle bus to Kuta",
+    "airport": "DPS",
+    "city": "Bali",
+    "area": "Kuta",
+    "from_point": "DPS",
+    "to_point": "Kuta area hotels",
+    "max_passengers": 99,
+    "service_from": "07:00",
+    "service_until": "20:00",
+    "duration_minutes": 66,
+    "pricing": "PER_PERSON",
+    "price": {
+      "amount": 534,
+      "currency": "INR"
+    },
+    "child_price": {
+      "amount": 267,
+      "currency": "INR"
+    }
+  },
+  {
+    "transfer_id": "TR-DPS-KUT-VAN",
+    "type": "AIRPORT_VAN",
+    "name": "Ngurah Rai private van to Kuta",
+    "airport": "DPS",
+    "city": "Bali",
+    "area": "Kuta",
+    "from_point": "DPS",
+    "to_point": "Kuta area hotels",
+    "max_passengers": 8,
+    "service_from": "00:00",
+    "service_until": "24:00",
+    "duration_minutes": 47,
+    "pricing": "PER_VEHICLE",
+    "price": {
+      "amount": 1669,
+      "currency": "INR"
+    }
+  },
+  {
+    "transfer_id": "TR-DPS-NUS-TAXI",
+    "type": "AIRPORT_TAXI",
+    "name": "Ngurah Rai airport taxi to Nusa Dua",
+    "airport": "DPS",
+    "city": "Bali",
+    "area": "Nusa Dua",
+    "from_point": "DPS",
+    "to_point": "Nusa Dua area hotels",
+    "max_passengers": 4,
+    "service_from": "07:00",
+    "service_until": "21:30",
+    "duration_minutes": 48,
+    "pricing": "PER_VEHICLE",
+    "price": {
+      "amount": 1656,
+      "currency": "INR"
+    }
+  },
+  {
+    "transfer_id": "TR-DPS-NUS-VAN",
+    "type": "AIRPORT_VAN",
+    "name": "Ngurah Rai private van to Nusa Dua",
+    "airport": "DPS",
+    "city": "Bali",
+    "area": "Nusa Dua",
+    "from_point": "DPS",
+    "to_point": "Nusa Dua area hotels",
+    "max_passengers": 8,
+    "service_from": "00:00",
+    "service_until": "24:00",
+    "duration_minutes": 48,
+    "pricing": "PER_VEHICLE",
+    "price": {
+      "amount": 2689,
+      "currency": "INR"
+    }
+  },
+  {
+    "transfer_id": "TR-DPS-SAN-TAXI",
+    "type": "AIRPORT_TAXI",
+    "name": "Ngurah Rai airport taxi to Sanur",
+    "airport": "DPS",
+    "city": "Bali",
+    "area": "Sanur",
+    "from_point": "DPS",
+    "to_point": "Sanur area hotels",
+    "max_passengers": 4,
+    "service_from": "07:00",
+    "service_until": "21:30",
+    "duration_minutes": 41,
+    "pricing": "PER_VEHICLE",
+    "price": {
+      "amount": 1084,
+      "currency": "INR"
+    }
+  },
+  {
+    "transfer_id": "TR-DPS-SAN-BUS",
+    "type": "AIRPORT_BUS",
+    "name": "Ngurah Rai airport shuttle bus to Sanur",
+    "airport": "DPS",
+    "city": "Bali",
+    "area": "Sanur",
+    "from_point": "DPS",
+    "to_point": "Sanur area hotels",
+    "max_passengers": 99,
+    "service_from": "06:00",
+    "service_until": "22:00",
+    "duration_minutes": 81,
+    "pricing": "PER_PERSON",
+    "price": {
+      "amount": 534,
+      "currency": "INR"
+    },
+    "child_price": {
+      "amount": 267,
+      "currency": "INR"
+    }
+  },
+  {
+    "transfer_id": "TR-DPS-CITY-TAXI",
+    "type": "CITY_TAXI",
+    "name": "Bali city taxi, hotel to main station",
+    "airport": null,
+    "city": "Bali",
+    "area": null,
+    "from_point": "Bali hotels",
+    "to_point": "Bali main station",
+    "max_passengers": 4,
+    "service_from": "05:00",
+    "service_until": "24:00",
+    "duration_minutes": 25,
+    "pricing": "PER_VEHICLE",
+    "price": {
+      "amount": 1608,
+      "currency": "INR"
+    }
+  },
+  {
+    "transfer_id": "TR-CGK-MEN-BUS",
+    "type": "AIRPORT_BUS",
+    "name": "Soekarno-Hatta airport shuttle bus to Menteng",
+    "airport": "CGK",
+    "city": "Jakarta",
+    "area": "Menteng",
+    "from_point": "CGK",
+    "to_point": "Menteng area hotels",
+    "max_passengers": 99,
+    "service_from": "05:30",
+    "service_until": "23:00",
+    "duration_minutes": 102,
+    "pricing": "PER_PERSON",
+    "price": {
+      "amount": 838,
+      "currency": "INR"
+    },
+    "child_price": {
+      "amount": 419,
+      "currency": "INR"
+    }
+  },
+  {
+    "transfer_id": "TR-CGK-MEN-VAN",
+    "type": "AIRPORT_VAN",
+    "name": "Soekarno-Hatta private van to Menteng",
+    "airport": "CGK",
+    "city": "Jakarta",
+    "area": "Menteng",
+    "from_point": "CGK",
+    "to_point": "Menteng area hotels",
+    "max_passengers": 8,
+    "service_from": "06:00",
+    "service_until": "23:30",
+    "duration_minutes": 67,
+    "pricing": "PER_VEHICLE",
+    "price": {
+      "amount": 2811,
+      "currency": "INR"
+    }
+  },
+  {
+    "transfer_id": "TR-CGK-SUD-VAN",
+    "type": "AIRPORT_VAN",
+    "name": "Soekarno-Hatta private van to Sudirman",
+    "airport": "CGK",
+    "city": "Jakarta",
+    "area": "Sudirman",
+    "from_point": "CGK",
+    "to_point": "Sudirman area hotels",
+    "max_passengers": 8,
+    "service_from": "00:00",
+    "service_until": "24:00",
+    "duration_minutes": 59,
+    "pricing": "PER_VEHICLE",
+    "price": {
+      "amount": 2546,
+      "currency": "INR"
+    }
+  },
+  {
+    "transfer_id": "TR-CGK-KOT-TAXI",
+    "type": "AIRPORT_TAXI",
+    "name": "Soekarno-Hatta airport taxi to Kota Tua",
+    "airport": "CGK",
+    "city": "Jakarta",
+    "area": "Kota Tua",
+    "from_point": "CGK",
+    "to_point": "Kota Tua area hotels",
+    "max_passengers": 4,
+    "service_from": "00:00",
+    "service_until": "24:00",
+    "duration_minutes": 61,
+    "pricing": "PER_VEHICLE",
+    "price": {
+      "amount": 1571,
+      "currency": "INR"
+    }
+  },
+  {
+    "transfer_id": "TR-CGK-KOT-BUS",
+    "type": "AIRPORT_BUS",
+    "name": "Soekarno-Hatta airport shuttle bus to Kota Tua",
+    "airport": "CGK",
+    "city": "Jakarta",
+    "area": "Kota Tua",
+    "from_point": "CGK",
+    "to_point": "Kota Tua area hotels",
+    "max_passengers": 99,
+    "service_from": "05:30",
+    "service_until": "23:00",
+    "duration_minutes": 83,
+    "pricing": "PER_PERSON",
+    "price": {
+      "amount": 622,
+      "currency": "INR"
+    },
+    "child_price": {
+      "amount": 311,
+      "currency": "INR"
+    }
+  },
+  {
+    "transfer_id": "TR-CGK-KEM-TAXI",
+    "type": "AIRPORT_TAXI",
+    "name": "Soekarno-Hatta airport taxi to Kemang",
+    "airport": "CGK",
+    "city": "Jakarta",
+    "area": "Kemang",
+    "from_point": "CGK",
+    "to_point": "Kemang area hotels",
+    "max_passengers": 4,
+    "service_from": "07:00",
+    "service_until": "21:30",
+    "duration_minutes": 69,
+    "pricing": "PER_VEHICLE",
+    "price": {
+      "amount": 2039,
+      "currency": "INR"
+    }
+  },
+  {
+    "transfer_id": "TR-CGK-JKT-BUS",
+    "type": "AIRPORT_BUS",
+    "name": "Soekarno-Hatta airport bus to Jakarta city centre",
+    "airport": "CGK",
+    "city": "Jakarta",
+    "area": null,
+    "from_point": "CGK",
+    "to_point": "Jakarta city centre",
+    "max_passengers": 99,
+    "service_from": "06:00",
+    "service_until": "22:30",
+    "duration_minutes": 100,
+    "pricing": "PER_PERSON",
+    "price": {
+      "amount": 695,
+      "currency": "INR"
+    },
+    "child_price": {
+      "amount": 347,
+      "currency": "INR"
+    }
+  },
+  {
+    "transfer_id": "TR-JKT-CITY-TAXI",
+    "type": "CITY_TAXI",
+    "name": "Jakarta city taxi, hotel to main station",
+    "airport": null,
+    "city": "Jakarta",
+    "area": null,
+    "from_point": "Jakarta hotels",
+    "to_point": "Jakarta main station",
+    "max_passengers": 4,
+    "service_from": "05:00",
+    "service_until": "24:00",
+    "duration_minutes": 25,
+    "pricing": "PER_VEHICLE",
+    "price": {
+      "amount": 1423,
+      "currency": "INR"
+    }
+  },
+  {
+    "transfer_id": "TR-YIA-MAL-TAXI",
+    "type": "AIRPORT_TAXI",
+    "name": "Yogyakarta airport airport taxi to Malioboro",
+    "airport": "YIA",
+    "city": "Yogyakarta",
+    "area": "Malioboro",
+    "from_point": "YIA",
+    "to_point": "Malioboro area hotels",
+    "max_passengers": 4,
+    "service_from": "05:00",
+    "service_until": "24:00",
+    "duration_minutes": 70,
+    "pricing": "PER_VEHICLE",
+    "price": {
+      "amount": 1555,
+      "currency": "INR"
+    }
+  },
+  {
+    "transfer_id": "TR-YIA-MAL-VAN",
+    "type": "AIRPORT_VAN",
+    "name": "Yogyakarta airport private van to Malioboro",
+    "airport": "YIA",
+    "city": "Yogyakarta",
+    "area": "Malioboro",
+    "from_point": "YIA",
+    "to_point": "Malioboro area hotels",
+    "max_passengers": 8,
+    "service_from": "05:30",
+    "service_until": "22:30",
+    "duration_minutes": 74,
+    "pricing": "PER_VEHICLE",
+    "price": {
+      "amount": 2665,
+      "currency": "INR"
+    }
+  },
+  {
+    "transfer_id": "TR-YIA-PRA-TAXI",
+    "type": "AIRPORT_TAXI",
+    "name": "Yogyakarta airport airport taxi to Prawirotaman",
+    "airport": "YIA",
+    "city": "Yogyakarta",
+    "area": "Prawirotaman",
+    "from_point": "YIA",
+    "to_point": "Prawirotaman area hotels",
+    "max_passengers": 4,
+    "service_from": "07:00",
+    "service_until": "21:30",
+    "duration_minutes": 87,
+    "pricing": "PER_VEHICLE",
+    "price": {
+      "amount": 1892,
+      "currency": "INR"
+    }
+  },
+  {
+    "transfer_id": "TR-YIA-PRA-BUS",
+    "type": "AIRPORT_BUS",
+    "name": "Yogyakarta airport airport shuttle bus to Prawirotaman",
+    "airport": "YIA",
+    "city": "Yogyakarta",
+    "area": "Prawirotaman",
+    "from_point": "YIA",
+    "to_point": "Prawirotaman area hotels",
+    "max_passengers": 99,
+    "service_from": "07:00",
+    "service_until": "20:00",
+    "duration_minutes": 102,
+    "pricing": "PER_PERSON",
+    "price": {
+      "amount": 901,
+      "currency": "INR"
+    },
+    "child_price": {
+      "amount": 450,
+      "currency": "INR"
+    }
+  },
+  {
+    "transfer_id": "TR-YIA-PRA-VAN",
+    "type": "AIRPORT_VAN",
+    "name": "Yogyakarta airport private van to Prawirotaman",
+    "airport": "YIA",
+    "city": "Yogyakarta",
+    "area": "Prawirotaman",
+    "from_point": "YIA",
+    "to_point": "Prawirotaman area hotels",
+    "max_passengers": 8,
+    "service_from": "00:00",
+    "service_until": "24:00",
+    "duration_minutes": 90,
+    "pricing": "PER_VEHICLE",
+    "price": {
+      "amount": 3011,
+      "currency": "INR"
+    }
+  },
+  {
+    "transfer_id": "TR-YIA-SLE-TAXI",
+    "type": "AIRPORT_TAXI",
+    "name": "Yogyakarta airport airport taxi to Sleman",
+    "airport": "YIA",
+    "city": "Yogyakarta",
+    "area": "Sleman",
+    "from_point": "YIA",
+    "to_point": "Sleman area hotels",
+    "max_passengers": 4,
+    "service_from": "06:00",
+    "service_until": "23:00",
+    "duration_minutes": 78,
+    "pricing": "PER_VEHICLE",
+    "price": {
+      "amount": 1718,
+      "currency": "INR"
+    }
+  },
+  {
+    "transfer_id": "TR-YIA-SLE-BUS",
+    "type": "AIRPORT_BUS",
+    "name": "Yogyakarta airport airport shuttle bus to Sleman",
+    "airport": "YIA",
+    "city": "Yogyakarta",
+    "area": "Sleman",
+    "from_point": "YIA",
+    "to_point": "Sleman area hotels",
+    "max_passengers": 99,
+    "service_from": "06:30",
+    "service_until": "21:30",
+    "duration_minutes": 115,
+    "pricing": "PER_PERSON",
+    "price": {
+      "amount": 633,
+      "currency": "INR"
+    },
+    "child_price": {
+      "amount": 316,
+      "currency": "INR"
+    }
+  },
+  {
+    "transfer_id": "TR-YIA-JOG-BUS",
+    "type": "AIRPORT_BUS",
+    "name": "Yogyakarta airport airport bus to Yogyakarta city centre",
+    "airport": "YIA",
+    "city": "Yogyakarta",
+    "area": null,
+    "from_point": "YIA",
+    "to_point": "Yogyakarta city centre",
+    "max_passengers": 99,
+    "service_from": "05:30",
+    "service_until": "23:30",
+    "duration_minutes": 112,
+    "pricing": "PER_PERSON",
+    "price": {
+      "amount": 666,
+      "currency": "INR"
+    },
+    "child_price": {
+      "amount": 333,
+      "currency": "INR"
+    }
+  },
+  {
+    "transfer_id": "TR-JOG-CITY-TAXI",
+    "type": "CITY_TAXI",
+    "name": "Yogyakarta city taxi, hotel to main station",
+    "airport": null,
+    "city": "Yogyakarta",
+    "area": null,
+    "from_point": "Yogyakarta hotels",
+    "to_point": "Yogyakarta main station",
+    "max_passengers": 4,
+    "service_from": "05:00",
+    "service_until": "24:00",
+    "duration_minutes": 25,
+    "pricing": "PER_VEHICLE",
+    "price": {
+      "amount": 1161,
+      "currency": "INR"
+    }
+  },
+  {
+    "transfer_id": "TR-HAN-OLD-TAXI",
+    "type": "AIRPORT_TAXI",
+    "name": "Noi Bai airport taxi to Old Quarter",
+    "airport": "HAN",
+    "city": "Hanoi",
+    "area": "Old Quarter",
+    "from_point": "HAN",
+    "to_point": "Old Quarter area hotels",
+    "max_passengers": 4,
+    "service_from": "07:00",
+    "service_until": "21:30",
+    "duration_minutes": 65,
+    "pricing": "PER_VEHICLE",
+    "price": {
+      "amount": 1414,
+      "currency": "INR"
+    }
+  },
+  {
+    "transfer_id": "TR-HAN-OLD-VAN",
+    "type": "AIRPORT_VAN",
+    "name": "Noi Bai private van to Old Quarter",
+    "airport": "HAN",
+    "city": "Hanoi",
+    "area": "Old Quarter",
+    "from_point": "HAN",
+    "to_point": "Old Quarter area hotels",
+    "max_passengers": 8,
+    "service_from": "06:00",
+    "service_until": "23:30",
+    "duration_minutes": 65,
+    "pricing": "PER_VEHICLE",
+    "price": {
+      "amount": 2507,
+      "currency": "INR"
+    }
+  },
+  {
+    "transfer_id": "TR-HAN-HOA-TAXI",
+    "type": "AIRPORT_TAXI",
+    "name": "Noi Bai airport taxi to Hoan Kiem",
+    "airport": "HAN",
+    "city": "Hanoi",
+    "area": "Hoan Kiem",
+    "from_point": "HAN",
+    "to_point": "Hoan Kiem area hotels",
+    "max_passengers": 4,
+    "service_from": "05:00",
+    "service_until": "24:00",
+    "duration_minutes": 73,
+    "pricing": "PER_VEHICLE",
+    "price": {
+      "amount": 1901,
+      "currency": "INR"
+    }
+  },
+  {
+    "transfer_id": "TR-HAN-HOA-VAN",
+    "type": "AIRPORT_VAN",
+    "name": "Noi Bai private van to Hoan Kiem",
+    "airport": "HAN",
+    "city": "Hanoi",
+    "area": "Hoan Kiem",
+    "from_point": "HAN",
+    "to_point": "Hoan Kiem area hotels",
+    "max_passengers": 8,
+    "service_from": "06:00",
+    "service_until": "23:30",
+    "duration_minutes": 82,
+    "pricing": "PER_VEHICLE",
+    "price": {
+      "amount": 2855,
+      "currency": "INR"
+    }
+  },
+  {
+    "transfer_id": "TR-HAN-WES-TAXI",
+    "type": "AIRPORT_TAXI",
+    "name": "Noi Bai airport taxi to West Lake",
+    "airport": "HAN",
+    "city": "Hanoi",
+    "area": "West Lake",
+    "from_point": "HAN",
+    "to_point": "West Lake area hotels",
+    "max_passengers": 4,
+    "service_from": "00:00",
+    "service_until": "24:00",
+    "duration_minutes": 52,
+    "pricing": "PER_VEHICLE",
+    "price": {
+      "amount": 1445,
+      "currency": "INR"
+    }
+  },
+  {
+    "transfer_id": "TR-HAN-WES-BUS",
+    "type": "AIRPORT_BUS",
+    "name": "Noi Bai airport shuttle bus to West Lake",
+    "airport": "HAN",
+    "city": "Hanoi",
+    "area": "West Lake",
+    "from_point": "HAN",
+    "to_point": "West Lake area hotels",
+    "max_passengers": 99,
+    "service_from": "07:00",
+    "service_until": "20:00",
+    "duration_minutes": 64,
+    "pricing": "PER_PERSON",
+    "price": {
+      "amount": 560,
+      "currency": "INR"
+    },
+    "child_price": {
+      "amount": 280,
+      "currency": "INR"
+    }
+  },
+  {
+    "transfer_id": "TR-HAN-WES-VAN",
+    "type": "AIRPORT_VAN",
+    "name": "Noi Bai private van to West Lake",
+    "airport": "HAN",
+    "city": "Hanoi",
+    "area": "West Lake",
+    "from_point": "HAN",
+    "to_point": "West Lake area hotels",
+    "max_passengers": 8,
+    "service_from": "06:00",
+    "service_until": "23:30",
+    "duration_minutes": 55,
+    "pricing": "PER_VEHICLE",
+    "price": {
+      "amount": 1742,
+      "currency": "INR"
+    }
+  },
+  {
+    "transfer_id": "TR-HAN-TAY-TAXI",
+    "type": "AIRPORT_TAXI",
+    "name": "Noi Bai airport taxi to Tay Ho",
+    "airport": "HAN",
+    "city": "Hanoi",
+    "area": "Tay Ho",
+    "from_point": "HAN",
+    "to_point": "Tay Ho area hotels",
+    "max_passengers": 4,
+    "service_from": "05:00",
+    "service_until": "24:00",
+    "duration_minutes": 64,
+    "pricing": "PER_VEHICLE",
+    "price": {
+      "amount": 1453,
+      "currency": "INR"
+    }
+  },
+  {
+    "transfer_id": "TR-HAN-HAN-BUS",
+    "type": "AIRPORT_BUS",
+    "name": "Noi Bai airport bus to Hanoi city centre",
+    "airport": "HAN",
+    "city": "Hanoi",
+    "area": null,
+    "from_point": "HAN",
+    "to_point": "Hanoi city centre",
+    "max_passengers": 99,
+    "service_from": "06:00",
+    "service_until": "22:30",
+    "duration_minutes": 85,
+    "pricing": "PER_PERSON",
+    "price": {
+      "amount": 547,
+      "currency": "INR"
+    },
+    "child_price": {
+      "amount": 273,
+      "currency": "INR"
+    }
+  },
+  {
+    "transfer_id": "TR-HAN-CITY-TAXI",
+    "type": "CITY_TAXI",
+    "name": "Hanoi city taxi, hotel to main station",
+    "airport": null,
+    "city": "Hanoi",
+    "area": null,
+    "from_point": "Hanoi hotels",
+    "to_point": "Hanoi main station",
+    "max_passengers": 4,
+    "service_from": "05:00",
+    "service_until": "24:00",
+    "duration_minutes": 25,
+    "pricing": "PER_VEHICLE",
+    "price": {
+      "amount": 1254,
+      "currency": "INR"
+    }
+  },
+  {
+    "transfer_id": "TR-DAD-MKB-TAXI",
+    "type": "AIRPORT_TAXI",
+    "name": "Da Nang airport airport taxi to My Khe Beach",
+    "airport": "DAD",
+    "city": "Da Nang",
+    "area": "My Khe Beach",
+    "from_point": "DAD",
+    "to_point": "My Khe Beach area hotels",
+    "max_passengers": 4,
+    "service_from": "00:00",
+    "service_until": "24:00",
+    "duration_minutes": 23,
+    "pricing": "PER_VEHICLE",
+    "price": {
+      "amount": 566,
+      "currency": "INR"
+    }
+  },
+  {
+    "transfer_id": "TR-DAD-MKB-BUS",
+    "type": "AIRPORT_BUS",
+    "name": "Da Nang airport airport shuttle bus to My Khe Beach",
+    "airport": "DAD",
+    "city": "Da Nang",
+    "area": "My Khe Beach",
+    "from_point": "DAD",
+    "to_point": "My Khe Beach area hotels",
+    "max_passengers": 99,
+    "service_from": "06:00",
+    "service_until": "22:00",
+    "duration_minutes": 42,
+    "pricing": "PER_PERSON",
+    "price": {
+      "amount": 212,
+      "currency": "INR"
+    },
+    "child_price": {
+      "amount": 106,
+      "currency": "INR"
+    }
+  },
+  {
+    "transfer_id": "TR-DAD-SON-BUS",
+    "type": "AIRPORT_BUS",
+    "name": "Da Nang airport airport shuttle bus to Son Tra",
+    "airport": "DAD",
+    "city": "Da Nang",
+    "area": "Son Tra",
+    "from_point": "DAD",
+    "to_point": "Son Tra area hotels",
+    "max_passengers": 99,
+    "service_from": "06:00",
+    "service_until": "22:00",
+    "duration_minutes": 42,
+    "pricing": "PER_PERSON",
+    "price": {
+      "amount": 249,
+      "currency": "INR"
+    },
+    "child_price": {
+      "amount": 124,
+      "currency": "INR"
+    }
+  },
+  {
+    "transfer_id": "TR-DAD-HAN2-TAXI",
+    "type": "AIRPORT_TAXI",
+    "name": "Da Nang airport airport taxi to Han River",
+    "airport": "DAD",
+    "city": "Da Nang",
+    "area": "Han River",
+    "from_point": "DAD",
+    "to_point": "Han River area hotels",
+    "max_passengers": 4,
+    "service_from": "00:00",
+    "service_until": "24:00",
+    "duration_minutes": 27,
+    "pricing": "PER_VEHICLE",
+    "price": {
+      "amount": 662,
+      "currency": "INR"
+    }
+  },
+  {
+    "transfer_id": "TR-DAD-HAN2-BUS",
+    "type": "AIRPORT_BUS",
+    "name": "Da Nang airport airport shuttle bus to Han River",
+    "airport": "DAD",
+    "city": "Da Nang",
+    "area": "Han River",
+    "from_point": "DAD",
+    "to_point": "Han River area hotels",
+    "max_passengers": 99,
+    "service_from": "06:00",
+    "service_until": "22:00",
+    "duration_minutes": 48,
+    "pricing": "PER_PERSON",
+    "price": {
+      "amount": 257,
+      "currency": "INR"
+    },
+    "child_price": {
+      "amount": 128,
+      "currency": "INR"
+    }
+  },
+  {
+    "transfer_id": "TR-DAD-DAD-BUS",
+    "type": "AIRPORT_BUS",
+    "name": "Da Nang airport airport bus to Da Nang city centre",
+    "airport": "DAD",
+    "city": "Da Nang",
+    "area": null,
+    "from_point": "DAD",
+    "to_point": "Da Nang city centre",
+    "max_passengers": 99,
+    "service_from": "05:30",
+    "service_until": "23:30",
+    "duration_minutes": 43,
+    "pricing": "PER_PERSON",
+    "price": {
+      "amount": 228,
+      "currency": "INR"
+    },
+    "child_price": {
+      "amount": 114,
+      "currency": "INR"
+    }
+  },
+  {
+    "transfer_id": "TR-DAD-CITY-TAXI",
+    "type": "CITY_TAXI",
+    "name": "Da Nang city taxi, hotel to main station",
+    "airport": null,
+    "city": "Da Nang",
+    "area": null,
+    "from_point": "Da Nang hotels",
+    "to_point": "Da Nang main station",
+    "max_passengers": 4,
+    "service_from": "05:00",
+    "service_until": "24:00",
+    "duration_minutes": 25,
+    "pricing": "PER_VEHICLE",
+    "price": {
+      "amount": 1341,
+      "currency": "INR"
+    }
+  },
+  {
+    "transfer_id": "TR-SGN-DIS-TAXI",
+    "type": "AIRPORT_TAXI",
+    "name": "Tan Son Nhat airport taxi to District 1",
+    "airport": "SGN",
+    "city": "Ho Chi Minh City",
+    "area": "District 1",
+    "from_point": "SGN",
+    "to_point": "District 1 area hotels",
+    "max_passengers": 4,
+    "service_from": "05:00",
+    "service_until": "24:00",
+    "duration_minutes": 35,
+    "pricing": "PER_VEHICLE",
+    "price": {
+      "amount": 897,
+      "currency": "INR"
+    }
+  },
+  {
+    "transfer_id": "TR-SGN-DIS2-TAXI",
+    "type": "AIRPORT_TAXI",
+    "name": "Tan Son Nhat airport taxi to District 3",
+    "airport": "SGN",
+    "city": "Ho Chi Minh City",
+    "area": "District 3",
+    "from_point": "SGN",
+    "to_point": "District 3 area hotels",
+    "max_passengers": 4,
+    "service_from": "06:00",
+    "service_until": "23:00",
+    "duration_minutes": 51,
+    "pricing": "PER_VEHICLE",
+    "price": {
+      "amount": 1455,
+      "currency": "INR"
+    }
+  },
+  {
+    "transfer_id": "TR-SGN-DIS2-VAN",
+    "type": "AIRPORT_VAN",
+    "name": "Tan Son Nhat private van to District 3",
+    "airport": "SGN",
+    "city": "Ho Chi Minh City",
+    "area": "District 3",
+    "from_point": "SGN",
+    "to_point": "District 3 area hotels",
+    "max_passengers": 8,
+    "service_from": "00:00",
+    "service_until": "24:00",
+    "duration_minutes": 58,
+    "pricing": "PER_VEHICLE",
+    "price": {
+      "amount": 2377,
+      "currency": "INR"
+    }
+  },
+  {
+    "transfer_id": "TR-SGN-THA-VAN",
+    "type": "AIRPORT_VAN",
+    "name": "Tan Son Nhat private van to Thao Dien",
+    "airport": "SGN",
+    "city": "Ho Chi Minh City",
+    "area": "Thao Dien",
+    "from_point": "SGN",
+    "to_point": "Thao Dien area hotels",
+    "max_passengers": 8,
+    "service_from": "06:00",
+    "service_until": "23:30",
+    "duration_minutes": 63,
+    "pricing": "PER_VEHICLE",
+    "price": {
+      "amount": 2126,
+      "currency": "INR"
+    }
+  },
+  {
+    "transfer_id": "TR-SGN-DIS3-TAXI",
+    "type": "AIRPORT_TAXI",
+    "name": "Tan Son Nhat airport taxi to District 7",
+    "airport": "SGN",
+    "city": "Ho Chi Minh City",
+    "area": "District 7",
+    "from_point": "SGN",
+    "to_point": "District 7 area hotels",
+    "max_passengers": 4,
+    "service_from": "00:00",
+    "service_until": "24:00",
+    "duration_minutes": 39,
+    "pricing": "PER_VEHICLE",
+    "price": {
+      "amount": 1046,
+      "currency": "INR"
+    }
+  },
+  {
+    "transfer_id": "TR-SGN-DIS3-VAN",
+    "type": "AIRPORT_VAN",
+    "name": "Tan Son Nhat private van to District 7",
+    "airport": "SGN",
+    "city": "Ho Chi Minh City",
+    "area": "District 7",
+    "from_point": "SGN",
+    "to_point": "District 7 area hotels",
+    "max_passengers": 8,
+    "service_from": "06:00",
+    "service_until": "23:30",
+    "duration_minutes": 40,
+    "pricing": "PER_VEHICLE",
+    "price": {
+      "amount": 1500,
+      "currency": "INR"
+    }
+  },
+  {
+    "transfer_id": "TR-SGN-SGN-BUS",
+    "type": "AIRPORT_BUS",
+    "name": "Tan Son Nhat airport bus to Ho Chi Minh City city centre",
+    "airport": "SGN",
+    "city": "Ho Chi Minh City",
+    "area": null,
+    "from_point": "SGN",
+    "to_point": "Ho Chi Minh City city centre",
+    "max_passengers": 99,
+    "service_from": "06:00",
+    "service_until": "23:30",
+    "duration_minutes": 53,
+    "pricing": "PER_PERSON",
+    "price": {
+      "amount": 431,
+      "currency": "INR"
+    },
+    "child_price": {
+      "amount": 215,
+      "currency": "INR"
+    }
+  },
+  {
+    "transfer_id": "TR-SGN-CITY-TAXI",
+    "type": "CITY_TAXI",
+    "name": "Ho Chi Minh City city taxi, hotel to main station",
+    "airport": null,
+    "city": "Ho Chi Minh City",
+    "area": null,
+    "from_point": "Ho Chi Minh City hotels",
+    "to_point": "Ho Chi Minh City main station",
+    "max_passengers": 4,
+    "service_from": "05:00",
+    "service_until": "24:00",
+    "duration_minutes": 25,
+    "pricing": "PER_VEHICLE",
+    "price": {
+      "amount": 1382,
+      "currency": "INR"
+    }
+  },
+  {
+    "transfer_id": "TR-BKK-CNX-TRN",
+    "type": "TRAIN",
+    "name": "Day train Bangkok to Chiang Mai",
+    "airport": null,
+    "city": null,
+    "area": null,
+    "from_point": "Krung Thep Aphiwat Central Terminal",
+    "to_point": "Chiang Mai Railway Station",
+    "max_passengers": 99,
+    "service_from": "06:00",
+    "service_until": "19:30",
+    "duration_minutes": 705,
+    "pricing": "PER_PERSON",
+    "price": {
+      "amount": 2210,
+      "currency": "INR"
+    },
+    "child_price": {
+      "amount": 1105,
+      "currency": "INR"
+    },
+    "from_city": "Bangkok",
+    "to_city": "Chiang Mai",
+    "frequency_minutes": 90
+  },
+  {
+    "transfer_id": "TR-BKK-CNX-BUS",
+    "type": "INTERCITY_BUS",
+    "name": "Intercity bus Bangkok to Chiang Mai",
+    "airport": null,
+    "city": null,
+    "area": null,
+    "from_point": "Mo Chit bus terminal",
+    "to_point": "Chiang Mai Arcade bus terminal",
+    "max_passengers": 99,
+    "service_from": "07:00",
+    "service_until": "21:00",
+    "duration_minutes": 600,
+    "pricing": "PER_PERSON",
+    "price": {
+      "amount": 1385,
+      "currency": "INR"
+    },
+    "child_price": {
+      "amount": 830,
+      "currency": "INR"
+    },
+    "from_city": "Bangkok",
+    "to_city": "Chiang Mai",
+    "frequency_minutes": 60,
+    "door_to_door": false
+  },
+  {
+    "transfer_id": "TR-CNX-BKK-TRN",
+    "type": "TRAIN",
+    "name": "Day train Chiang Mai to Bangkok",
+    "airport": null,
+    "city": null,
+    "area": null,
+    "from_point": "Chiang Mai Railway Station",
+    "to_point": "Krung Thep Aphiwat Central Terminal",
+    "max_passengers": 99,
+    "service_from": "06:00",
+    "service_until": "19:30",
+    "duration_minutes": 705,
+    "pricing": "PER_PERSON",
+    "price": {
+      "amount": 2210,
+      "currency": "INR"
+    },
+    "child_price": {
+      "amount": 1105,
+      "currency": "INR"
+    },
+    "from_city": "Chiang Mai",
+    "to_city": "Bangkok",
+    "frequency_minutes": 90
+  },
+  {
+    "transfer_id": "TR-CNX-BKK-BUS",
+    "type": "INTERCITY_BUS",
+    "name": "Intercity bus Chiang Mai to Bangkok",
+    "airport": null,
+    "city": null,
+    "area": null,
+    "from_point": "Chiang Mai Arcade bus terminal",
+    "to_point": "Mo Chit bus terminal",
+    "max_passengers": 99,
+    "service_from": "07:00",
+    "service_until": "21:00",
+    "duration_minutes": 600,
+    "pricing": "PER_PERSON",
+    "price": {
+      "amount": 1385,
+      "currency": "INR"
+    },
+    "child_price": {
+      "amount": 830,
+      "currency": "INR"
+    },
+    "from_city": "Chiang Mai",
+    "to_city": "Bangkok",
+    "frequency_minutes": 60,
+    "door_to_door": false
+  },
+  {
+    "transfer_id": "TR-BKK-HKT-BUS",
+    "type": "INTERCITY_BUS",
+    "name": "Intercity bus Bangkok to Phuket",
+    "airport": null,
+    "city": null,
+    "area": null,
+    "from_point": "Southern bus terminal",
+    "to_point": "Phuket bus terminal 2",
+    "max_passengers": 99,
+    "service_from": "06:00",
+    "service_until": "19:00",
+    "duration_minutes": 720,
+    "pricing": "PER_PERSON",
+    "price": {
+      "amount": 1960,
+      "currency": "INR"
+    },
+    "child_price": {
+      "amount": 1180,
+      "currency": "INR"
+    },
+    "from_city": "Bangkok",
+    "to_city": "Phuket",
+    "frequency_minutes": 120,
+    "door_to_door": false
+  },
+  {
+    "transfer_id": "TR-HKT-BKK-BUS",
+    "type": "INTERCITY_BUS",
+    "name": "Intercity bus Phuket to Bangkok",
+    "airport": null,
+    "city": null,
+    "area": null,
+    "from_point": "Phuket bus terminal 2",
+    "to_point": "Southern bus terminal",
+    "max_passengers": 99,
+    "service_from": "06:00",
+    "service_until": "19:00",
+    "duration_minutes": 720,
+    "pricing": "PER_PERSON",
+    "price": {
+      "amount": 1960,
+      "currency": "INR"
+    },
+    "child_price": {
+      "amount": 1180,
+      "currency": "INR"
+    },
+    "from_city": "Phuket",
+    "to_city": "Bangkok",
+    "frequency_minutes": 120,
+    "door_to_door": false
+  },
+  {
+    "transfer_id": "TR-KUL-PEN-TRN",
+    "type": "TRAIN",
+    "name": "ETS train Kuala Lumpur to Penang",
+    "airport": null,
+    "city": null,
+    "area": null,
+    "from_point": "KL Sentral",
+    "to_point": "Butterworth station",
+    "max_passengers": 99,
+    "service_from": "06:00",
+    "service_until": "21:00",
+    "duration_minutes": 240,
+    "pricing": "PER_PERSON",
+    "price": {
+      "amount": 1480,
+      "currency": "INR"
+    },
+    "child_price": {
+      "amount": 740,
+      "currency": "INR"
+    },
+    "from_city": "Kuala Lumpur",
+    "to_city": "Penang",
+    "frequency_minutes": 120
+  },
+  {
+    "transfer_id": "TR-KUL-PEN-BUS",
+    "type": "INTERCITY_BUS",
+    "name": "Intercity bus Kuala Lumpur to Penang",
+    "airport": null,
+    "city": null,
+    "area": null,
+    "from_point": "TBS bus terminal",
+    "to_point": "Sungai Nibong bus terminal",
+    "max_passengers": 99,
+    "service_from": "06:00",
+    "service_until": "23:30",
+    "duration_minutes": 270,
+    "pricing": "PER_PERSON",
+    "price": {
+      "amount": 920,
+      "currency": "INR"
+    },
+    "child_price": {
+      "amount": 550,
+      "currency": "INR"
+    },
+    "from_city": "Kuala Lumpur",
+    "to_city": "Penang",
+    "frequency_minutes": 30,
+    "door_to_door": false
+  },
+  {
+    "transfer_id": "TR-KUL-PEN-TAXI",
+    "type": "INTERCITY_TAXI",
+    "name": "Intercity taxi (hotel to hotel) Kuala Lumpur to Penang",
+    "airport": null,
+    "city": null,
+    "area": null,
+    "from_point": "Kuala Lumpur hotels",
+    "to_point": "Penang hotels",
+    "max_passengers": 4,
+    "service_from": "00:00",
+    "service_until": "24:00",
+    "duration_minutes": 240,
+    "pricing": "PER_VEHICLE",
+    "price": {
+      "amount": 17800,
+      "currency": "INR"
+    },
+    "from_city": "Kuala Lumpur",
+    "to_city": "Penang",
+    "door_to_door": true
+  },
+  {
+    "transfer_id": "TR-PEN-KUL-TRN",
+    "type": "TRAIN",
+    "name": "ETS train Penang to Kuala Lumpur",
+    "airport": null,
+    "city": null,
+    "area": null,
+    "from_point": "Butterworth station",
+    "to_point": "KL Sentral",
+    "max_passengers": 99,
+    "service_from": "06:00",
+    "service_until": "21:00",
+    "duration_minutes": 240,
+    "pricing": "PER_PERSON",
+    "price": {
+      "amount": 1480,
+      "currency": "INR"
+    },
+    "child_price": {
+      "amount": 740,
+      "currency": "INR"
+    },
+    "from_city": "Penang",
+    "to_city": "Kuala Lumpur",
+    "frequency_minutes": 120
+  },
+  {
+    "transfer_id": "TR-PEN-KUL-BUS",
+    "type": "INTERCITY_BUS",
+    "name": "Intercity bus Penang to Kuala Lumpur",
+    "airport": null,
+    "city": null,
+    "area": null,
+    "from_point": "Sungai Nibong bus terminal",
+    "to_point": "TBS bus terminal",
+    "max_passengers": 99,
+    "service_from": "06:00",
+    "service_until": "23:30",
+    "duration_minutes": 270,
+    "pricing": "PER_PERSON",
+    "price": {
+      "amount": 920,
+      "currency": "INR"
+    },
+    "child_price": {
+      "amount": 550,
+      "currency": "INR"
+    },
+    "from_city": "Penang",
+    "to_city": "Kuala Lumpur",
+    "frequency_minutes": 30,
+    "door_to_door": false
+  },
+  {
+    "transfer_id": "TR-PEN-KUL-TAXI",
+    "type": "INTERCITY_TAXI",
+    "name": "Intercity taxi (hotel to hotel) Penang to Kuala Lumpur",
+    "airport": null,
+    "city": null,
+    "area": null,
+    "from_point": "Penang hotels",
+    "to_point": "Kuala Lumpur hotels",
+    "max_passengers": 4,
+    "service_from": "00:00",
+    "service_until": "24:00",
+    "duration_minutes": 240,
+    "pricing": "PER_VEHICLE",
+    "price": {
+      "amount": 17800,
+      "currency": "INR"
+    },
+    "from_city": "Penang",
+    "to_city": "Kuala Lumpur",
+    "door_to_door": true
+  },
+  {
+    "transfer_id": "TR-JKT-JOG-TRN",
+    "type": "TRAIN",
+    "name": "Executive train Jakarta to Yogyakarta",
+    "airport": null,
+    "city": null,
+    "area": null,
+    "from_point": "Gambir station",
+    "to_point": "Yogyakarta Tugu station",
+    "max_passengers": 99,
+    "service_from": "06:00",
+    "service_until": "20:00",
+    "duration_minutes": 480,
+    "pricing": "PER_PERSON",
+    "price": {
+      "amount": 2590,
+      "currency": "INR"
+    },
+    "child_price": {
+      "amount": 1295,
+      "currency": "INR"
+    },
+    "from_city": "Jakarta",
+    "to_city": "Yogyakarta",
+    "frequency_minutes": 120
+  },
+  {
+    "transfer_id": "TR-JKT-JOG-BUS",
+    "type": "INTERCITY_BUS",
+    "name": "Intercity bus Jakarta to Yogyakarta",
+    "airport": null,
+    "city": null,
+    "area": null,
+    "from_point": "Pulo Gebang terminal",
+    "to_point": "Giwangan terminal",
+    "max_passengers": 99,
+    "service_from": "05:00",
+    "service_until": "21:00",
+    "duration_minutes": 600,
+    "pricing": "PER_PERSON",
+    "price": {
+      "amount": 1320,
+      "currency": "INR"
+    },
+    "child_price": {
+      "amount": 790,
+      "currency": "INR"
+    },
+    "from_city": "Jakarta",
+    "to_city": "Yogyakarta",
+    "frequency_minutes": 60,
+    "door_to_door": false
+  },
+  {
+    "transfer_id": "TR-JOG-JKT-TRN",
+    "type": "TRAIN",
+    "name": "Executive train Yogyakarta to Jakarta",
+    "airport": null,
+    "city": null,
+    "area": null,
+    "from_point": "Yogyakarta Tugu station",
+    "to_point": "Gambir station",
+    "max_passengers": 99,
+    "service_from": "06:00",
+    "service_until": "20:00",
+    "duration_minutes": 480,
+    "pricing": "PER_PERSON",
+    "price": {
+      "amount": 2590,
+      "currency": "INR"
+    },
+    "child_price": {
+      "amount": 1295,
+      "currency": "INR"
+    },
+    "from_city": "Yogyakarta",
+    "to_city": "Jakarta",
+    "frequency_minutes": 120
+  },
+  {
+    "transfer_id": "TR-JOG-JKT-BUS",
+    "type": "INTERCITY_BUS",
+    "name": "Intercity bus Yogyakarta to Jakarta",
+    "airport": null,
+    "city": null,
+    "area": null,
+    "from_point": "Giwangan terminal",
+    "to_point": "Pulo Gebang terminal",
+    "max_passengers": 99,
+    "service_from": "05:00",
+    "service_until": "21:00",
+    "duration_minutes": 600,
+    "pricing": "PER_PERSON",
+    "price": {
+      "amount": 1320,
+      "currency": "INR"
+    },
+    "child_price": {
+      "amount": 790,
+      "currency": "INR"
+    },
+    "from_city": "Yogyakarta",
+    "to_city": "Jakarta",
+    "frequency_minutes": 60,
+    "door_to_door": false
+  },
+  {
+    "transfer_id": "TR-HAN-DAD-TRN",
+    "type": "TRAIN",
+    "name": "Reunification Express Hanoi to Da Nang",
+    "airport": null,
+    "city": null,
+    "area": null,
+    "from_point": "Hanoi railway station",
+    "to_point": "Da Nang railway station",
+    "max_passengers": 99,
+    "service_from": "06:00",
+    "service_until": "19:30",
+    "duration_minutes": 900,
+    "pricing": "PER_PERSON",
+    "price": {
+      "amount": 3100,
+      "currency": "INR"
+    },
+    "child_price": {
+      "amount": 1550,
+      "currency": "INR"
+    },
+    "from_city": "Hanoi",
+    "to_city": "Da Nang",
+    "frequency_minutes": 90
+  },
+  {
+    "transfer_id": "TR-HAN-DAD-BUS",
+    "type": "INTERCITY_BUS",
+    "name": "Sleeper bus Hanoi to Da Nang",
+    "airport": null,
+    "city": null,
+    "area": null,
+    "from_point": "My Dinh bus station",
+    "to_point": "Da Nang bus station",
+    "max_passengers": 99,
+    "service_from": "17:00",
+    "service_until": "21:30",
+    "duration_minutes": 780,
+    "pricing": "PER_PERSON",
+    "price": {
+      "amount": 1650,
+      "currency": "INR"
+    },
+    "child_price": {
+      "amount": 990,
+      "currency": "INR"
+    },
+    "from_city": "Hanoi",
+    "to_city": "Da Nang",
+    "frequency_minutes": 60,
+    "door_to_door": false
+  },
+  {
+    "transfer_id": "TR-DAD-HAN-TRN",
+    "type": "TRAIN",
+    "name": "Reunification Express Da Nang to Hanoi",
+    "airport": null,
+    "city": null,
+    "area": null,
+    "from_point": "Da Nang railway station",
+    "to_point": "Hanoi railway station",
+    "max_passengers": 99,
+    "service_from": "06:00",
+    "service_until": "19:30",
+    "duration_minutes": 900,
+    "pricing": "PER_PERSON",
+    "price": {
+      "amount": 3100,
+      "currency": "INR"
+    },
+    "child_price": {
+      "amount": 1550,
+      "currency": "INR"
+    },
+    "from_city": "Da Nang",
+    "to_city": "Hanoi",
+    "frequency_minutes": 90
+  },
+  {
+    "transfer_id": "TR-DAD-HAN-BUS",
+    "type": "INTERCITY_BUS",
+    "name": "Sleeper bus Da Nang to Hanoi",
+    "airport": null,
+    "city": null,
+    "area": null,
+    "from_point": "Da Nang bus station",
+    "to_point": "My Dinh bus station",
+    "max_passengers": 99,
+    "service_from": "17:00",
+    "service_until": "21:30",
+    "duration_minutes": 780,
+    "pricing": "PER_PERSON",
+    "price": {
+      "amount": 1650,
+      "currency": "INR"
+    },
+    "child_price": {
+      "amount": 990,
+      "currency": "INR"
+    },
+    "from_city": "Da Nang",
+    "to_city": "Hanoi",
+    "frequency_minutes": 60,
+    "door_to_door": false
+  },
+  {
+    "transfer_id": "TR-DAD-SGN-TRN",
+    "type": "TRAIN",
+    "name": "Reunification Express Da Nang to Ho Chi Minh City",
+    "airport": null,
+    "city": null,
+    "area": null,
+    "from_point": "Da Nang railway station",
+    "to_point": "Saigon railway station",
+    "max_passengers": 99,
+    "service_from": "06:00",
+    "service_until": "18:00",
+    "duration_minutes": 1000,
+    "pricing": "PER_PERSON",
+    "price": {
+      "amount": 3550,
+      "currency": "INR"
+    },
+    "child_price": {
+      "amount": 1775,
+      "currency": "INR"
+    },
+    "from_city": "Da Nang",
+    "to_city": "Ho Chi Minh City",
+    "frequency_minutes": 120
+  },
+  {
+    "transfer_id": "TR-DAD-SGN-BUS",
+    "type": "INTERCITY_BUS",
+    "name": "Sleeper bus Da Nang to Ho Chi Minh City",
+    "airport": null,
+    "city": null,
+    "area": null,
+    "from_point": "Da Nang bus station",
+    "to_point": "Mien Dong bus station",
+    "max_passengers": 99,
+    "service_from": "16:00",
+    "service_until": "20:30",
+    "duration_minutes": 1020,
+    "pricing": "PER_PERSON",
+    "price": {
+      "amount": 1990,
+      "currency": "INR"
+    },
+    "child_price": {
+      "amount": 1190,
+      "currency": "INR"
+    },
+    "from_city": "Da Nang",
+    "to_city": "Ho Chi Minh City",
+    "frequency_minutes": 60,
+    "door_to_door": false
+  },
+  {
+    "transfer_id": "TR-SGN-DAD-TRN",
+    "type": "TRAIN",
+    "name": "Reunification Express Ho Chi Minh City to Da Nang",
+    "airport": null,
+    "city": null,
+    "area": null,
+    "from_point": "Saigon railway station",
+    "to_point": "Da Nang railway station",
+    "max_passengers": 99,
+    "service_from": "06:00",
+    "service_until": "18:00",
+    "duration_minutes": 1000,
+    "pricing": "PER_PERSON",
+    "price": {
+      "amount": 3550,
+      "currency": "INR"
+    },
+    "child_price": {
+      "amount": 1775,
+      "currency": "INR"
+    },
+    "from_city": "Ho Chi Minh City",
+    "to_city": "Da Nang",
+    "frequency_minutes": 120
+  },
+  {
+    "transfer_id": "TR-SGN-DAD-BUS",
+    "type": "INTERCITY_BUS",
+    "name": "Sleeper bus Ho Chi Minh City to Da Nang",
+    "airport": null,
+    "city": null,
+    "area": null,
+    "from_point": "Mien Dong bus station",
+    "to_point": "Da Nang bus station",
+    "max_passengers": 99,
+    "service_from": "16:00",
+    "service_until": "20:30",
+    "duration_minutes": 1020,
+    "pricing": "PER_PERSON",
+    "price": {
+      "amount": 1990,
+      "currency": "INR"
+    },
+    "child_price": {
+      "amount": 1190,
+      "currency": "INR"
+    },
+    "from_city": "Ho Chi Minh City",
+    "to_city": "Da Nang",
+    "frequency_minutes": 60,
+    "door_to_door": false
   }
 ]

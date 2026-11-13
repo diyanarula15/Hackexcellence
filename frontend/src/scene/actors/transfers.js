@@ -43,7 +43,7 @@ function buildShuttle(materials) {
  * Create the road and its shuttle.
  *
  * @param {{ palette: Record<string, THREE.Color> }} ctx
- * @returns {{ object: THREE.Group, update: (elapsed: number) => void }}
+ * @returns {{ object: THREE.Group, shuttle: THREE.Group, update: (elapsed: number) => void }}
  */
 export function createTransfers({ palette }) {
   const { radius, width } = PLINTH.road;
@@ -77,5 +77,5 @@ export function createTransfers({ palette }) {
     shuttle.rotation.y = -angle + (PLINTH.shuttle.speed < 0 ? Math.PI : 0);
   }
 
-  return { object: group, update };
+  return { object: group, shuttle, update };
 }

@@ -57,3 +57,28 @@ export function scrollToPlanner() {
   const top = track.getBoundingClientRect().bottom + window.scrollY - window.innerHeight;
   window.scrollTo({ top: Math.max(top, 0), behavior: 'smooth' });
 }
+
+/** Budget tiers by ₹ per traveller per night (flights included) → what that typically buys. */
+const BUDGET_TIERS = [
+  [8000, '3★ stays · Value fares'],
+  [15000, '3–4★ stays · One-stop flights'],
+  [28000, '4★ stays · Direct flights'],
+  [50000, '4–5★ stays · Direct flights'],
+  [Infinity, '5★ stays · Premium cabins'],
+];
+
+/**
+ * A rough, client-side read of what the entered budget tends to buy — a hint only; the backend
+ * decides the real package. Uses the party size and nights when filled in (else 2 adults, 5 nights).
+ * @param {{ budget: string, nights: string, adults: string, child_ages: string }} form
+ * @returns {string}
+ */
+export function budgetHint(form) {
+  const budget = Number(String(form.budget ?? '').replace(/[^\d]/g, ''));
+  if (!budget) return 'Sets your stay & flight tier';
+  const children = String(form.child_ages ?? '').split(',').filter((age) => age.trim()).length;
+  const travellers = (Number(form.adults) > 0 ? Number(form.adults) : 2) + children;
+  const nights = Number(form.nights) > 0 ? Number(form.nights) : 5;
+  const perNight = budget / travellers / nights;
+  return `≈ ${BUDGET_TIERS.find(([limit]) => perNight < limit)[1]}`;
+}

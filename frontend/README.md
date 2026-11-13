@@ -1,4 +1,4 @@
-# Wayline — travel booking UI shell
+# Wanderline — travel booking UI shell
 
 Hackathon-ready foundation for an end-to-end holiday planner. A pinned, scroll-driven Three.js opening sequence — you start **inside a plane cabin**, fly **through the window**, and settle on a **Rule-of-Thirds hero**: a floating mini-world that shows the whole package (**flights**, a boutique **hotel**, a **transfer** shuttle on a ring road, an **attraction** arch, all tied by a glowing itinerary line) over a faint line-art world map — under a frameless 2D HUD. **No forms, cards or boxes yet**: only empty, grid-aligned slots waiting for them.
 

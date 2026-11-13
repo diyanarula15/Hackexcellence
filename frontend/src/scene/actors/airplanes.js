@@ -14,7 +14,7 @@
 import * as THREE from 'three';
 import { GeoBatch } from '../utils/batch.js';
 import { plate } from '../utils/geometry.js';
-import { FLIGHT_PATHS, TRAIL } from '../config.js';
+import { FLIGHT_PATHS, FLYBY, TRAIL } from '../config.js';
 
 const UP = new THREE.Vector3(0, 1, 0);
 const ENGINE_OFFSET = 0.44; // engine distance from the fuselage centre line
@@ -101,8 +101,14 @@ function createTrailMesh(material) {
  * Create all planes, their contrails and optional dashed route arcs.
  *
  * @param {{ palette: Record<string, THREE.Color>, camera: THREE.Camera }} ctx
- * @returns {{ object: THREE.Group, update: (elapsed: number) => void }}
+ * @returns {{
+ *   object: THREE.Group,
+ *   planes: THREE.Group[],
+ *   update: (elapsed: number, delta: number) => void,
+ *   flyby: () => void,
+ * }}
  *   Position `object` at the hotel-cluster anchor; curves are relative to it.
+ *   `flyby()` makes the most visible airliner bank and surge past (see FLYBY).
  */
 export function createAirplanes({ palette, camera }) {
   const group = new THREE.Group();
@@ -135,7 +141,7 @@ export function createAirplanes({ palette, camera }) {
       group.add(arc);
     }
 
-    return { def, curve, plane, trails, trailMaterial };
+    return { def, curve, plane, trails, trailMaterial, fade: 0, boost: 0, flybyAt: null };
   });
 
   // Scratch vectors — reused every frame, never allocated in the loop.
@@ -185,17 +191,42 @@ export function createAirplanes({ palette, camera }) {
     trails[1].geometry.attributes.position.needsUpdate = true;
   }
 
+  let now = 0;
+
+  /** Bank + surge the airliner that is currently most visible (and not about to despawn). */
+  function flyby() {
+    let best = null;
+    for (const flight of flights) {
+      if (flight.plane.visible && flight.fade > (best?.fade ?? 0.3)) best = flight;
+    }
+    if (best) best.flybyAt = now;
+  }
+
   /**
    * Advance every flight along its Bézier curve.
    * @param {number} elapsed  Seconds since scene start.
+   * @param {number} [delta]  Seconds since the previous frame.
    */
-  function update(elapsed) {
+  function update(elapsed, delta = 0) {
+    now = elapsed;
     for (const flight of flights) {
       const { def, curve, plane, trails, trailMaterial } = flight;
-      const raw = ((elapsed + def.offset) % (def.duration + def.gap)) / def.duration;
+
+      // Fly-by envelope: 0 → 1 → 0 over FLYBY.seconds. `boost` is extra time
+      // banked along the curve, so the surge never snaps back afterwards.
+      let pulse = 0;
+      if (flight.flybyAt !== null) {
+        const k = (elapsed - flight.flybyAt) / FLYBY.seconds;
+        if (k >= 1) flight.flybyAt = null;
+        else pulse = Math.sin(k * Math.PI);
+        flight.boost += delta * FLYBY.surge * pulse;
+      }
+
+      const raw = ((elapsed + def.offset + flight.boost) % (def.duration + def.gap)) / def.duration;
       const active = raw <= 1;
       plane.visible = active;
       trails[0].visible = trails[1].visible = active;
+      flight.fade = 0;
       if (!active) continue;
 
       // Fade in/out at the curve ends so spawn/despawn is never visible.
@@ -211,13 +242,14 @@ export function createAirplanes({ palette, camera }) {
       // Bank into the turn: compare heading now vs. slightly ahead.
       curve.getTangent(Math.min(1, raw + 0.03), ahead);
       const turn = cross.crossVectors(tangent, ahead).y;
-      plane.rotateZ(THREE.MathUtils.clamp(-turn * 9, -0.6, 0.6));
-      plane.scale.setScalar(def.scale * Math.max(fade, 0.001));
+      plane.rotateZ(THREE.MathUtils.clamp(-turn * 9, -0.6, 0.6) + pulse * FLYBY.bank);
+      plane.scale.setScalar(def.scale * Math.max(fade, 0.001) * (1 + 0.1 * pulse));
+      flight.fade = fade;
 
       trailMaterial.opacity = fade;
       writeTrail(flight, raw);
     }
   }
 
-  return { object: group, update };
+  return { object: group, planes: flights.map((flight) => flight.plane), update, flyby };
 }
