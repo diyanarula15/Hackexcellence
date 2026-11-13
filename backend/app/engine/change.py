@@ -38,12 +38,14 @@ from app.lib.money import rupees
 from app.lib.time import at
 from app.models import (
     ADD_ATTRACTION,
+    ADD_ATTRACTIONS,
     CHANGE_AIRPORT_TRANSFER,
     CHANGE_ARRIVAL_FLIGHT,
     CHANGE_HOTEL,
     CHANGE_INTERCITY_TRANSFER,
     CHANGE_RETURN_FLIGHT,
     REMOVE_ATTRACTION,
+    REMOVE_ATTRACTIONS,
 )
 from app.rules.attractions import check_attractions
 from app.rules.common import EDITED, Busy, Party, Stay, Violation, Visit
@@ -80,12 +82,42 @@ def target_item_id(command) -> str:
         return command.stay_id
     if kind == ADD_ATTRACTION:
         return visit_item_id(command.attraction_id)
+    if kind == ADD_ATTRACTIONS:
+        return visit_item_id(command.additions[0].attraction_id)  # a batch is named by its first item
+    if kind == REMOVE_ATTRACTIONS:
+        return command.item_ids[0]
     return command.item_id  # airport / intercity transfer leg, or the visit to remove
+
+
+def command_targets(command) -> set[str]:
+    """Every package item id a command is allowed to change. Only these may appear in a proposal."""
+    if command.kind == ADD_ATTRACTIONS:
+        return {visit_item_id(a.attraction_id) for a in command.additions}
+    if command.kind == REMOVE_ATTRACTIONS:
+        return set(command.item_ids)
+    return {target_item_id(command)}
+
+
+def _batch_impact(package: Package, command) -> dep.DependencyImpact | None:
+    """The union of the dependency rows of every item in a batch."""
+    if command.kind == ADD_ATTRACTIONS:
+        changes = [dep.Change(dep.ADD_ATTRACTION, a.attraction_id, a.date) for a in command.additions]
+    else:
+        changes = [dep.Change(dep.REMOVE_ATTRACTION, i.removeprefix("visit:")) for i in command.item_ids]
+    try:
+        impacts = [dep.affected_components(c, package) for c in changes]
+    except ValueError:
+        return None
+    recheck = tuple(dict.fromkeys(r for i in impacts for r in i.recheck))
+    scope = frozenset().union(*(i.repair_scope for i in impacts))
+    return dep.DependencyImpact(change=changes[0], recheck=recheck, repair_scope=scope)
 
 
 def dependency_impact(package: Package, command) -> dep.DependencyImpact | None:
     """What the change makes stale and may repair (the dependency table), or None for an unknown target."""
     kind = command.kind
+    if kind in (ADD_ATTRACTIONS, REMOVE_ATTRACTIONS):
+        return _batch_impact(package, command)
     if kind == CHANGE_HOTEL:
         change = dep.Change(dep.HOTEL, command.stay_id)
     elif kind in (CHANGE_AIRPORT_TRANSFER, CHANGE_INTERCITY_TRANSFER):
@@ -216,31 +248,72 @@ def _constraints(pkg: Package, cmd, cat) -> tuple[PlanningConstraints, list[str]
         ), []
 
     if kind == ADD_ATTRACTION:
-        return _add_attraction(pkg, cmd, cat)
+        return _add_attractions(pkg, [(cmd.attraction_id, cmd.date, cmd.preferred_start)], cat)
+
+    if kind == ADD_ATTRACTIONS:
+        return _add_attractions(
+            pkg, [(a.attraction_id, a.date, a.preferred_start) for a in cmd.additions], cat
+        )
 
     if kind == REMOVE_ATTRACTION:
-        aid = cmd.item_id.removeprefix("visit:")
-        if not cmd.item_id.startswith("visit:") or all(v.attraction_id != aid for v in pkg.visits):
-            raise _Refuse(
-                [_not_found(f"This holiday has no attraction visit {cmd.item_id}.", cmd.item_id)]
-            )
-        return PlanningConstraints(excluded_attraction_ids={aid}), []
+        return _remove_attractions(pkg, [cmd.item_id])
+
+    if kind == REMOVE_ATTRACTIONS:
+        return _remove_attractions(pkg, cmd.item_ids)
 
     raise ValueError(f"unknown change kind {kind!r}")
 
 
-def _add_attraction(pkg: Package, cmd, cat) -> tuple[PlanningConstraints, list[str]]:
-    """Lock the new visit at a time that leaves every other visit exactly where it is."""
-    aid, day, item = cmd.attraction_id, cmd.date, visit_item_id(cmd.attraction_id)
-    a = cat.indexes.attractions_by_id.get(aid)
-    if a is None:
-        raise _Refuse([Violation("R-ATT-1", f"Attraction {aid} is not in the catalog.", item)])
-    planned = next((v for v in pkg.visits if v.attraction_id == aid), None)
-    if planned is not None:
-        # R-ATT-7 (each attraction at most once), checked here because the generic repair reads
-        # "require X on day D" as "move X there", which an Add must never do.
-        raise _Refuse(
-            [
+def _remove_attractions(pkg: Package, item_ids) -> tuple[PlanningConstraints, list[str]]:
+    """Exclude the named visits; every one must be planned. Nothing else is locked."""
+    missing, aids = [], set()
+    for item in item_ids:
+        aid = item.removeprefix("visit:")
+        if not item.startswith("visit:") or all(v.attraction_id != aid for v in pkg.visits):
+            missing.append(_not_found(f"This holiday has no attraction visit {item}.", item))
+        else:
+            aids.add(aid)
+    if missing:
+        raise _Refuse(missing)
+    return PlanningConstraints(excluded_attraction_ids=aids), []
+
+
+def _add_attractions(pkg: Package, additions, cat) -> tuple[PlanningConstraints, list[str]]:
+    """Lock each new visit at a time that leaves every other visit exactly where it is.
+
+    `additions` = [(attraction_id, day, preferred_start 'HH:MM' | None)] in the order the traveler gave.
+    Each addition must avoid transfers, the existing visits AND the visits placed earlier in the batch.
+    If any addition cannot be placed, every failure is reported and nothing is planned (no partial
+    batch)."""
+    plan = pkg.plan
+    party = Party(pkg.adults, tuple(pkg.child_ages))
+    blocks = transfer_blocks(plan, pkg.arrival_transfer, pkg.intercity, pkg.departure_transfer)
+    required: list[RequiredAttraction] = []
+    placed = []  # VisitOption of the earlier additions in this batch
+    notes: list[str] = []
+    violations: list[Violation] = []
+    seen: set[str] = set()
+    for aid, day, preferred in additions:
+        a = cat.indexes.attractions_by_id.get(aid)
+        item = visit_item_id(aid)
+        if a is None:
+            violations.append(Violation("R-ATT-1", f"Attraction {aid} is not in the catalog.", item))
+            continue
+        if aid in seen:
+            violations.append(
+                Violation(
+                    "R-ATT-7",
+                    f"{a['name']} is in this change more than once; an attraction can be visited only once.",
+                    item,
+                )
+            )
+            continue
+        seen.add(aid)
+        planned = next((v for v in pkg.visits if v.attraction_id == aid), None)
+        if planned is not None:
+            # R-ATT-7 (each attraction at most once), checked here because the generic repair reads
+            # "require X on day D" as "move X there", which an Add must never do.
+            violations.append(
                 Violation(
                     "R-ATT-7",
                     f"{a['name']} is already in this holiday on "
@@ -248,29 +321,33 @@ def _add_attraction(pkg: Package, cmd, cat) -> tuple[PlanningConstraints, list[s
                     "an attraction can be visited only once.",
                     item,
                 )
-            ]
-        )
-    plan = pkg.plan
-    slot = next((s for s in classify_days(plan) if s.day == day), None)
-    want = at(day, cmd.preferred_start) if cmd.preferred_start else None
-    start = None
-    if slot is not None and slot.kind != DEPARTURE and slot.city == a["city"]:
-        taken = transfer_blocks(plan, pkg.arrival_transfer, pkg.intercity, pkg.departure_transfer)
-        taken += [(v.start, v.end) for v in pkg.visits]
-        start = (
-            want
-            if want is not None and fits(a, day, want, taken)
-            else find_start(a, day, taken, prefer=want)
-        )
-    if start is None:
-        raise _Refuse(_why_no_time(pkg, a, day, want, cat))
-    notes = []
-    if want is not None and start != want:
-        notes.append(
-            f"{a['name']} cannot start at {want:%H:%M} on {day:%a %d %b} without moving your other "
-            f"plans, so it is planned at {start:%H:%M} instead."
-        )
-    return PlanningConstraints(required_attractions=[RequiredAttraction(aid, day, start)]), notes
+            )
+            continue
+        slot = next((s for s in classify_days(plan) if s.day == day), None)
+        want = at(day, preferred) if preferred else None
+        start = None
+        if slot is not None and slot.kind != DEPARTURE and slot.city == a["city"]:
+            taken = list(blocks) + [(v.start, v.end) for v in pkg.visits]
+            taken += [(v.start, v.end) for v in placed]
+            start = (
+                want
+                if want is not None and fits(a, day, want, taken)
+                else find_start(a, day, taken, prefer=want)
+            )
+        if start is None:
+            later = sorted((*pkg.visits, *placed), key=lambda v: (v.start, v.attraction_id))
+            violations.extend(_why_no_time(pkg.with_(visits=tuple(later)), a, day, want, cat))
+            continue
+        if want is not None and start != want:
+            notes.append(
+                f"{a['name']} cannot start at {want:%H:%M} on {day:%a %d %b} without moving your other "
+                f"plans, so it is planned at {start:%H:%M} instead."
+            )
+        required.append(RequiredAttraction(aid, day, start))
+        placed.append(make_visit(a, start, party))
+    if violations:
+        raise _Refuse(violations)
+    return PlanningConstraints(required_attractions=required), notes
 
 
 def _transfer_label(t, cat) -> str:
@@ -372,22 +449,25 @@ def _visit_name(component: str, cat) -> str:
 
 
 def _check_command_scope(cmd, proposal: ChangeProposal, cat) -> None:
-    """An added or removed attraction changes that one visit and nothing else."""
-    if cmd.kind not in (ADD_ATTRACTION, REMOVE_ATTRACTION):
+    """An added or removed attraction (or batch) changes exactly the requested visits and nothing else."""
+    if cmd.kind not in (ADD_ATTRACTION, REMOVE_ATTRACTION, ADD_ATTRACTIONS, REMOVE_ATTRACTIONS):
         return
     target = target_item_id(cmd)
-    others = [c for c in proposal.changed_items if c.component != target]
+    allowed = command_targets(cmd)
+    others = [c for c in proposal.changed_items if c.component not in allowed]
     if others:
         what = ", ".join(
             _visit_name(c.component, cat) if c.component.startswith("visit:") else c.component
             for c in others
         )
-        verb = "Adding" if cmd.kind == ADD_ATTRACTION else "Removing"
+        adding = cmd.kind in (ADD_ATTRACTION, ADD_ATTRACTIONS)
+        verb = "Adding" if adding else "Removing"
+        subject = _visit_name(target, cat) if len(allowed) == 1 else f"{len(allowed)} attractions"
         raise _Refuse(
             [
                 Violation(
                     REPAIR_OUT_OF_SCOPE,
-                    f"{verb} {_visit_name(target, cat)} would also change "
+                    f"{verb} {subject} would also change "
                     f"{what}, which this edit does not allow.",
                     target,
                 )

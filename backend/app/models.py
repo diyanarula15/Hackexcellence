@@ -13,6 +13,7 @@ from pydantic import (
     StrictInt,
     StringConstraints,
     TypeAdapter,
+    field_validator,
     model_validator,
 )
 
@@ -78,9 +79,14 @@ CHANGE_INTERCITY_TRANSFER = "CHANGE_INTERCITY_TRANSFER"
 ADD_ATTRACTION = "ADD_ATTRACTION"
 REMOVE_ATTRACTION = "REMOVE_ATTRACTION"
 ARRIVAL_DELAY = "ARRIVAL_DELAY"   # Phase 5B: a HYPOTHETICAL later landing of the arrival flight
+ADD_ATTRACTIONS = "ADD_ATTRACTIONS"        # one preview and one atomic apply for 1..8 additions
+REMOVE_ATTRACTIONS = "REMOVE_ATTRACTIONS"  # one preview and one atomic apply for 1..10 removals
 CHANGE_KINDS = (CHANGE_ARRIVAL_FLIGHT, CHANGE_RETURN_FLIGHT, CHANGE_HOTEL, CHANGE_AIRPORT_TRANSFER,
-                CHANGE_INTERCITY_TRANSFER, ADD_ATTRACTION, REMOVE_ATTRACTION, ARRIVAL_DELAY)
+                CHANGE_INTERCITY_TRANSFER, ADD_ATTRACTION, REMOVE_ATTRACTION, ARRIVAL_DELAY,
+                ADD_ATTRACTIONS, REMOVE_ATTRACTIONS)
 DELAY_MINUTES = (60, 120, 180, 240)
+MAX_BATCH_ADDITIONS = 8
+MAX_BATCH_REMOVALS = 10
 
 _HHMM = re.compile(r"(?:[01]\d|2[0-3]):[0-5]\d")
 _YMD = re.compile(r"\d{4}-\d{2}-\d{2}")
@@ -155,6 +161,44 @@ class RemoveAttraction(_Change):
     item_id: Id                             # target: visit:<attraction id>
 
 
+class AttractionAddition(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+    attraction_id: Id
+    date: CalendarDay
+    preferred_start: Clock | None = None
+
+
+def _no_repeats(values, what: str):
+    repeated = sorted({v for v in values if values.count(v) > 1})
+    if repeated:
+        raise ValueError(f"each {what} may appear once; repeated: {', '.join(repeated)}")
+    return values
+
+
+class AddAttractions(_Change):
+    """Several attractions in one change. The engine places them in order against one set of
+    constraints and refuses the whole batch if any one of them cannot be placed."""
+    kind: Literal["ADD_ATTRACTIONS"]
+    additions: list[AttractionAddition] = Field(min_length=1, max_length=MAX_BATCH_ADDITIONS)
+
+    @field_validator("additions")
+    @classmethod
+    def _unique_attractions(cls, additions):
+        _no_repeats([a.attraction_id for a in additions], "attraction")
+        return additions
+
+
+class RemoveAttractions(_Change):
+    kind: Literal["REMOVE_ATTRACTIONS"]
+    item_ids: list[Id] = Field(min_length=1, max_length=MAX_BATCH_REMOVALS)  # visit:<attraction id>
+
+    @field_validator("item_ids")
+    @classmethod
+    def _unique_items(cls, item_ids):
+        _no_repeats(item_ids, "visit")
+        return item_ids
+
+
 class ArrivalDelay(_Change):
     """Simulate the saved arrival flight landing `delay_minutes` later. Targets flight:arrival only.
     The delay itself is never saved: applying it saves only the resulting real schedule repairs."""
@@ -164,7 +208,8 @@ class ArrivalDelay(_Change):
 
 ChangeCommand = Annotated[
     ChangeArrivalFlight | ChangeReturnFlight | ChangeHotel | ChangeAirportTransfer
-    | ChangeIntercityTransfer | AddAttraction | RemoveAttraction | ArrivalDelay,
+    | ChangeIntercityTransfer | AddAttraction | RemoveAttraction | AddAttractions
+    | RemoveAttractions | ArrivalDelay,
     Field(discriminator="kind"),
 ]
 CHANGE_COMMAND = TypeAdapter(ChangeCommand)

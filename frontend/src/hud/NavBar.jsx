@@ -9,12 +9,8 @@
 import { useState } from 'react';
 import Slot from './Slot.jsx';
 
-/** Placeholder routes — replace `href` with real routes / router <Link>s. */
-const NAV_LINKS = [
-  { label: 'Packages', href: '#packages' },
-  { label: 'Itineraries', href: '#itineraries' },
-  { label: 'Explore', href: '#explore' },
-];
+/** The app's real navigation lives in the actions slot (features/NavActions.jsx); no placeholder links. */
+const NAV_LINKS = [];
 
 /**
  * Placeholder logo mark: ink orbit + accent dot. Swap for the real SVG.
@@ -56,7 +52,7 @@ export default function NavBar({ actions }) {
       </a>
 
       <div className="nav__right">
-        <nav aria-label="Primary">
+        {NAV_LINKS.length > 0 && <nav aria-label="Primary">
           <ul className="nav__links" onPointerLeave={hideDot} onBlur={hideDot}>
             {NAV_LINKS.map((link) => (
               <li key={link.label}>
@@ -71,7 +67,7 @@ export default function NavBar({ actions }) {
               aria-hidden="true"
             />
           </ul>
-        </nav>
+        </nav>}
 
         {/* [HACKATHON_NAV_ACTIONS_SLOT] — sign-in / profile / currency */}
         <Slot name="HACKATHON_NAV_ACTIONS_SLOT" className="slot--nav-actions">

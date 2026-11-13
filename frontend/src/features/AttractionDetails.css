@@ -1,0 +1,213 @@
+/* Attraction detail drawer. Colours, spacing and type come from theme/tokens.css only. */
+
+.attraction-details__backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 900;
+  background: color-mix(in srgb, var(--color-ink) 40%, transparent);
+}
+
+.attraction-details {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 901;
+  width: min(440px, 100%);
+  height: 100vh;
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  background: var(--color-canvas);
+  color: var(--color-ink);
+  font-family: var(--font-body);
+  box-shadow: -8px 0 32px color-mix(in srgb, var(--color-ink) 18%, transparent);
+  overflow-x: hidden;
+  outline: none;
+}
+
+.attraction-details__header {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-2) var(--space-1);
+  border-bottom: 1px solid var(--ink-hair);
+}
+
+.attraction-details__titles {
+  flex: 1;
+  min-width: 0;
+}
+
+.attraction-details__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--step-2);
+  font-weight: var(--weight-display);
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
+.attraction-details__sub,
+.attraction-details__meta,
+.attraction-details__note {
+  margin: 0;
+  font-size: var(--step--1);
+  color: var(--ink-muted);
+  overflow-wrap: anywhere;
+}
+
+.attraction-details__close {
+  flex: none;
+  min-width: 44px;
+  min-height: 44px;
+  border: 1px solid var(--ink-hair);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--color-ink);
+  font: inherit;
+  font-size: var(--step-0);
+  cursor: pointer;
+}
+
+.attraction-details__body {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+  padding: var(--space-2);
+  display: grid;
+  gap: var(--space-3);
+  align-content: start;
+}
+
+.attraction-details__figure {
+  margin: 0;
+  display: grid;
+  gap: var(--space-1);
+}
+
+.attraction-details__photo {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 260px;
+  object-fit: cover;
+  border-radius: 8px;
+  background: var(--ink-hair);
+}
+
+.attraction-details__credit {
+  font-size: var(--step--1);
+  color: var(--ink-soft);
+  overflow-wrap: anywhere;
+}
+
+.attraction-details__fallback {
+  display: grid;
+  gap: var(--space-1);
+  align-content: center;
+  min-height: 160px;
+  padding: var(--space-3);
+  border-radius: 8px;
+  background: var(--ink-hair);
+  overflow-wrap: anywhere;
+}
+
+.attraction-details__fallback span {
+  font-size: var(--step--1);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ink-muted);
+}
+
+.attraction-details__fallback strong {
+  font-family: var(--font-display);
+  font-size: var(--step-2);
+  font-weight: var(--weight-display);
+}
+
+.attraction-details__section {
+  display: grid;
+  gap: var(--space-1);
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--ink-hair);
+}
+
+.attraction-details__section h3 {
+  margin: 0;
+  font-size: var(--step--1);
+  font-weight: var(--weight-medium);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ink-muted);
+}
+
+.attraction-details__list {
+  margin: 0;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: var(--space-1) var(--space-2);
+}
+
+.attraction-details__list dt {
+  color: var(--ink-muted);
+}
+
+.attraction-details__list dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.attraction-details__map {
+  justify-self: start;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  color: var(--color-ink);
+  font-weight: var(--weight-medium);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.attraction-details__actions {
+  display: grid;
+  gap: var(--space-1);
+  justify-items: start;
+}
+
+.attraction-details__status {
+  color: var(--ink-muted);
+}
+
+.attraction-details__error {
+  color: var(--color-accent);
+}
+
+.attraction-details button:focus-visible,
+.attraction-details a:focus-visible,
+.attraction-link:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+/* Attraction name in the day-by-day timeline: looks like text, behaves like a button. */
+.attraction-link {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 600px) {
+  .attraction-details {
+    width: 100%;
+    border-radius: 0;
+  }
+}

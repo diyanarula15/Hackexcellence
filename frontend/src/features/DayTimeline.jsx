@@ -1,7 +1,8 @@
 // The backend returns events in itinerary order; this component only formats them.
 
-import { openChange, openDelayRescue, previewRemoveAttraction } from '../state/bookingStore.js';
+import { openAttractionDetails, openChange, openDelayRescue, previewRemoveAttraction } from '../state/bookingStore.js';
 import { formatDay, formatDuration, formatINR, formatTime, humanize, plural } from './format.js';
+import './AttractionDetails.css'; // styles the attraction name button below
 
 const DAY_TITLE = {
   ARRIVAL: (day) => `Arrive in ${day.city}`,
@@ -82,7 +83,14 @@ function describe(event, day) {
     case 'ATTRACTION':
       return [
         `${formatTime(event.start)}–${formatTime(event.end)}`,
-        event.name,
+        <button
+          type="button"
+          className="attraction-link"
+          aria-haspopup="dialog"
+          onClick={() => openAttractionDetails({ attraction_id: event.catalog_id, item_id: event.item_id, date: day })}
+        >
+          {event.name}
+        </button>,
         [humanize(d.category), formatDuration(d.visit_minutes), plural(event.quantity, 'ticket')]
           .filter(Boolean)
           .join(' · '),

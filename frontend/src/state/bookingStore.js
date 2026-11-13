@@ -80,6 +80,15 @@ export const bookingStore = createStore({
   delay: CLOSED_DELAY,
   /** alternatives.status: idle | loading | ready | error — nearest searches that do have a trip */
   alternatives: { status: 'idle', data: null, error: null },
+  /**
+   * Attractions the traveler ticked to add together (Phase 8A multi-add), in tick order:
+   * [{ attraction_id, name, city, date: 'YYYY-MM-DD', preferred_start: 'HH:MM' | null }].
+   */
+  attractionSelection: [],
+  /** The attraction detail drawer: { open, attraction_id, item_id (visit:<id> when planned) | null, date | null } */
+  attractionDetails: { open: false, attraction_id: null, item_id: null, date: null },
+  /** Which top-level overlay is open: null | 'landscape' | 'saved' | 'lookup' */
+  panel: null,
 });
 
 const get = bookingStore.getState;
@@ -191,6 +200,10 @@ function showResult(result, focus = true) {
     change: CLOSED_CHANGE,
     exporting: { status: 'idle', name: null, error: null },
     alternatives: { status: 'idle', data: null, error: null },
+    // a different package: its attraction picks and open details no longer apply
+    ...(state.result.packageId !== result.packageId
+      ? { attractionSelection: [], attractionDetails: { open: false, attraction_id: null, item_id: null, date: null } }
+      : {}),
   }));
 }
 
@@ -209,7 +222,8 @@ export async function generatePackage({ objective } = {}) {
     const packageId = response.package?.id ?? null;
     writePackageIdToUrl(packageId, 'push');
     showResult({ status: response.status, packageId, response });
-    if (response.status === 'INFEASIBLE') loadAlternatives(body);
+    // no trip, or no trip within budget: look for the nearest searches that do work
+    if (response.status === 'INFEASIBLE' || response.status === 'OVER_BUDGET') loadAlternatives(body);
   } catch (error) {
     if (error instanceof ApiError && error.status === 422 && error.body?.field_errors) {
       set({
@@ -401,6 +415,76 @@ export function previewRemoveAttraction(itemId, trigger = null, label = 'Remove 
   });
 }
 
+// ── Multi-attraction selection (one preview / one apply for the whole set) ─────
+const MAX_SELECTION = 8;
+
+/** Tick / untick an attraction. `entry` = { attraction_id, name, city, date, preferred_start? }. */
+export function toggleAttractionSelection(entry) {
+  set((state) => {
+    const has = state.attractionSelection.some((e) => e.attraction_id === entry.attraction_id);
+    if (has) return { attractionSelection: state.attractionSelection.filter((e) => e.attraction_id !== entry.attraction_id) };
+    if (state.attractionSelection.length >= MAX_SELECTION) return {};
+    return { attractionSelection: [...state.attractionSelection, { preferred_start: null, ...entry }] };
+  });
+}
+
+/** Change the day or preferred start ('HH:MM' or null = let the planner decide) of a ticked attraction. */
+export function updateAttractionSelection(attractionId, patch) {
+  set((state) => ({
+    attractionSelection: state.attractionSelection.map((e) => (e.attraction_id === attractionId ? { ...e, ...patch } : e)),
+  }));
+}
+
+export function clearAttractionSelection() {
+  set({ attractionSelection: [] });
+}
+
+/** Preview adding every ticked attraction at once (nothing is saved until Apply). */
+export function previewSelectedAttractions(trigger = null) {
+  const pkg = currentPackage();
+  const selection = get().attractionSelection;
+  if (!pkg || !selection.length || get().change.status === 'applying') return;
+  if (trigger) changeTrigger = trigger;
+  const n = selection.length;
+  const target = { kind: 'attractions', label: `Add ${n} attraction${n === 1 ? '' : 's'}` };
+  const additions = selection.map(({ attraction_id, date, preferred_start }) => ({
+    attraction_id,
+    date,
+    ...(preferred_start ? { preferred_start } : {}),
+  }));
+  return runPreview({ kind: 'ADD_ATTRACTIONS', additions, base_version: pkg.version }, { ...CLOSED_CHANGE, target });
+}
+
+/** Preview removing several planned visits at once. `itemIds` = ['visit:<id>', ...]. */
+export function previewRemoveAttractions(itemIds, trigger = null) {
+  const pkg = currentPackage();
+  if (!pkg || !itemIds?.length || get().change.status === 'applying') return;
+  if (trigger) changeTrigger = trigger;
+  const n = itemIds.length;
+  const target = { kind: 'remove_attractions', item_ids: itemIds, label: `Remove ${n} attraction${n === 1 ? '' : 's'}` };
+  return runPreview({ kind: 'REMOVE_ATTRACTIONS', item_ids: itemIds, base_version: pkg.version }, { ...CLOSED_CHANGE, target });
+}
+
+// ── Attraction details ─────────────────────────────────────────────────────
+/** Open the detail drawer. `item_id` is the planned visit ('visit:<id>') or null; `date` the day context. */
+export function openAttractionDetails({ attraction_id, item_id = null, date = null }) {
+  set({ attractionDetails: { open: true, attraction_id, item_id, date } });
+}
+
+export function closeAttractionDetails() {
+  set((state) => ({ attractionDetails: { ...state.attractionDetails, open: false } }));
+}
+
+// ── Top-level overlays (navigation) ────────────────────────────────────────
+/** @param {'landscape' | 'saved' | 'lookup'} name */
+export function openPanel(name) {
+  set({ panel: name });
+}
+
+export function closePanel() {
+  set({ panel: null });
+}
+
 /** Re-run the last preview (after "preview outdated"). */
 export function repreviewChange() {
   const { command, target } = get().change;
@@ -425,9 +509,11 @@ export async function applyChange() {
     if (mine !== changeSeq) return;
     resultSeq += 1;
     const notice = `Saved. Your holiday is now version ${response.package?.version ?? response.change?.version}.`;
+    const addedBatch = change.command?.kind === 'ADD_ATTRACTIONS';
     set((state) => ({
       result: { ...EMPTY_RESULT, ...state.result, status: response.status ?? 'FOUND', response },
       change: { ...CLOSED_CHANGE, notice },
+      ...(addedBatch ? { attractionSelection: [] } : {}),
     }));
     writePackageIdToUrl(result.packageId, 'replace');
     restoreFocus();
@@ -460,7 +546,10 @@ export async function reloadLatest() {
     patchChange({ status: 'error', error: changeError(error) });
     return;
   }
+  // Re-run the same preview against the latest version (batch selections stay in the store).
   if (target.kind === 'remove_attraction') previewRemoveAttraction(target.item_id, null, target.label);
+  else if (target.kind === 'attractions') previewSelectedAttractions(null);
+  else if (target.kind === 'remove_attractions') previewRemoveAttractions(target.item_ids, null);
   else openChange(target);
 }
 

@@ -901,6 +901,19 @@
   border-bottom-color: var(--color-ink);
 }
 
+.nav-actions { position: relative; }
+.nav-actions__hint {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  max-width: 22rem;
+  margin: 0;
+  font-size: var(--step--1);
+  color: var(--color-accent);
+  text-align: right;
+}
+.nav-actions__hint:empty { display: none; }
+
 @media (max-width: 1199px) {
   .nav-actions__open {
     display: none;
@@ -1867,3 +1880,9 @@
 @media (max-width: 599px) {
   .alternatives__item { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "kind kind" "label label" "price action"; }
 }
+
+/* Why no holiday was found (Phase 8A) */
+.explanation__summary { margin: var(--space-1) 0; }
+.explanation__partial { margin: var(--space-1) 0 var(--space-2); font-size: var(--step--1); color: var(--ink-muted); }
+.explanation__partial summary { cursor: pointer; }
+.explanation__partial ul { margin: 6px 0 0; padding-left: 1.2em; }

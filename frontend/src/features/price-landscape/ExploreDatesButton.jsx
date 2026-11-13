@@ -9,12 +9,14 @@
 
 import { useRef, useState } from 'react';
 import { useStore } from '../../state/store.js';
-import { bookingStore, generatePackage, setField, toRequestBody } from '../../state/bookingStore.js';
+import { useEffect } from 'react';
+import { bookingStore, closePanel, generatePackage, setField, toRequestBody } from '../../state/bookingStore.js';
 import PriceLandscape from './PriceLandscape.jsx';
 
 export default function ExploreDatesButton() {
   const form = useStore(bookingStore, (s) => s.form);
   const meta = useStore(bookingStore, (s) => s.meta);
+  const panel = useStore(bookingStore, (s) => s.panel);
   const [open, setOpen] = useState(false);
   const [trip, setTrip] = useState(null);
   const triggerRef = useRef(null);
@@ -23,7 +25,16 @@ export default function ExploreDatesButton() {
   const country = meta.data?.countries?.find(
     (c) => c.name.toLowerCase() === String(form.country).toLowerCase() || c.code === form.country);
 
+  // "Explore dates" in the top navigation opens the same dialog with the current form
+  useEffect(() => {
+    if (panel === 'landscape' && ready && !open) {
+      setTrip(toRequestBody(form));
+      setOpen(true);
+    }
+  }, [panel]); // eslint-disable-line react-hooks/exhaustive-deps
+
   function close() {
+    if (bookingStore.getState().panel === 'landscape') closePanel();
     setOpen(false);
     setTimeout(() => triggerRef.current?.focus(), 0);
   }
@@ -35,6 +46,7 @@ export default function ExploreDatesButton() {
     if (submit.status === 'invalid' || submit.status === 'error') {
       throw new Error(submit.message ?? 'The holiday could not be generated.');
     }
+    if (bookingStore.getState().panel === 'landscape') closePanel();
     setOpen(false);
   }
 

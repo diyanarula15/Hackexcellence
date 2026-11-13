@@ -9,13 +9,16 @@ import {
   exportCurrentPackage,
   generatePackage,
   openPackage,
+  openPanel,
   retryResult,
   searchAlternative,
   startNewSearch,
 } from '../state/bookingStore.js';
 import ChangeDrawer from './ChangeDrawer.jsx';
 import DelayRescue from './DelayRescue.jsx';
+import AttractionDetails from './AttractionDetails.jsx';
 import DayTimeline from './DayTimeline.jsx';
+import SaveTripButton from './saved-trips/SaveTripButton.jsx';
 import ConfirmHoliday from './reservations/ConfirmHoliday.jsx';
 import BookingConfirmation from './reservations/BookingConfirmation.jsx';
 import { formatDate, formatINR, formatTravelers, humanize, plural, scrollToPlanner } from './format.js';
@@ -76,8 +79,42 @@ function NewSearch({ label = 'Search a new trip' }) {
 
 const KIND_LABEL = { START_DATE: 'Different start date', DEPARTURE: 'Different departure city', NIGHTS: 'Different length' };
 
+/**
+ * Why no (affordable) holiday was found: the backend's explanation. A reason is worded as the
+ * cause only when it blocked every option (scope ALL / REQUEST); partial ones are listed apart.
+ */
+function Explanation({ explanation, fallbackReasons }) {
+  if (!explanation) return <Reasons reasons={fallbackReasons} />;
+  // A reason the summary already states word for word is not listed again.
+  const summary = explanation.summary ?? '';
+  const main = explanation.reasons.filter((r) => r.scope !== 'SOME' && !summary.includes(r.message));
+  const partial = explanation.reasons.filter((r) => r.scope === 'SOME');
+  return (
+    <div className="explanation">
+      {explanation.summary && <p className="explanation__summary">{explanation.summary}</p>}
+      {main.length > 0 && (
+        <ul className="results__reasons">
+          {main.map((r) => (
+            <li key={`${r.code}:${r.message}`}>{r.message}</li>
+          ))}
+        </ul>
+      )}
+      {partial.length > 0 && (
+        <details className="explanation__partial">
+          <summary>What else ruled out some options</summary>
+          <ul>
+            {partial.map((r) => (
+              <li key={`${r.code}:${r.message}`}>{r.message}</li>
+            ))}
+          </ul>
+        </details>
+      )}
+    </div>
+  );
+}
+
 /** "If you change X you'll find one": the nearest one-field changes that do have a holiday. */
-function Alternatives() {
+function Alternatives({ maxTotal = null, title = 'Nearest trips that work' }) {
   const alternatives = useStore(bookingStore, (s) => s.alternatives);
   const submit = useStore(bookingStore, (s) => s.submit);
   const busy = submit.status === 'loading';
@@ -88,7 +125,11 @@ function Alternatives() {
   if (alternatives.status === 'error') {
     return <p className="alternatives__status">Could not look for nearby trips: {alternatives.error}</p>;
   }
-  const suggestions = alternatives.data?.suggestions ?? [];
+  // over budget: only show changes that actually cost less than the cheapest trip for this search
+  const suggestions = (alternatives.data?.suggestions ?? []).filter(
+    (s) => maxTotal == null || s.min_total_inr < maxTotal,
+  );
+  if (!suggestions.length && maxTotal != null) return null;
   if (!suggestions.length) {
     return (
       <p className="alternatives__status">
@@ -100,7 +141,7 @@ function Alternatives() {
   const [first] = suggestions;
   return (
     <section className="alternatives" aria-labelledby="alternatives-title">
-      <h3 className="eyebrow" id="alternatives-title">Nearest trips that work</h3>
+      <h3 className="eyebrow" id="alternatives-title">{title}</h3>
       <p className="alternatives__lead">
         If you change your search — <strong>{first.label.charAt(0).toLowerCase() + first.label.slice(1)}</strong> — you'll
         find a holiday from <strong>{formatINR(first.min_total_inr)}</strong>.
@@ -140,9 +181,15 @@ function Route({ pkg }) {
 }
 
 function OverBudget({ response }) {
+  const explanation = response.explanation;
   return (
     <div className="notice" role="status">
-      {response.cheapest_total_inr != null ? (
+      {explanation ? (
+        <>
+          <p className="notice__title">{explanation.headline}.</p>
+          <p>{explanation.summary} It is shown below.</p>
+        </>
+      ) : response.cheapest_total_inr != null ? (
         <>
           <p className="notice__title">No package fits your budget.</p>
           <p>
@@ -161,6 +208,7 @@ function OverBudget({ response }) {
         </>
       )}
       <Reasons reasons={response.suggestions} />
+      <Alternatives maxTotal={response.cheapest_total_inr ?? response.package?.total_inr} title="Cheaper searches nearby" />
       <EditTrip />
     </div>
   );
@@ -292,6 +340,7 @@ function PackageView({ response, receipt, onConfirmed }) {
       <ChangeNotice />
       <ChangeDrawer />
       <DelayRescue />
+      <AttractionDetails />
       {reviewOpen && <ConfirmHoliday pkg={pkg} onClose={() => setReviewOpen(false)} onConfirmed={onConfirmed} />}
       <header className="pkg__header">
         <p className="eyebrow">Your holiday package</p>
@@ -335,6 +384,7 @@ function PackageView({ response, receipt, onConfirmed }) {
               <p>Confirm this saved itinerary when you are ready to book.</p>
             </div>
           )}
+          <SaveTripButton key={pkg.id ?? pkg.package_id} pkg={pkg} onViewSaved={() => openPanel('saved')} />
           {reference && (
             <p className="export__status" aria-live="polite">
               {exportingReservation && 'Preparing itinerary…'}
@@ -388,9 +438,12 @@ function Content({ result, receipt, onConfirmed }) {
       );
     case 'INFEASIBLE':
       return (
-        <Notice eyebrow="No package possible" title="No holiday package can be built for this trip">
-          <p>Every package must follow all travel rules. This request cannot, because:</p>
-          <Reasons reasons={response.reasons} />
+        <Notice
+          eyebrow="No package possible"
+          title={response.explanation?.headline ?? 'No holiday package can be built for this trip'}
+        >
+          {!response.explanation && <p>Every package must follow all travel rules. This request cannot, because:</p>}
+          <Explanation explanation={response.explanation} fallbackReasons={response.reasons} />
           <Alternatives />
           <div className="results__actions">
             <EditTrip />
@@ -400,8 +453,11 @@ function Content({ result, receipt, onConfirmed }) {
       );
     case 'SEARCH_INCOMPLETE':
       return (
-        <Notice eyebrow="Search incomplete" title="The search stopped before it could finish">
-          <p>This is not a proof that no package exists.</p>
+        <Notice
+          eyebrow="Search incomplete"
+          title={response.explanation?.headline ?? 'The search stopped before it could finish'}
+        >
+          <p>{response.explanation?.summary ?? 'This is not a proof that no package exists.'}</p>
           <Reasons reasons={response.reasons} />
           <div className="results__actions">
             <button type="button" className="btn btn--primary" onClick={generatePackage}>

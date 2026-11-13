@@ -170,7 +170,7 @@ def test_31_apply_increments_the_version_once_and_marks_edited(client):
     ch = out["change"]
     assert (ch["previous_version"], ch["version"], ch["kind"]) == (1, 2, body["kind"])
     row = _row(pid)
-    assert row[4] == 2 and row[6] == EDITED  # version, validation_mode columns
+    assert row[4] == 2 and row[7] == EDITED  # version, validation_mode columns (6 is catalog_fingerprint)
 
 
 def test_34_applied_change_persists_for_get_export_and_a_reopened_database(client):

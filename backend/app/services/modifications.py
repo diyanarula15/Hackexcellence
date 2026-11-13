@@ -19,7 +19,7 @@ from app.models import CHANGE_COMMAND
 from app.repositories import packages as repo
 from app.rules.common import EDITED
 from app.services import alternatives as alt
-from app.services.change_view import changed_item_view, headline, violation_view
+from app.services.change_view import batch_headline, changed_item_view, headline, violation_view
 from app.services.itinerary import present_package
 
 GENERAL = "request"
@@ -105,7 +105,7 @@ def preview_token(base_version: int, package) -> str:
     return hashlib.sha256(text.encode()).hexdigest()
 
 
-def _valid_message(proposal, catalog) -> str:
+def _valid_message(proposal, catalog, lead: str | None = None) -> str:
     diff = proposal.price_difference or 0
     if diff > 0:
         text = f"This change adds {rupees(diff)} to the package total."
@@ -116,7 +116,7 @@ def _valid_message(proposal, catalog) -> str:
     n = len(proposal.automatic_repairs)
     if n:
         text += f" It also changes {n} other item{'s' if n != 1 else ''} automatically."
-    return text
+    return f"{lead} {text}" if lead else text
 
 
 def _views(items, catalog) -> list[dict]:
@@ -165,7 +165,7 @@ def preview(stored, command, catalog) -> dict:
     return {
         "valid": True,
         **base,
-        "message": _valid_message(proposal, catalog),
+        "message": _valid_message(proposal, catalog, batch_headline(command)),
         "proposed_package": present_package(shown, catalog),
         "old_total_inr": proposal.old_total,
         "new_total_inr": proposal.new_total,

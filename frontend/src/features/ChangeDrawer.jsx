@@ -13,6 +13,16 @@ import {
   selectChangeSlot,
 } from '../state/bookingStore.js';
 import { formatDay, formatDuration, formatINR, formatSignedINR, formatTime, humanize, plural } from './format.js';
+import AttractionPicker from './AttractionPicker.jsx';
+
+const BATCH_KINDS = new Set(['ADD_ATTRACTIONS', 'REMOVE_ATTRACTIONS']);
+const BATCH_VERB = { ADDED: 'Added', RESCHEDULED: 'Moves', REMOVED: 'Removed' };
+
+/** How many attractions a batch command names (null for every other change). */
+function batchCount(command) {
+  if (!BATCH_KINDS.has(command?.kind)) return null;
+  return command.kind === 'ADD_ATTRACTIONS' ? command.additions.length : command.item_ids.length;
+}
 
 const FOCUSABLE = 'button:not(:disabled), select:not(:disabled), [href], [tabindex]:not([tabindex="-1"])';
 
@@ -164,6 +174,7 @@ function List({ items, className }) {
 
 function Preview({ preview }) {
   const valid = preview.valid;
+  const batch = BATCH_KINDS.has(preview.kind);
   const over = preview.over_budget_inr > 0;
   return (
     <section className="change-preview" data-valid={String(valid)} aria-label="Change preview" aria-live="polite">
@@ -192,7 +203,32 @@ function Preview({ preview }) {
           </div>
         </dl>
       )}
-      {preview.changed_items?.length > 0 && valid && (
+      {batch && valid && (
+        <div>
+          <h4 className="eyebrow">Attractions</h4>
+          <ul className="change-items change-batch">
+            {preview.changed_items
+              .filter((item) => item.source === 'USER_CHOICE')
+              .map((item) => {
+                const side = item.after ?? item.before;
+                const span = item.start
+                  ? `${formatDay(item.start)} ${formatTime(item.start)}${item.end ? `–${formatTime(item.end)}` : ''}`
+                  : '';
+                return (
+                  <li key={item.item_id} data-action={item.action}>
+                    <strong>{BATCH_VERB[item.action] ?? 'Changed'}</strong> {side?.name ?? item.label} · {span}
+                    {item.price_difference_inr
+                      ? ` · ${formatSignedINR(item.price_difference_inr)}`
+                      : item.action === 'ADDED'
+                        ? ' · free entry'
+                        : ''}
+                  </li>
+                );
+              })}
+          </ul>
+        </div>
+      )}
+      {preview.changed_items?.length > 0 && valid && !batch && (
         <div>
           <h4 className="eyebrow">Changes</h4>
           <ul className="change-items">
@@ -318,7 +354,10 @@ export default function ChangeDrawer() {
           {change.options?.message && change.options.alternatives.length === 0 && (
             <p className="change-empty">{change.options.message}</p>
           )}
-          {change.options?.alternatives.length > 0 && (
+          {change.options?.alternatives.length > 0 && change.target?.kind === 'attraction' && (
+            <AttractionPicker options={change.options} date={change.target.date} busy={busy} />
+          )}
+          {change.options?.alternatives.length > 0 && change.target?.kind !== 'attraction' && (
             <ul className="change-options">
               {change.options.alternatives.map((option) => (
                 <Option
@@ -342,7 +381,7 @@ export default function ChangeDrawer() {
             Cancel
           </button>
           <button type="button" className="btn btn--primary change-apply" disabled={!canApply} onClick={applyChange}>
-            {status === 'applying' ? 'Saving…' : 'Apply change'}
+            {status === 'applying' ? 'Saving…' : batchCount(change.command) ? `Apply all ${batchCount(change.command)}` : 'Apply change'}
           </button>
         </footer>
       </div>

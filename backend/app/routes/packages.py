@@ -36,6 +36,7 @@ from app.repositories import packages as repo
 from app.rules.common import INITIAL
 from app.rules.request import check_request
 from app.services import delay_rescue
+from app.services.explanations import explain
 from app.services import modifications as mods
 from app.services.alternatives import OptionsRequestError
 from app.services.itinerary import present_package
@@ -271,17 +272,18 @@ def create_package(body: Annotated[Any, Body()] = None):
         )
     if result.status not in (FOUND, OVER_BUDGET) or result.package is None:
         # INFEASIBLE (no package exists, with reasons) or SEARCH_INCOMPLETE (no proof either way)
-        return JSONResponse(
-            status_code=200,
-            content={
-                "status": result.status,
-                "package": None,
-                "reasons": result.reasons,
-                "reason_codes": result.reason_codes,
-                "suggestions": [],
-                "search_complete": result.search_complete,
-            },
-        )
+        content = {
+            "status": result.status,
+            "package": None,
+            "reasons": result.reasons,
+            "reason_codes": result.reason_codes,
+            "suggestions": [],
+            "search_complete": result.search_complete,
+        }
+        explanation = explain(result, trip, catalog)
+        if explanation is not None:
+            content["explanation"] = explanation
+        return JSONResponse(status_code=200, content=content)
 
     violations = validate_trip(to_trip_json(result.package, catalog), catalog, INITIAL)
     if violations:  # never save a package that breaks a rule
@@ -302,9 +304,11 @@ def create_package(body: Annotated[Any, Body()] = None):
     stored, error = _load(package_id)  # answer with what was persisted
     if error is not None:
         return error
-    return JSONResponse(
-        status_code=201, content=package_envelope(stored, catalog, planning=result)
-    )
+    envelope = package_envelope(stored, catalog, planning=result)
+    explanation = explain(result, trip, catalog)  # only an OVER_BUDGET result has one here
+    if explanation is not None:
+        envelope["explanation"] = explanation
+    return JSONResponse(status_code=201, content=envelope)
 
 
 @router.get("/packages/{package_id}")

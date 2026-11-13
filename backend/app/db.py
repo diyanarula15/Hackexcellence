@@ -36,6 +36,13 @@ CREATE TABLE IF NOT EXISTS reservations (
     created_at TEXT NOT NULL,
     FOREIGN KEY (package_id) REFERENCES packages(id)
 );
+
+CREATE TABLE IF NOT EXISTS saved_trips (
+    package_id TEXT PRIMARY KEY REFERENCES packages(id) ON DELETE CASCADE,
+    name TEXT NOT NULL,
+    saved_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+);
 """
 
 

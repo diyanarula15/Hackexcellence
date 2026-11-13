@@ -116,7 +116,20 @@ def changed_item_view(c: ChangedItem, catalog) -> dict:
         "price_difference_inr": c.price_delta,
         "summary": _summary(c, label, before, after),
         "reason": name_ids(c.reason, catalog),
+        "start": (c.after or c.before or {}).get("start"),   # ISO local time of the visit (or of the item)
+        "end": (c.after or c.before or {}).get("end"),
     }
+
+
+def batch_headline(command) -> str | None:
+    """'Adding 3 attractions.' for a batch command, None for every other kind."""
+    if command.kind == "ADD_ATTRACTIONS":
+        n, verb = len(command.additions), "Adding"
+    elif command.kind == "REMOVE_ATTRACTIONS":
+        n, verb = len(command.item_ids), "Removing"
+    else:
+        return None
+    return f"{verb} {n} attraction{'s' if n != 1 else ''}."
 
 
 def violation_view(v: Violation, catalog) -> dict:

@@ -1,0 +1,120 @@
+/* Attraction multi-select inside the change drawer. Colours and spacing come from theme/tokens.css only. */
+
+.attraction-picker {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.attraction-picker__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--space-1);
+}
+
+.attraction-picker__item {
+  display: grid;
+  gap: 4px;
+  padding: var(--space-1) 0;
+  border-bottom: 1px solid var(--ink-hair);
+}
+
+.attraction-picker__item.is-invalid .attraction-picker__name {
+  color: var(--ink-soft);
+}
+
+.attraction-picker__check {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-weight: var(--weight-medium);
+  cursor: pointer;
+}
+
+.attraction-picker__check input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--color-accent);
+}
+
+.attraction-picker__check input:disabled + .attraction-picker__name {
+  color: var(--ink-soft);
+}
+
+.attraction-picker__facts,
+.attraction-picker__price,
+.attraction-picker__reason,
+.attraction-picker__count {
+  margin: 0;
+  font-size: var(--step--1);
+  color: var(--ink-muted);
+}
+
+.attraction-picker__reason {
+  color: var(--color-accent);
+}
+
+.attraction-picker__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+}
+
+.attraction-picker__footer {
+  display: grid;
+  gap: var(--space-1);
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--ink-hair);
+}
+
+.attraction-picker__selected {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--space-1);
+}
+
+.attraction-picker__selected-item {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.attraction-picker__selected-name {
+  flex: 1 1 100%;
+  font-weight: var(--weight-medium);
+}
+
+.attraction-picker__field {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: var(--step--1);
+  color: var(--ink-muted);
+}
+
+.attraction-picker__field select {
+  font: inherit;
+  color: var(--color-ink);
+  background: var(--color-canvas);
+  border: 1px solid var(--ink-soft);
+  border-radius: 4px;
+  padding: 2px 6px;
+}
+
+.attraction-picker__actions--footer {
+  justify-content: flex-end;
+}
+
+@media (max-width: 480px) {
+  .attraction-picker__actions--footer {
+    justify-content: stretch;
+  }
+
+  .attraction-picker__actions--footer .btn {
+    flex: 1 1 auto;
+  }
+}

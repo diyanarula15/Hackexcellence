@@ -82,6 +82,10 @@ class PlanningResult:
     reason_codes: list[str] = field(default_factory=list)
     stats: SearchStats = field(default_factory=SearchStats)
     proposal: object | None = None      # ChangeProposal when existing_package was given
+    # INFEASIBLE only: one entry per reason code, from what the search already collected:
+    # {"code", "plans_failed", "plans_total", "message"}. Request-level entries have
+    # plans_failed == plans_total (the number of city plans, 0 if none).
+    failures: list[dict] = field(default_factory=list)
 
 
 # ------------------------------------------------------------------ helpers
@@ -125,6 +129,7 @@ class _Search:
         self.failures: dict[str, dict] = {}        # code -> {"plans": set, "message": str}
         self._hotels, self._arr, self._dep, self._legs, self._attr = {}, {}, {}, {}, {}
         self.plans_tried: set = set()
+        self.failure_entries: list[dict] = []      # filled by reasons(), see PlanningResult.failures
 
     # ---- failure bookkeeping
     def fail(self, code: str, plan: CityPlan, message: str):
@@ -437,11 +442,15 @@ class _Search:
                 codes.append(f"NO_{which}_FLIGHT")
                 msgs.append(f"No flight {direction}.")
         if codes:
+            self.failure_entries = [{"code": c, "plans_failed": len(self.plans), "plans_total": len(self.plans),
+                                     "message": m} for c, m in zip(codes, msgs)]
             return codes, msgs
         total = len(self.plans)
+        entries = []
         for code, f in sorted(self.failures.items(), key=lambda kv: (-len(kv[1]["plans"]), kv[0])):
             codes.append(code)
             k = len(f["plans"])
+            entries.append({"code": code, "plans_failed": k, "plans_total": total, "message": f["message"]})
             if k == total:
                 msgs.append(f"Every one of the {total} possible city plan(s) fails for this reason: "
                             f"{f['message']}")
@@ -451,6 +460,9 @@ class _Search:
         if not codes:
             codes.append("NO_COMPATIBLE_CITY_PLAN")
             msgs.append("No combination of flights, hotels and transfers forms a complete package.")
+            entries.append({"code": "NO_COMPATIBLE_CITY_PLAN", "plans_failed": total, "plans_total": total,
+                            "message": msgs[-1]})
+        self.failure_entries = entries
         return codes, msgs
 
 
@@ -490,14 +502,15 @@ def build_package(request, catalog, objective: str = WITHIN_BUDGET,
                               ["INVALID_REQUEST"] + sorted({v.rule for v in bad}))
     s = _Search(request, catalog, constraints)
 
-    def done(status, pkg, reasons=(), codes=()):
+    def done(status, pkg, reasons=(), codes=(), failures=()):
         s.stats.elapsed_ms = round((time.perf_counter() - t0) * 1000, 2)
         total = pkg.total if pkg else None
         return PlanningResult(
             status, pkg, total,
             (request.budget - total) if pkg and status == FOUND else None,
             (total - request.budget) if pkg and status == OVER_BUDGET else None,
-            list(reasons), status != SEARCH_INCOMPLETE, list(codes), s.stats)
+            list(reasons), status != SEARCH_INCOMPLETE, list(codes), s.stats,
+            failures=list(failures))
 
     try:
         triples = s.triples()
@@ -515,7 +528,7 @@ def build_package(request, catalog, objective: str = WITHIN_BUDGET,
         if s.stats.validator_rejections:
             msgs.append(f"{s.stats.validator_rejections} candidate package(s) were rejected by the "
                         "validator (internal planner defect, see log).")
-        return done(INFEASIBLE, None, msgs, codes)
+        return done(INFEASIBLE, None, msgs, codes, s.failure_entries)
     cheapest = s.enrich(cheapest, "FREE")
     if cheapest.total <= request.budget:
         return done(FOUND, cheapest)
