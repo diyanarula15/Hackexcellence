@@ -302,31 +302,28 @@ function ExportButton() {
 
 function SavedAs({ pkg }) {
   const [copied, setCopied] = useState(false);
+  const id = pkg.id ?? pkg.package_id;
+  if (!id) return null;
   const copy = async () => {
     try {
-      await navigator.clipboard.writeText(pkg.id);
+      await navigator.clipboard.writeText(id);
       setCopied(true);
     } catch {
       setCopied(false);
     }
   };
+  // one quiet line: the ID is what the top bar's "Package ID" box reopens; Copy gives the full value
   return (
-    <section aria-labelledby="saved-title">
-      <h3 className="eyebrow" id="saved-title">
-        Package ID
-      </h3>
-      <p className="mono">{pkg.id}</p>
-      <p className="results__muted">
-        {humanize(pkg.status)} · version {pkg.version} ·{' '}
-        <button type="button" className="link-button" onClick={copy}>
-          {copied ? 'Copied' : 'Copy ID'}
-        </button>
-      </p>
-      <p className="results__muted">
-        Every plan gets an ID automatically, so you can reopen it from “Package ID” in the top bar. To keep it in
-        your list, use Save trip.
-      </p>
-    </section>
+    <p className="results__muted">
+      Package ID{' '}
+      <span className="mono" title={id}>
+        {id.slice(0, 8)}…
+      </span>{' '}
+      ·{' '}
+      <button type="button" className="link-button" onClick={copy} aria-label={`Copy package ID ${id}`}>
+        {copied ? 'Copied' : 'Copy ID'}
+      </button>
+    </p>
   );
 }
 
