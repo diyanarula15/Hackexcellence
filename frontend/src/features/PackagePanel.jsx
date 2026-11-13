@@ -19,6 +19,7 @@ import DelayRescue from './DelayRescue.jsx';
 import AttractionDetails from './AttractionDetails.jsx';
 import DayTimeline from './DayTimeline.jsx';
 import SaveTripButton from './saved-trips/SaveTripButton.jsx';
+import PackageOptions from './package-options/PackageOptions.jsx';
 import ConfirmHoliday from './reservations/ConfirmHoliday.jsx';
 import BookingConfirmation from './reservations/BookingConfirmation.jsx';
 import { formatDate, formatINR, formatTravelers, humanize, plural, scrollToPlanner } from './format.js';
@@ -408,6 +409,9 @@ function PackageView({ response, receipt, onConfirmed }) {
 function Content({ result, receipt, onConfirmed }) {
   const { status, response } = result;
   switch (status) {
+    case 'SEARCHING':
+    case 'OPTIONS':
+      return <PackageOptions />; // pick your trip: several complete options, nothing saved yet
     case 'LOADING':
       return (
         <Notice eyebrow="Saved package" title="Loading your holiday…">

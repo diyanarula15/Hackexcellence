@@ -1,0 +1,586 @@
+/* "Pick your trip" cards and preview drawer. Colours, type and spacing come from theme/tokens.css
+   (and the shared .btn classes in features.css) only. */
+
+.package-options {
+  width: 100%;
+  min-width: 0;
+  max-width: 1200px;
+  margin-inline: auto;
+  color: var(--color-ink);
+  font-family: var(--font-body);
+}
+
+.package-options__head {
+  min-width: 0;
+}
+
+.package-options__title {
+  margin: var(--space-1) 0 0;
+  font-family: var(--font-display);
+  font-size: var(--step-2);
+  font-weight: var(--weight-display);
+  line-height: 1.15;
+  overflow-wrap: anywhere;
+}
+
+.package-options__subline {
+  margin: var(--space-1) 0 0;
+  color: var(--ink-muted);
+}
+
+.package-options__note {
+  margin: var(--space-1) 0 0;
+  padding-left: var(--space-2);
+  border-left: 2px solid var(--color-accent);
+  color: var(--ink-muted);
+}
+
+.package-options__error {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-1);
+  margin-top: var(--space-2);
+  padding: var(--space-2);
+  border-radius: 14px;
+  border: 1px solid var(--color-accent);
+  color: var(--color-ink);
+}
+
+.package-options__error p {
+  margin: 0;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+/* Cards: one column on phones, 3 (or 2, or 1) columns from 720px. perspective gives the tilt depth. */
+.package-options__grid {
+  list-style: none;
+  margin: var(--space-3) 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-3);
+  perspective: 1400px;
+}
+
+.package-options__item {
+  min-width: 0;
+  display: flex;
+}
+
+.package-options__item > .option-card {
+  flex: 1;
+}
+
+@media (min-width: 720px) {
+  .package-options__grid--3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .package-options__grid--2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .package-options__grid--1 {
+    grid-template-columns: minmax(0, 560px);
+    justify-content: center;
+  }
+}
+
+.option-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
+  padding: var(--space-2);
+  border-radius: 18px;
+  border: 1px solid var(--ink-hair);
+  background: var(--color-canvas);
+  overflow: hidden;
+  box-shadow:
+    0 1px 0 color-mix(in srgb, var(--color-ink) 6%, transparent),
+    0 2px 4px color-mix(in srgb, var(--color-ink) 6%, transparent),
+    0 10px 20px -8px color-mix(in srgb, var(--color-ink) 14%, transparent),
+    0 26px 40px -22px color-mix(in srgb, var(--color-ink) 30%, transparent);
+  transition:
+    transform 350ms var(--ease-out),
+    box-shadow 350ms var(--ease-out),
+    border-color 250ms var(--ease-out);
+}
+
+/* Subtle lift and tilt on hover, or when a keyboard user focuses a control inside the card. */
+.option-card:hover,
+.option-card:has(:focus-visible) {
+  transform: translateY(-4px) rotateX(3deg) rotateY(-2deg);
+  border-color: color-mix(in srgb, var(--color-accent) 40%, var(--ink-hair));
+  box-shadow:
+    0 1px 0 color-mix(in srgb, var(--color-ink) 6%, transparent),
+    0 4px 8px color-mix(in srgb, var(--color-ink) 8%, transparent),
+    0 18px 30px -12px color-mix(in srgb, var(--color-ink) 22%, transparent),
+    0 40px 60px -28px color-mix(in srgb, var(--color-ink) 40%, transparent);
+}
+
+/* The chosen card: accent ring and a slight raise while it confirms. */
+.option-card--selecting {
+  transform: translateY(-4px);
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-accent) 30%, transparent),
+    0 24px 40px -18px color-mix(in srgb, var(--color-ink) 30%, transparent);
+}
+
+.option-card__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.option-card__head .eyebrow {
+  margin: 0;
+}
+
+.option-card__badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.option-card__badge {
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--color-accent) 14%, var(--color-canvas));
+  color: var(--color-ink);
+  font-size: var(--step--1);
+  font-weight: var(--weight-medium);
+}
+
+.option-card__price .eyebrow {
+  margin: 0;
+}
+
+.option-card__total {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--step-3);
+  font-weight: var(--weight-display);
+  line-height: 1.1;
+  overflow-wrap: anywhere;
+}
+
+.option-card__budget {
+  margin: 2px 0 0;
+  color: var(--ink-muted);
+  font-size: var(--step--1);
+}
+
+.option-card__budget.is-over {
+  color: var(--color-accent);
+}
+
+.option-card__title {
+  margin: var(--space-1) 0 0;
+  font-family: var(--font-display);
+  font-size: var(--step-1);
+  font-weight: var(--weight-display);
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
+.option-card__meta,
+.option-card__travelers {
+  margin: 0;
+  color: var(--ink-muted);
+  font-size: var(--step--1);
+  overflow-wrap: anywhere;
+}
+
+.option-card__cities {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.option-card__city {
+  padding: 4px 10px;
+  border: 1px solid var(--ink-hair);
+  border-radius: 999px;
+  font-size: var(--step--1);
+}
+
+.option-card__facts {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 4px var(--space-1);
+  margin: var(--space-1) 0 0;
+  font-size: var(--step--1);
+}
+
+.option-card__facts dt {
+  color: var(--ink-muted);
+}
+
+.option-card__facts dd {
+  margin: 0;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.option-card__stats,
+.option-card__diffs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--step--1);
+}
+
+.option-card__stat {
+  color: var(--ink-muted);
+}
+
+.option-card__stat + .option-card__stat::before {
+  content: '·';
+  margin-right: 6px;
+  color: var(--ink-soft);
+}
+
+.option-card__diff {
+  padding: 2px 8px;
+  border-radius: 6px;
+  background: var(--ink-hair);
+  font-size: var(--step--1);
+}
+
+.option-card__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+  margin-top: auto;
+  padding-top: var(--space-1);
+}
+
+.option-card__status {
+  margin: 0;
+  color: var(--color-accent);
+  font-weight: var(--weight-medium);
+}
+
+.package-options button:focus-visible,
+.package-options__link:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 3px;
+}
+
+.package-options button:disabled {
+  opacity: 0.55;
+  cursor: progress;
+}
+
+.package-options__footer {
+  margin-top: var(--space-3);
+  text-align: center;
+}
+
+.package-options__link {
+  padding: 8px 4px;
+  border: 0;
+  background: none;
+  color: var(--color-ink);
+  font: inherit;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  cursor: pointer;
+}
+
+.package-options__link:hover {
+  color: var(--color-accent);
+}
+
+/* The plane that flies across the chosen card. It is clipped by the card's overflow. */
+.option-card__flight {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.option-card__plane {
+  position: absolute;
+  top: 36%;
+  left: -36px;
+  width: 30px;
+  height: 30px;
+  color: var(--color-accent);
+  animation: option-plane-fly 1.3s cubic-bezier(0.45, 0, 0.55, 1) both;
+}
+
+@keyframes option-plane-fly {
+  from {
+    left: -36px;
+    opacity: 0;
+    transform: rotate(-4deg);
+  }
+  12% {
+    opacity: 1;
+  }
+  85% {
+    opacity: 1;
+  }
+  to {
+    left: calc(100% + 12px);
+    opacity: 0;
+    transform: rotate(-10deg) translateY(-18px);
+  }
+}
+
+/* Skeleton cards while the search runs: no prices, only shimmering bars. */
+.option-card--skeleton {
+  pointer-events: none;
+}
+
+.option-card--skeleton .option-card__bar {
+  display: block;
+  height: 12px;
+  border-radius: 999px;
+  background: linear-gradient(
+    90deg,
+    var(--ink-hair) 25%,
+    color-mix(in srgb, var(--ink-hair) 40%, var(--color-canvas)) 50%,
+    var(--ink-hair) 75%
+  );
+  background-size: 200% 100%;
+  animation: option-shimmer 1.4s linear infinite;
+}
+
+.option-card--skeleton .option-card__bar--title {
+  height: 18px;
+}
+
+@keyframes option-shimmer {
+  from {
+    background-position: 100% 0;
+  }
+  to {
+    background-position: -100% 0;
+  }
+}
+
+/* ── Preview drawer ──────────────────────────────────────────────────────── */
+.po-dialog__backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 900;
+  background: color-mix(in srgb, var(--color-ink) 40%, transparent);
+}
+
+.po-dialog {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 901;
+  width: min(560px, 100%);
+  height: 100vh;
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  background: var(--color-canvas);
+  color: var(--color-ink);
+  font-family: var(--font-body);
+  box-shadow: -8px 0 32px color-mix(in srgb, var(--color-ink) 18%, transparent);
+  overflow-x: hidden;
+  outline: none;
+  animation: po-dialog-in 260ms var(--ease-out) both;
+}
+
+@keyframes po-dialog-in {
+  from {
+    opacity: 0;
+    transform: translateX(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.po-dialog__head {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  padding: var(--space-2);
+  border-bottom: 1px solid var(--ink-hair);
+}
+
+.po-dialog__titles {
+  flex: 1;
+  min-width: 0;
+}
+
+.po-dialog__preview {
+  margin: 0;
+  color: var(--color-accent);
+  font-size: var(--step--1);
+  font-weight: var(--weight-medium);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.po-dialog__title {
+  margin: 4px 0 0;
+  font-family: var(--font-display);
+  font-size: var(--step-1);
+  font-weight: var(--weight-display);
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
+.po-dialog__body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: var(--space-2);
+}
+
+.po-section {
+  margin-bottom: var(--space-3);
+  min-width: 0;
+}
+
+.po-section > .eyebrow {
+  margin: 0 0 var(--space-1);
+}
+
+.po-rows {
+  margin: 0;
+}
+
+.po-rows__row {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-1);
+  padding: 6px 0;
+  border-bottom: 1px solid var(--ink-hair);
+}
+
+.po-rows__row dt,
+.po-rows__row dd {
+  margin: 0;
+}
+
+.po-rows__row--total {
+  font-weight: var(--weight-medium);
+  border-bottom: 0;
+}
+
+.po-flights,
+.po-hotels {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.po-flight,
+.po-hotel {
+  padding: var(--space-1) 0;
+  border-bottom: 1px solid var(--ink-hair);
+  min-width: 0;
+}
+
+.po-flight p,
+.po-hotel p {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.po-flight__label {
+  color: var(--ink-muted);
+  font-size: var(--step--1);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.po-flight__route,
+.po-flight__times,
+.po-hotel__meta {
+  color: var(--ink-muted);
+  font-size: var(--step--1);
+}
+
+.po-hotel__name {
+  font-weight: var(--weight-medium);
+}
+
+.po-dialog__foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-1);
+  padding: var(--space-2);
+  border-top: 1px solid var(--ink-hair);
+}
+
+.po-dialog__note {
+  margin: 0;
+  color: var(--ink-muted);
+  font-size: var(--step--1);
+}
+
+@media (max-width: 719px) {
+  .option-card {
+    padding: var(--space-2) var(--space-1);
+  }
+
+  .po-dialog__head,
+  .po-dialog__body,
+  .po-dialog__foot {
+    padding-inline: var(--space-1);
+  }
+
+  .po-dialog__foot .btn {
+    flex: 1;
+  }
+}
+
+/* Reduced motion: no tilt, lift, plane flight, shimmer or transitions. The state still changes. */
+@media (prefers-reduced-motion: reduce) {
+  .option-card,
+  .option-card:hover,
+  .option-card:has(:focus-visible),
+  .option-card--selecting {
+    transition: none;
+    transform: none;
+    animation: none;
+  }
+
+  .option-card__flight {
+    display: none;
+  }
+
+  .option-card__plane,
+  .option-card--skeleton .option-card__bar,
+  .po-dialog {
+    animation: none;
+  }
+
+  .package-options button {
+    transition: none;
+  }
+}

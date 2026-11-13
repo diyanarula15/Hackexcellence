@@ -24,7 +24,7 @@ function LocalTime({ iso, day }) {
 }
 
 // Returns the time, title, and details shown for an event.
-function describe(event, day) {
+function describe(event, day, preview = false) {
   const d = event.display_details ?? {};
   switch (event.kind) {
     case 'FLIGHT':
@@ -83,7 +83,7 @@ function describe(event, day) {
     case 'ATTRACTION':
       return [
         `${formatTime(event.start)}–${formatTime(event.end)}`,
-        <button
+        preview ? event.name : <button
           type="button"
           className="attraction-link"
           aria-haspopup="dialog"
@@ -158,8 +158,8 @@ function DelayButton({ event }) {
   );
 }
 
-function Event({ event, day, editable }) {
-  const [time, title, detail] = describe(event, day);
+function Event({ event, day, editable, preview }) {
+  const [time, title, detail] = describe(event, day, preview);
   const price = event.price_inr == null ? '' : event.price_inr === 0 ? 'Free' : formatINR(event.price_inr);
   return (
     <li className={`event event--${event.kind.toLowerCase()}`}>
@@ -171,7 +171,7 @@ function Event({ event, day, editable }) {
         </p>
         {detail && <p className="event__detail">{detail}</p>}
         {editable && <EventActions event={event} />}
-        {event.item_id === 'flight:arrival' && <DelayButton event={event} />}
+        {!preview && event.item_id === 'flight:arrival' && <DelayButton event={event} />}
       </div>
       <div className="event__price">{price}</div>
     </li>
@@ -181,9 +181,10 @@ function Event({ event, day, editable }) {
 /**
  * @param {{ editable?: boolean, days: Array<{ date: string, day_number: number, day_type: string, city: string,
  *   from_city: string|null, overnight: {item_id: string, name: string}|null, events: object[] }> }} props
+ *   preview: an unsaved option (pick-your-trip): no delay, change or detail buttons, since no package exists yet.
  * @returns {JSX.Element}
  */
-export default function DayTimeline({ days, editable = false }) {
+export default function DayTimeline({ days, editable = false, preview = false }) {
   return (
     <ol className="days">
       {days.map((day) => (
@@ -197,10 +198,10 @@ export default function DayTimeline({ days, editable = false }) {
           </header>
           <ol className="events">
             {day.events.map((event) => (
-              <Event key={`${event.kind}:${event.item_id}`} event={event} day={day.date} editable={editable} />
+              <Event key={`${event.kind}:${event.item_id}`} event={event} day={day.date} editable={editable && !preview} preview={preview} />
             ))}
           </ol>
-          {editable && day.day_type !== 'DEPARTURE' && (
+          {editable && !preview && day.day_type !== 'DEPARTURE' && (
             <button
               type="button"
               className="btn btn--small change-trigger change-trigger--add"

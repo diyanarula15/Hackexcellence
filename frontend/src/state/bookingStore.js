@@ -9,9 +9,9 @@
 
 import { createStore } from './store.js';
 import { ApiError } from '../services/apiClient.js';
+import { searchPackageOptions, selectPackageOption as postSelectOption } from '../services/packageOptionsApi.js';
 import {
   applyPackageChange,
-  createPackage,
   exportPackage,
   getDelayScenarios,
   getMeta,
@@ -89,6 +89,12 @@ export const bookingStore = createStore({
   attractionDetails: { open: false, attraction_id: null, item_id: null, date: null },
   /** Which top-level overlay is open: null | 'landscape' | 'saved' | 'lookup' */
   panel: null,
+  /**
+   * The "pick your trip" step (Phase 8B). The options themselves are result.response when
+   * result.status === 'OPTIONS' (result.status === 'SEARCHING' while they load).
+   * previewId: option whose details are open; selectingId: option being saved; error: message.
+   */
+  optionPick: { previewId: null, selectingId: null, error: null },
 });
 
 const get = bookingStore.getState;
@@ -215,16 +221,27 @@ function showResult(result, focus = true) {
 export async function generatePackage({ objective } = {}) {
   if (get().submit.status === 'loading') return;
   const body = { ...toRequestBody(get().form), ...(objective ? { objective } : {}) };
-  set({ submit: { status: 'loading', fieldErrors: {}, message: null } });
+  const previous = get().result;
+  set({ submit: { status: 'loading', fieldErrors: {}, message: null }, optionPick: CLOSED_PICK });
+  showResult({ status: 'SEARCHING', request: body }); // option cards show as skeletons meanwhile
+  const mine = resultSeq;
   try {
-    const response = await createPackage(body);
+    const response = await searchPackageOptions(body);
+    if (mine !== resultSeq) return;
     set({ submit: { status: 'idle', fieldErrors: {}, message: null } });
+    if (response.status === 'OPTIONS') {
+      // nothing is saved yet: the traveler picks one first
+      writePackageIdToUrl(null, 'push');
+      showResult({ status: 'OPTIONS', packageId: null, response }, false);
+      return;
+    }
     const packageId = response.package?.id ?? null;
     writePackageIdToUrl(packageId, 'push');
-    showResult({ status: response.status, packageId, response });
+    showResult({ status: response.status, packageId, response }, false);
     // no trip, or no trip within budget: look for the nearest searches that do work
     if (response.status === 'INFEASIBLE' || response.status === 'OVER_BUDGET') loadAlternatives(body);
   } catch (error) {
+    if (mine === resultSeq) showResult(previous, false); // keep what was open before the search
     if (error instanceof ApiError && error.status === 422 && error.body?.field_errors) {
       set({
         submit: { status: 'invalid', fieldErrors: error.body.field_errors, message: error.body.message },
@@ -232,6 +249,42 @@ export async function generatePackage({ objective } = {}) {
     } else {
       set({ submit: { status: 'error', fieldErrors: {}, message: error.message } });
     }
+  }
+}
+
+// ── Pick your trip (Phase 8B) ───────────────────────────────────────────────
+const CLOSED_PICK = Object.freeze({ previewId: null, selectingId: null, error: null });
+
+/** Open (or with null, close) the read-only details of one option. Nothing is saved. */
+export function previewPackageOption(optionId) {
+  set((state) => ({ optionPick: { ...state.optionPick, previewId: optionId, error: null } }));
+}
+
+/**
+ * Choose one option: the backend saves ONLY that one as a normal PLANNED package, and the usual
+ * itinerary view opens for it. Ignored while another choice is being saved.
+ */
+export async function choosePackageOption(optionId) {
+  const { result, optionPick } = get();
+  if (result.status !== 'OPTIONS' || optionPick.selectingId) return;
+  const searchId = result.response.search_id;
+  set({ optionPick: { previewId: null, selectingId: optionId, error: null } });
+  try {
+    const response = await postSelectOption(searchId, optionId);
+    if (get().result.status !== 'OPTIONS' || get().result.response?.search_id !== searchId) return;
+    const packageId = response.package?.id ?? null;
+    set({ optionPick: CLOSED_PICK });
+    writePackageIdToUrl(packageId, 'push');
+    showResult({ status: response.status, packageId, response });
+  } catch (error) {
+    const expired = error instanceof ApiError && (error.status === 404 || error.status === 410);
+    set({
+      optionPick: {
+        previewId: null,
+        selectingId: null,
+        error: expired ? 'These options have expired. Search again to see fresh ones.' : error.message,
+      },
+    });
   }
 }
 
@@ -280,6 +333,7 @@ export function startNewSearch() {
     form: EMPTY_FORM,
     submit: { status: 'idle', fieldErrors: {}, message: null },
     alternatives: { status: 'idle', data: null, error: null },
+    optionPick: CLOSED_PICK,
   });
 }
 

@@ -258,6 +258,12 @@ def create_package(body: Annotated[Any, Body()] = None):
             "field": GENERAL, "rule": "R-REQ-OBJECTIVE",
             "message": "objective must be WITHIN_BUDGET or MINIMUM_COST."}]).payload())
     result = build_package(trip, catalog, objective)
+    return respond_to_planning(trip, original, result, catalog)
+
+
+def respond_to_planning(trip, original, result, catalog) -> JSONResponse:
+    """The answer for one planner result: 422, the non-saved statuses (200), or the saved package
+    (201 FOUND / OVER_BUDGET). Shared by POST /api/packages and POST /api/package-options."""
     if (
         "INVALID_REQUEST" in result.reason_codes
     ):  # the planner's own request check (already passed above)
