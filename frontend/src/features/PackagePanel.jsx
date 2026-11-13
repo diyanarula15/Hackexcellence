@@ -2,10 +2,16 @@
 import { Fragment, useEffect, useRef, useState } from 'react';
 import { useStore } from '../state/store.js';
 import PlaneButton from './PlaneButton.jsx';
-import { bookingStore, exportCurrentPackage, generatePackage, retryResult } from '../state/bookingStore.js';
+import {
+  bookingStore,
+  dismissChangeNotice,
+  exportCurrentPackage,
+  generatePackage,
+  retryResult,
+} from '../state/bookingStore.js';
+import ChangeDrawer from './ChangeDrawer.jsx';
 import DayTimeline from './DayTimeline.jsx';
 import { formatDate, formatINR, formatTravelers, humanize, plural, scrollToPlanner } from './format.js';
-
 const PRICE_ROWS = [
   ['flights', 'Flights'],
   ['hotels', 'Hotels'],
@@ -176,10 +182,25 @@ function SavedAs({ pkg }) {
   );
 }
 
+function ChangeNotice() {
+  const notice = useStore(bookingStore, (s) => s.change.notice);
+  if (!notice) return null;
+  return (
+    <p className="change-notice" role="status">
+      {notice}{' '}
+      <button type="button" className="link-button" onClick={dismissChangeNotice}>
+        Dismiss
+      </button>
+    </p>
+  );
+}
+
 function PackageView({ response }) {
   const pkg = response.package;
   return (
     <div className="pkg">
+      <ChangeNotice />
+      <ChangeDrawer />
       <header className="pkg__header">
         <p className="eyebrow">Your holiday package</p>
         <h2 className="pkg__title" id="results-title">
@@ -210,7 +231,7 @@ function PackageView({ response }) {
           <h3 className="eyebrow" id="days-title">
             Day by day · all times local
           </h3>
-          <DayTimeline days={pkg.days} />
+          <DayTimeline days={pkg.days} editable={pkg.status === 'PLANNED'} />
         </section>
       </div>
     </div>

@@ -1,5 +1,6 @@
 // The backend returns events in itinerary order; this component only formats them.
 
+import { openChange, previewRemoveAttraction } from '../state/bookingStore.js';
 import { formatDay, formatDuration, formatINR, formatTime, humanize, plural } from './format.js';
 
 const DAY_TITLE = {
@@ -81,7 +82,51 @@ function describe(event, day) {
   }
 }
 
-function Event({ event, day }) {
+/** The change/remove buttons for one event, or null when the event cannot be changed. */
+function EventActions({ event }) {
+  const id = event.item_id;
+  const open = (target) => (e) => openChange(target, e.currentTarget);
+  const button = (label, kind, extra, target) => (
+    <button
+      type="button"
+      className="btn btn--small change-trigger"
+      data-change-kind={kind}
+      {...extra}
+      aria-label={`${label}: ${event.name}`}
+      onClick={open({ kind, label: `${label}: ${event.name}`, ...target })}
+    >
+      {label}
+    </button>
+  );
+  switch (event.kind) {
+    case 'FLIGHT':
+      return id === 'flight:return'
+        ? button('Change flight', 'return_flight', {}, {})
+        : button('Change flight', 'arrival_flight', {}, {});
+    case 'CHECK_IN':
+      return button('Change hotel', 'hotel', { 'data-stay-id': id }, { stay_id: id });
+    case 'TRANSFER': {
+      const kind = id === 'leg:arrival' || id === 'leg:departure' ? 'airport_transfer' : 'intercity_transfer';
+      return button('Change transfer', kind, { 'data-item-id': id }, { item_id: id });
+    }
+    case 'ATTRACTION':
+      return (
+        <button
+          type="button"
+          className="btn btn--small change-trigger"
+          data-remove-item={id}
+          aria-label={`Remove: ${event.name}`}
+          onClick={(e) => previewRemoveAttraction(id, e.currentTarget, `Remove: ${event.name}`)}
+        >
+          Remove
+        </button>
+      );
+    default:
+      return null;
+  }
+}
+
+function Event({ event, day, editable }) {
   const [time, title, detail] = describe(event, day);
   const price = event.price_inr == null ? '' : event.price_inr === 0 ? 'Free' : formatINR(event.price_inr);
   return (
@@ -93,6 +138,7 @@ function Event({ event, day }) {
           {title}
         </p>
         {detail && <p className="event__detail">{detail}</p>}
+        {editable && <EventActions event={event} />}
       </div>
       <div className="event__price">{price}</div>
     </li>
@@ -100,11 +146,11 @@ function Event({ event, day }) {
 }
 
 /**
- * @param {{ days: Array<{ date: string, day_number: number, day_type: string, city: string,
+ * @param {{ editable?: boolean, days: Array<{ date: string, day_number: number, day_type: string, city: string,
  *   from_city: string|null, overnight: {item_id: string, name: string}|null, events: object[] }> }} props
  * @returns {JSX.Element}
  */
-export default function DayTimeline({ days }) {
+export default function DayTimeline({ days, editable = false }) {
   return (
     <ol className="days">
       {days.map((day) => (
@@ -118,9 +164,22 @@ export default function DayTimeline({ days }) {
           </header>
           <ol className="events">
             {day.events.map((event) => (
-              <Event key={`${event.kind}:${event.item_id}`} event={event} day={day.date} />
+              <Event key={`${event.kind}:${event.item_id}`} event={event} day={day.date} editable={editable} />
             ))}
           </ol>
+          {editable && day.day_type !== 'DEPARTURE' && (
+            <button
+              type="button"
+              className="btn btn--small change-trigger change-trigger--add"
+              data-change-kind="attraction"
+              data-date={day.date}
+              onClick={(e) =>
+                openChange({ kind: 'attraction', date: day.date, label: `Add attraction on ${formatDay(day.date)}` }, e.currentTarget)
+              }
+            >
+              Add attraction
+            </button>
+          )}
         </li>
       ))}
     </ol>

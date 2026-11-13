@@ -12,7 +12,7 @@ Nothing is persisted and neither the existing package (immutable) nor the catalo
 The traveler's budget is reported as a warning, never used to reject an explicit edit, and the
 city plan, dates, country and travelers are never changed here (that is a separate request change).
 """
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from datetime import date
 from types import SimpleNamespace
 
@@ -27,7 +27,7 @@ from app.engine.schedule import classify_days, find_start, fits, make_visit, tra
 from app.engine.transfers import (find_arrival_transfers, find_intercity_transfers,
                                   find_return_transfers)
 from app.export.to_trip import to_trip_json
-from app.lib.time import at, overlaps
+from app.lib.time import at, overlaps, parse_dt
 from app.rules.common import EDITED, FlightSel, Party, Stay, TransferSel, Violation, Visit
 from app.rules.attractions import check_attractions
 from app.rules.flights import check_flights
@@ -132,6 +132,28 @@ def derive_changes(pkg: Package, con: PlanningConstraints) -> list[dep.Change]:
     return out
 
 
+def component_ids(trip: dict, pkg: Package) -> dict[str, str]:
+    """Export item id (i1, i2, ...) -> package item id (flight:arrival, stay id, leg id, visit:<id>),
+    matched by type, catalog id and start, so validator findings name the package's own items."""
+    stays = {(h.hotel_id, h.check_in.isoformat()): h.stay_id for h in pkg.hotels}
+    legs = {(t.transfer_id, t.pickup): t.leg_id
+            for t in (pkg.arrival_transfer, *pkg.intercity, pkg.departure_transfer)}
+    out = {}
+    for it in trip["items"]:
+        kind, cid = it["type"], it["catalog_id"]
+        if kind == "flight":
+            comp = "flight:arrival" if cid == pkg.arrival_flight.flight_id else "flight:return"
+        elif kind == "hotel":
+            comp = stays.get((cid, str(it["start"])[:10]))
+        elif kind == "transfer":
+            comp = legs.get((cid, parse_dt(it["start"])))
+        else:
+            comp = f"visit:{cid}"
+        if comp:
+            out[it["item_id"]] = comp
+    return out
+
+
 def propose_repair(existing_package: Package, constraints: PlanningConstraints, catalog) -> ChangeProposal:
     old = existing_package
     try:
@@ -175,11 +197,13 @@ def _repair(old: Package, con: PlanningConstraints, cat) -> ChangeProposal:
                                        _desc_flight(match[0]), match[0].price - current.price,
                                        f"Traveler chose {which} flight {want}."))
             return match[0]
-        sels = ([FlightSel(None, want), FlightSel(None, old.return_flight.flight_id)] if which == "arrival"
-                else [FlightSel(None, old.arrival_flight.flight_id), FlightSel(None, want)])
+        sels = ([FlightSel("flight:arrival", want), FlightSel("flight:return", old.return_flight.flight_id)]
+                if which == "arrival" else
+                [FlightSel("flight:arrival", old.arrival_flight.flight_id), FlightSel("flight:return", want)])
         why = check_flights(sels, old.home_airport, old.country_code, plan.first_city, plan.last_city,
                             plan.start_date, plan.end_date, party, cat)
-        raise _Reject([_lock_violation(f"The chosen {which} flight {want} cannot be used for this trip.")] + why)
+        raise _Reject([_lock_violation(f"The chosen {which} flight {want} cannot be used for this trip.",
+                                      f"flight:{which}")] + why)
 
     arr = pick_flight(con.arrival_flight_id, old.arrival_flight, find_arrival_flights, compatible_arrivals, "arrival")
     ret = pick_flight(con.return_flight_id, old.return_flight, find_return_flights, compatible_returns, "return")
@@ -196,10 +220,10 @@ def _repair(old: Package, con: PlanningConstraints, cat) -> ChangeProposal:
         if not opts:
             room = ix.rooms_by_id.get(lock.room_id)
             k = lock.rooms or (min_rooms(room, party.adults, party.children) if room else None) or 1
-            why = check_hotels([Stay(None, lock.hotel_id, lock.room_id, stay.city, stay.check_in,
+            why = check_hotels([Stay(stay.stay_id, lock.hotel_id, lock.room_id, stay.city, stay.check_in,
                                      stay.check_out, k)], party, cat)
             raise _Reject([_lock_violation(f"The chosen hotel {lock.hotel_id} / room {lock.room_id} cannot "
-                                           f"host the travelers in {stay.city} for these nights.")] + why)
+                                           f"host the travelers in {stay.city} for these nights.", stay.stay_id)] + why)
         hotels.append(opts[0])
         changed.append(ChangedItem(stay.stay_id, USER_CHOICE, "REPLACED", _desc_hotel(h), _desc_hotel(opts[0]),
                                    opts[0].total_price - h.total_price,
@@ -216,9 +240,9 @@ def _repair(old: Package, con: PlanningConstraints, cat) -> ChangeProposal:
             if not opts and not lock.pickup:
                 opts = finder(TransferLock(lock.catalog_id))
             if not opts:
-                why = why_fn(TransferSel(None, lock.catalog_id, lock.pickup or current.pickup))
+                why = why_fn(TransferSel(leg_id, lock.catalog_id, lock.pickup or current.pickup))
                 raise _Reject([_lock_violation(f"The chosen {label} {lock.catalog_id} cannot be used here; "
-                                               "it was not replaced.")] + why)
+                                               "it was not replaced.", leg_id)] + why)
             new, source, reason = opts[0], USER_CHOICE, f"Traveler chose {label} {lock.catalog_id}."
         else:
             opts = finder(TransferLock(current.transfer_id, current.pickup))
@@ -231,15 +255,15 @@ def _repair(old: Package, con: PlanningConstraints, cat) -> ChangeProposal:
                 every = finder(None)
                 if not every:
                     raise _Reject([Violation("NO_" + label.upper().replace(" ", "_"),
-                                             f"After this change no {label} works, so the change is refused.")]
-                                  + why_fn(TransferSel(None, current.transfer_id, current.pickup)))
+                                             f"After this change no {label} works, so the change is refused.", leg_id)]
+                                  + why_fn(TransferSel(leg_id, current.transfer_id, current.pickup)))
                 new = min(every, key=lambda t: (abs((t.pickup - current.pickup).total_seconds()),
                                                 t.price, t.transfer_id))
                 reason = f"The previous {label} no longer fits, so the closest valid service replaces it."
             source = AUTOMATIC_REPAIR
             if leg_id not in scope:
                 raise _Reject([Violation(REPAIR_OUT_OF_SCOPE,
-                                         f"The {label} would have to change, which this edit does not allow.")])
+                                         f"The {label} would have to change, which this edit does not allow.", leg_id)])
         if new != current:
             action = "RESCHEDULED" if new.transfer_id == current.transfer_id else "REPLACED"
             changed.append(ChangedItem(leg_id, source, action, _desc_transfer(current), _desc_transfer(new),
@@ -287,7 +311,7 @@ def _repair(old: Package, con: PlanningConstraints, cat) -> ChangeProposal:
         st = start or find_start(a, day, []) or at(day, a["open_from"])
         v = make_visit(a, st, party)
         ready = {plan.start_date: t_arr.arrive, **{d: t.arrive for (_, _, d), t in zip(plan.legs(), legs)}}
-        return check_attractions([Visit(None, aid, v.start, v.end)], stays_sel, plan.start_date,
+        return check_attractions([Visit(f"visit:{aid}", aid, v.start, v.end)], stays_sel, plan.start_date,
                                  plan.end_date, ready, [], EDITED, cat)
 
     placed = []                                    # visits fixed so far
@@ -313,7 +337,7 @@ def _repair(old: Package, con: PlanningConstraints, cat) -> ChangeProposal:
         if start is None:
             raise _Reject([_lock_violation(f"Attraction {r.attraction_id} cannot be visited on "
                                            f"{r.day.isoformat()}" + (f" at {r.start:%H:%M}" if r.start else "")
-                                           + ".")] + explain_visit(r.attraction_id, r.day, r.start))
+                                           + ".", f"visit:{r.attraction_id}")] + explain_visit(r.attraction_id, r.day, r.start))
         new = make_visit(a, start, party)
         placed.append(new)
         changed.append(ChangedItem(f"visit:{r.attraction_id}", USER_CHOICE,
@@ -341,7 +365,8 @@ def _repair(old: Package, con: PlanningConstraints, cat) -> ChangeProposal:
         scope_id = dep.visits_scope(day)
         if scope_id not in scope:
             raise _Reject([Violation(REPAIR_OUT_OF_SCOPE, f"Visit {v.attraction_id} on {day.isoformat()} "
-                                                          "would have to change, which this edit does not allow.")])
+                                                          "would have to change, which this edit does not allow.",
+                                     f"visit:{v.attraction_id}")])
         if start is not None:
             new = make_visit(a, start, party)
             placed.append(new)
@@ -350,8 +375,8 @@ def _repair(old: Package, con: PlanningConstraints, cat) -> ChangeProposal:
                                        f"{v.attraction_id} moved to keep the day free of conflicts."))
         elif hit_required:
             raise _Reject([_lock_violation(f"The requested attraction overlaps {v.attraction_id} on "
-                                           f"{day.isoformat()} and that visit cannot be moved."),
-                           Violation("R-ATT-8", f"Visits overlap on {day.isoformat()}.")])
+                                           f"{day.isoformat()} and that visit cannot be moved.", f"visit:{v.attraction_id}"),
+                           Violation("R-ATT-8", f"Visits overlap on {day.isoformat()}.", f"visit:{v.attraction_id}")])
         else:
             changed.append(ChangedItem(f"visit:{v.attraction_id}", AUTOMATIC_REPAIR, "REMOVED", _desc_visit(v),
                                        None, -v.price,
@@ -361,9 +386,11 @@ def _repair(old: Package, con: PlanningConstraints, cat) -> ChangeProposal:
     new_pkg = old.with_(arrival_flight=arr, return_flight=ret, hotels=tuple(hotels), arrival_transfer=t_arr,
                         departure_transfer=t_dep, intercity=tuple(legs),
                         visits=tuple(sorted(placed, key=lambda v: (v.start, v.attraction_id))))
-    violations = validate_trip(to_trip_json(new_pkg, cat), cat, EDITED)
+    trip = to_trip_json(new_pkg, cat)
+    violations = validate_trip(trip, cat, EDITED)
     if violations:
-        raise _Reject(violations)
+        ids = component_ids(trip, new_pkg)
+        raise _Reject([replace(v, item_id=ids.get(v.item_id, v.item_id)) for v in violations])
 
     warnings = []
     if new_pkg.total > new_pkg.budget:

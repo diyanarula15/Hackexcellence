@@ -50,4 +50,4 @@ cd frontend && npm install && npm run dev   # UI on http://localhost:5173 (proxi
 
 Saved packages live in SQLite at `backend/app.db` (created on startup, git-ignored; `HOLIDAY_DB_PATH` overrides the location).
 
-Endpoints so far: `GET /api/health`, `GET /api/meta`, `POST /api/validate`, `POST /api/packages` (plan and save a package), `GET /api/packages/{id}` (saved package, never re-planned), `GET /api/packages/{id}/export` (trip JSON download).
+Endpoints so far: `GET /api/health`, `GET /api/meta`, `POST /api/validate`, `POST /api/packages` (plan and save a package), `GET /api/packages/{id}` (saved package, never re-planned), `GET /api/packages/{id}/export` (trip JSON download), `GET /api/packages/{id}/options` (valid and invalid replacements for one item), `POST /api/packages/{id}/preview-change` (full result of one change, nothing saved), `POST /api/packages/{id}/apply-change` (recomputes, validates and saves one change atomically; 409 on an outdated version).

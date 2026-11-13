@@ -15,3 +15,12 @@ def child_unit(rec: dict, adult_key: str) -> int:
 
 def inr(value: int) -> dict:
     return {"amount": int(value), "currency": CURRENCY}
+
+
+def rupees(value: int) -> str:
+    """Indian digit grouping for messages: 215544 -> '₹2,15,544', -1200 -> '-₹1,200'."""
+    digits = str(abs(int(value)))
+    head, tail = digits[:-3], digits[-3:]
+    while len(head) > 2:
+        head, tail = head[:-2], f"{head[-2:]},{tail}"
+    return ("-" if value < 0 else "") + "₹" + (f"{head},{tail}" if head else tail)

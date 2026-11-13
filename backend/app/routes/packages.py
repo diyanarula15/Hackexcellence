@@ -8,6 +8,9 @@ repositories.packages. No planning, pricing or travel-rule logic lives here.
                                        200 SEARCH_INCOMPLETE | 422 INVALID_REQUEST
   GET  /api/packages/{id}              200 (the saved package, never re-planned) | 404
   GET  /api/packages/{id}/export       200 trip JSON file (DATA_DICTIONARY section 4) | 404
+  GET  /api/packages/{id}/options      200 alternatives | 404 | 409 BOOKED | 422
+  POST /api/packages/{id}/preview-change  200 (valid or not, never saved) | 404 | 409 | 422
+  POST /api/packages/{id}/apply-change    200 saved | 404 | 409 | 422
 """
 
 import json
@@ -16,17 +19,20 @@ import re
 from dataclasses import asdict
 from typing import Annotated, Any
 
-from fastapi import APIRouter, Body
+from fastapi import APIRouter, Body, Request
 from fastapi.responses import JSONResponse, Response
 from pydantic import ValidationError
 
 from app.catalog.load import load_catalog
 from app.engine.build import FOUND, OVER_BUDGET, WITHIN_BUDGET, build_package
 from app.export.to_trip import to_trip_json
+from app.lib.money import rupees
 from app.models import TripRequest
 from app.repositories import packages as repo
 from app.rules.common import INITIAL
 from app.rules.request import check_request
+from app.services import modifications as mods
+from app.services.alternatives import OptionsRequestError
 from app.services.itinerary import present_package
 from app.validate.validate_trip import validate_trip
 
@@ -57,10 +63,17 @@ RULE_FIELDS = {
 }
 GENERAL = "request"  # field key for an error that is not about a single field
 
-NOT_FOUND = {"error": "PACKAGE_NOT_FOUND", "message": "This holiday package could not be found."}
+NOT_FOUND = {
+    "error": "PACKAGE_NOT_FOUND",
+    "message": "This holiday package could not be found.",
+}
 UNREADABLE = {
     "error": "PACKAGE_UNREADABLE",
     "message": "This holiday package is stored but cannot be read.",
+}
+BOOKED = {
+    "error": "PACKAGE_ALREADY_BOOKED",
+    "message": "This holiday is already booked, so it can no longer be changed.",
 }
 EXPORT_FILENAME = "holiday-package.json"
 
@@ -111,7 +124,9 @@ def parse_trip_request(body: Any, catalog) -> tuple[TripRequest, dict]:
         raise InvalidRequest(errors)
     try:
         return TripRequest(**raw), original
-    except ValidationError as e:  # e.g. budget 0, or more travelers than any flight seats
+    except (
+        ValidationError
+    ) as e:  # e.g. budget 0, or more travelers than any flight seats
         raise InvalidRequest([_model_error(err) for err in e.errors()]) from None
 
 
@@ -142,23 +157,20 @@ def _in_form_words(message: str) -> str:
 def _model_error(err: dict) -> dict:
     """One pydantic error of TripRequest as a field error."""
     message = err["msg"].removeprefix("Value error, ")
-    if not err["loc"]:  # a whole-request check, e.g. more travelers than any flight can seat
-        return {"field": GENERAL, "rule": "R-REQ-MODEL", "message": _in_form_words(message)}
+    if not err[
+        "loc"
+    ]:  # a whole-request check, e.g. more travelers than any flight can seat
+        return {
+            "field": GENERAL,
+            "rule": "R-REQ-MODEL",
+            "message": _in_form_words(message),
+        }
     name = str(err["loc"][0])
     return {
         "field": _API_FIELD.get(name, GENERAL),
         "rule": "R-REQ-MODEL",
         "message": f"{_LABELS.get(name, name)}: {message[:1].lower()}{message[1:]}.",
     }
-
-
-def _rupees(amount: int) -> str:
-    """Indian digit grouping for messages: 215544 -> '₹2,15,544'."""
-    digits = str(abs(amount))
-    head, tail = digits[:-3], digits[-3:]
-    while len(head) > 2:
-        head, tail = head[:-2], f"{head[-2:]},{tail}"
-    return ("-" if amount < 0 else "") + "₹" + (f"{head},{tail}" if head else tail)
 
 
 def package_envelope(stored, catalog, planning=None) -> dict:
@@ -171,7 +183,11 @@ def package_envelope(stored, catalog, planning=None) -> dict:
     budget = view["budget"]
     over = not budget["within_budget"]
     straight_from_planner = stored.version == 1 and stored.validation_mode == INITIAL
-    total, shortfall, limit = budget["total_inr"], budget["over_budget_inr"], budget["budget_inr"]
+    total, shortfall, limit = (
+        budget["total_inr"],
+        budget["over_budget_inr"],
+        budget["budget_inr"],
+    )
 
     if planning is not None:
         reasons, codes = list(planning.reasons), list(planning.reason_codes)
@@ -193,7 +209,7 @@ def package_envelope(stored, catalog, planning=None) -> dict:
     suggestions = []
     if over:
         suggestions = [
-            f"Raise the budget to at least {_rupees(total)}.",
+            f"Raise the budget to at least {rupees(total)}.",
             "Or edit the trip: fewer nights, fewer travelers or other dates can cost less.",
         ]
     return {
@@ -234,7 +250,10 @@ def create_package(body: Annotated[Any, Body()] = None):
         return JSONResponse(
             status_code=422,
             content=InvalidRequest(
-                [{"field": GENERAL, "rule": "R-REQ", "message": m} for m in result.reasons]
+                [
+                    {"field": GENERAL, "rule": "R-REQ", "message": m}
+                    for m in result.reasons
+                ]
             ).payload(),
         )
     if result.status not in (FOUND, OVER_BUDGET) or result.package is None:
@@ -253,7 +272,10 @@ def create_package(body: Annotated[Any, Body()] = None):
 
     violations = validate_trip(to_trip_json(result.package, catalog), catalog, INITIAL)
     if violations:  # never save a package that breaks a rule
-        log.error("planner returned an invalid package: %s", sorted({v.rule for v in violations}))
+        log.error(
+            "planner returned an invalid package: %s",
+            sorted({v.rule for v in violations}),
+        )
         return JSONResponse(
             status_code=500,
             content={
@@ -267,7 +289,9 @@ def create_package(body: Annotated[Any, Body()] = None):
     stored, error = _load(package_id)  # answer with what was persisted
     if error is not None:
         return error
-    return JSONResponse(status_code=201, content=package_envelope(stored, catalog, planning=result))
+    return JSONResponse(
+        status_code=201, content=package_envelope(stored, catalog, planning=result)
+    )
 
 
 @router.get("/packages/{package_id}")
@@ -289,7 +313,9 @@ def export_package(package_id: str):
     violations = validate_trip(trip, catalog, stored.validation_mode)
     if violations:
         log.warning(
-            "export of %s has rule violations: %s", package_id, sorted({v.rule for v in violations})
+            "export of %s has rule violations: %s",
+            package_id,
+            sorted({v.rule for v in violations}),
         )
     return Response(
         content=json.dumps(trip, indent=2, ensure_ascii=False),
@@ -299,4 +325,118 @@ def export_package(package_id: str):
             "X-Validation-Mode": stored.validation_mode,
             "X-Trip-Valid": "false" if violations else "true",
         },
+    )
+
+
+def _editable(package_id: str):
+    """(stored, None) for a PLANNED package, else (None, the 404 / 409 BOOKED / 500 response)."""
+    stored, error = _load(package_id)
+    if error is not None:
+        return None, error
+    if stored.status != repo.PLANNED:
+        return None, JSONResponse(status_code=409, content=BOOKED)
+    return stored, None
+
+
+def _conflict(message: str, current: int) -> JSONResponse:
+    return JSONResponse(
+        status_code=409,
+        content={
+            "error": "PACKAGE_VERSION_CONFLICT",
+            "message": message,
+            "current_version": current,
+        },
+    )
+
+
+PREVIEW_STALE = "This holiday was updated after you opened it. Reload the latest package before previewing a change."
+APPLY_STALE = "This holiday was updated after your preview. Reload the latest package before applying another change."
+
+
+@router.get("/packages/{package_id}/options")
+def package_options(package_id: str, request: Request):
+    stored, error = _editable(package_id)
+    if error is not None:
+        return error
+    try:
+        return mods.options(stored, dict(request.query_params), load_catalog())
+    except OptionsRequestError as e:
+        return JSONResponse(
+            status_code=422,
+            content={
+                "error": "INVALID_OPTIONS_REQUEST",
+                "message": e.message,
+                "field": e.field,
+            },
+        )
+
+
+@router.post("/packages/{package_id}/preview-change")
+def preview_change(package_id: str, body: Annotated[Any, Body()] = None):
+    stored, error = _editable(package_id)
+    if error is not None:
+        return error
+    try:
+        command = mods.parse_change(body)
+    except mods.InvalidChange as e:
+        return JSONResponse(status_code=422, content=e.payload())
+    if command.base_version != stored.version:
+        return _conflict(PREVIEW_STALE, stored.version)
+    return mods.preview(stored, command, load_catalog())
+
+
+@router.post("/packages/{package_id}/apply-change")
+def apply_change(package_id: str, body: Annotated[Any, Body()] = None):
+    stored, error = _editable(package_id)
+    if error is not None:
+        return error
+    rest, token = mods.split_token(body)
+    if token is not None and not isinstance(token, str):
+        return JSONResponse(
+            status_code=422,
+            content=mods.InvalidChange(
+                [
+                    {
+                        "field": "preview_token",
+                        "rule": "R-CHG-REQ",
+                        "message": "preview_token must be the text returned by the preview.",
+                    }
+                ]
+            ).payload(),
+        )
+    try:
+        command = mods.parse_change(rest)
+    except mods.InvalidChange as e:
+        return JSONResponse(status_code=422, content=e.payload())
+    if command.base_version != stored.version:
+        return _conflict(APPLY_STALE, stored.version)
+    catalog = load_catalog()
+    try:
+        saved, change = mods.apply(package_id, command, token, catalog)
+    except repo.PackageNotFound:
+        return JSONResponse(status_code=404, content=NOT_FOUND)
+    except repo.PackageLocked:
+        return JSONResponse(status_code=409, content=BOOKED)
+    except repo.VersionConflict as e:
+        return _conflict(APPLY_STALE, e.current)
+    except mods.PreviewOutdated:
+        return JSONResponse(
+            status_code=409,
+            content={
+                "error": "PREVIEW_OUTDATED",
+                "message": "This change would now have a different result than the preview you saw. Preview it again before applying.",
+            },
+        )
+    except mods.ChangeInvalid as e:
+        return JSONResponse(
+            status_code=422,
+            content={
+                "error": "CHANGE_INVALID",
+                "message": e.message,
+                "violations": e.violations,
+            },
+        )
+    return JSONResponse(
+        status_code=200,
+        content={**package_envelope(saved, catalog), "applied": True, "change": change},
     )
